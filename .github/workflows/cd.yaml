@@ -70,7 +70,7 @@ jobs:
             echo "Processing $SERVICE with image $IMAGE_NAME"
             
             # Tag with version and SHA
-            GHCR_IMAGE="${REGISTRY}/${OWNER}/bashbuddy-${SERVICE}"
+            GHCR_IMAGE="${REGISTRY}/${OWNER}/kokoro-${SERVICE}"
             SHA_TAG=$(echo ${{ github.sha }} | cut -c1-7)
             
             docker tag $IMAGE_NAME $GHCR_IMAGE:$VERSION
