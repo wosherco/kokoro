@@ -2,9 +2,8 @@
 
 Contributions are welcome! Please read the following guide to help you get started.
 
-:::info
-This guide is not finished yet. A ton of details are missing. If you want to contribute, feel free to ask in the [Discord server](https://discord.com/invite/knDFUB5UtU).
-:::
+> [!NOTE]  
+> This guide is not finished yet. A ton of details are missing. If you want to contribute, feel free to ask in the [Discord server](https://discord.com/invite/knDFUB5UtU).
 
 ## Basic
 
