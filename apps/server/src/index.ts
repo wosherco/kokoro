@@ -11,7 +11,6 @@ import { validateSessionRequest } from "@kokoro/auth";
 
 import { env } from "./env";
 import { logger } from "./logger.ts";
-import { powersync } from "./routes/powersync";
 import { stripeWebhook } from "./routes/stripeWebhook";
 import { watchGoogleCalendar } from "./routes/watch/googleCalendar";
 import { linearWebhook } from "./routes/webhooks/linear.ts";
@@ -22,7 +21,7 @@ app.use(
   "*",
   pinoLogger({
     pino: logger,
-  }),
+  })
 );
 
 app.use(
@@ -36,7 +35,7 @@ app.use(
       env.PUBLIC_DEVELOPERS_URL,
     ],
     credentials: true,
-  }),
+  })
 );
 
 app.use(
@@ -53,11 +52,8 @@ app.use(
       });
     },
     router: appRouter,
-  }),
+  })
 );
-
-// Mount PowerSync routes
-app.route("/powersync", powersync);
 
 app.route("/watch/google-calendar", watchGoogleCalendar);
 
