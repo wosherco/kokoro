@@ -56,42 +56,42 @@ services:
       start_period: 10s
 
   kokoro-account:
-    image: ghcr.io/wosherco/kokoro
+    image: ghcr.io/wosherco/kokoro-account
     env_file:
       - .env
     ports:
       - "5174:5174"
 
   kokoro-authenticator:
-    image: ghcr.io/wosherco/kokoro
+    image: ghcr.io/wosherco/kokoro-authenticator
     env_file:
       - .env
     ports:
       - "5173:5173"
 
   kokoro-server:
-    image: ghcr.io/wosherco/kokoro
+    image: ghcr.io/wosherco/kokoro-server
     env_file:
       - .env
     ports:
       - "3001:3001"
 
   kokoro-consumer:
-    image: ghcr.io/wosherco/kokoro
+    image: ghcr.io/wosherco/kokoro-consumer
     env_file:
       - .env
     ports:
       - "3002:3002"
 
   kokoro-developers:
-    image: ghcr.io/wosherco/kokoro
+    image: ghcr.io/wosherco/kokoro-developers
     env_file:
       - .env
     ports:
       - "5177:5177"
 
   kokoro-migrator:
-    image: ghcr.io/wosherco/kokoro
+    image: ghcr.io/wosherco/kokoro-migrator
     env_file:
       - .env
 
