@@ -1,0 +1,101 @@
+services:
+  postgres:
+    image: timescale/timescaledb-ha:pg16-all
+    command: ["postgres", "-c", "wal_level=logical"]
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      # POSTGRES_DB: socketless
+    ports:
+      - 5432
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:4-management
+    ports:
+      - "5672"
+      # Optional management UI port
+      # - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: password
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  dragonfly:
+    image: "docker.dragonflydb.io/dragonflydb/dragonfly"
+    ulimits:
+      memlock: -1
+    ports:
+      - "6379"
+    volumes:
+      - dragonfly-data:/data
+
+  embedding-service:
+    image: ghcr.io/wosherco/all-minilm-l6-v2-restapi-service
+    ports:
+      - "3000"
+    environment:
+      - RUST_LOG=info
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  kokoro-account:
+    image: ghcr.io/wosherco/kokoro
+    env_file:
+      - .env
+    ports:
+      - "5174:5174"
+
+  kokoro-authenticator:
+    image: ghcr.io/wosherco/kokoro
+    env_file:
+      - .env
+    ports:
+      - "5173:5173"
+
+  kokoro-server:
+    image: ghcr.io/wosherco/kokoro
+    env_file:
+      - .env
+    ports:
+      - "3001:3001"
+
+  kokoro-consumer:
+    image: ghcr.io/wosherco/kokoro
+    env_file:
+      - .env
+    ports:
+      - "3002:3002"
+
+  kokoro-developers:
+    image: ghcr.io/wosherco/kokoro
+    env_file:
+      - .env
+    ports:
+      - "5177:5177"
+
+  kokoro-migrator:
+    image: ghcr.io/wosherco/kokoro
+    env_file:
+      - .env
+
+volumes:
+  postgres-data:
+  rabbitmq_data:
+  dragonfly-data:

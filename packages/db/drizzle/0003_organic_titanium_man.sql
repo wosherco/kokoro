@@ -1,0 +1,1 @@
+ALTER TABLE "memory_event" DROP CONSTRAINT "memory_event_recurring_event_platform_id_recurring_event_platform_calendar_id_platform_account_id_memory_event_platform_id_platform_calendar_id_platform_account_id_fk";

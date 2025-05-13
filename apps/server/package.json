@@ -1,0 +1,50 @@
+{
+  "name": "@kokoro/server",
+  "module": "src/index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "bun run src/index.ts",
+    "start:env": "infisical run --env prod -- bun run src/index.ts",
+    "dev": "PUBLIC_ENVIRONMENT=development bun run --watch src/index.ts",
+    "dev:env": "infisical run --env dev -- pnpm dev",
+    "dev:dotenv": "dotenv -e ../../.env -- pnpm dev",
+    "clean": "rm -rf .turbo node_modules",
+    "format": "biome format .",
+    "format:fix": "biome format --write .",
+    "lint": "biome lint .",
+    "lint:fix": "biome lint --write .",
+    "check": "biome check .",
+    "check:fix": "biome check --write .",
+    "typecheck": "tsc --noEmit --emitDeclarationOnly false"
+  },
+  "devDependencies": {
+    "@kokoro/envs": "workspace:*",
+    "@kokoro/biome-config": "workspace:*",
+    "@kokoro/tsconfig": "workspace:*",
+    "@types/bun": "latest",
+    "dotenv-cli": "7.4.2",
+    "@biomejs/biome": "catalog:",
+    "typescript": "catalog:",
+    "hono-pino": "catalog:"
+  },
+  "dependencies": {
+    "@hono/trpc-server": "^0.3.2",
+    "@hono/zod-openapi": "^0.19.6",
+    "@kokoro/api": "workspace:*",
+    "@kokoro/auth": "workspace:*",
+    "@kokoro/linear": "workspace:*",
+    "@kokoro/jwt": "workspace:*",
+    "@kokoro/db": "workspace:*",
+    "@kokoro/queues": "workspace:*",
+    "@kokoro/validators": "workspace:*",
+    "@kokoro/stripe": "workspace:*",
+    "@kokoro/logger": "workspace:*",
+    "@ngrok/ngrok": "^1.4.1",
+    "@sentry/bun": "^8.50.0",
+    "@t3-oss/env-core": "catalog:",
+    "@trpc/server": "catalog:",
+    "hono": "catalog:",
+    "zod": "catalog:"
+  }
+}

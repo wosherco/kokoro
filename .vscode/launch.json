@@ -1,0 +1,22 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "dev",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "pnpm dev",
+      "cwd": "${workspaceFolder}",
+      "skipFiles": ["<node_internals>/**"]
+    },
+    {
+      "name": "consumer",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "pnpm -F consumer dev:env",
+      "cwd": "${workspaceFolder}",
+      "skipFiles": ["<node_internals>/**"],
+      "autoAttachChildProcesses": true
+    }
+  ]
+}

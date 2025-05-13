@@ -1,0 +1,60 @@
+{
+  "name": "@kokoro/brain",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/src/index.d.ts",
+      "default": "./src/index.ts"
+    },
+    "./reminders": {
+      "types": "./dist/src/reminders.d.ts",
+      "default": "./src/reminders.ts"
+    },
+    "./calendar": {
+      "types": "./dist/src/calendar/index.d.ts",
+      "default": "./src/calendar/index.ts"
+    },
+    "./people": {
+      "types": "./dist/src/people/index.d.ts",
+      "default": "./src/people/index.ts"
+    },
+    "./tasks": {
+      "types": "./dist/src/tasks/index.d.ts",
+      "default": "./src/tasks/index.ts"
+    },
+    "./env": "./src/env.ts"
+  },
+  "license": "Apache-2.0",
+  "scripts": {
+    "build": "tsc",
+    "clean": "git clean -xdf .cache .turbo dist node_modules",
+    "dev": "tsc --watch",
+    "format": "biome format .",
+    "format:fix": "biome format --write .",
+    "lint": "biome lint .",
+    "lint:fix": "biome lint --write .",
+    "check": "biome check .",
+    "check:fix": "biome check --write .",
+    "typecheck": "tsc --noEmit --emitDeclarationOnly false"
+  },
+  "dependencies": {
+    "@kokoro/db": "workspace:*",
+    "@kokoro/google": "workspace:*",
+    "@kokoro/common": "workspace:*",
+    "@kokoro/rrule": "workspace:*",
+    "@kokoro/linear": "workspace:*",
+    "@kokoro/queues": "workspace:*",
+    "@kokoro/validators": "workspace:*",
+    "@t3-oss/env-core": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@kokoro/biome-config": "workspace:*",
+    "@kokoro/tsconfig": "workspace:*",
+    "dotenv-cli": "catalog:",
+    "@biomejs/biome": "catalog:",
+    "typescript": "catalog:"
+  }
+}

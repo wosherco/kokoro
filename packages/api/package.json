@@ -1,0 +1,61 @@
+{
+  "name": "@kokoro/api",
+  "version": "0.1.3",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/src/index.d.ts",
+      "default": "./src/index.ts"
+    },
+    "./logic": {
+      "types": "./dist/src/logic/index.d.ts",
+      "default": "./src/logic/index.ts"
+    },
+    "./utils/*": {
+      "types": "./dist/src/utils/*.d.ts",
+      "default": "./src/utils/*.ts"
+    },
+    "./env": "./env.ts"
+  },
+  "license": "Apache-2.0",
+  "scripts": {
+    "build": "tsc",
+    "clean": "git clean -xdf .cache .turbo dist node_modules",
+    "dev": "tsc --watch",
+    "format": "biome format .",
+    "format:fix": "biome format --write .",
+    "lint": "biome lint .",
+    "lint:fix": "biome lint --write .",
+    "check": "biome check .",
+    "check:fix": "biome check --write .",
+    "typecheck": "tsc --noEmit --emitDeclarationOnly false"
+  },
+  "dependencies": {
+    "@date-fns/tz": "catalog:",
+    "@kokoro/auth": "workspace:*",
+    "@kokoro/brain": "workspace:*",
+    "@kokoro/db": "workspace:*",
+    "@kokoro/google": "workspace:*",
+    "@kokoro/rrule": "workspace:*",
+    "@kokoro/common": "workspace:*",
+    "@kokoro/envs": "workspace:*",
+    "@kokoro/jwt": "workspace:*",
+    "@kokoro/ratelimit": "workspace:*",
+    "@kokoro/validators": "workspace:*",
+    "@kokoro/queues": "workspace:*",
+    "@t3-oss/env-core": "catalog:",
+    "@trpc/server": "catalog:",
+    "lodash.isnil": "^4.0.0",
+    "nanoid": "catalog:",
+    "superjson": "2.2.1",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@kokoro/biome-config": "workspace:*",
+    "@kokoro/tsconfig": "workspace:*",
+    "@types/lodash.isnil": "^4.0.9",
+    "@biomejs/biome": "catalog:",
+    "typescript": "catalog:"
+  }
+}

@@ -1,0 +1,2 @@
+ALTER TABLE "calendar" DROP CONSTRAINT "calendar_platformAccountId_platformCalendarId_unique";--> statement-breakpoint
+ALTER TABLE "calendar" ADD CONSTRAINT "calendar_platformAccountId_platformCalendarId_source_unique" UNIQUE("platform_account_id","platform_calendar_id","source");

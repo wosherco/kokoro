@@ -1,0 +1,51 @@
+{
+  "name": "@kokoro/validators",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./src/index.ts"
+    },
+    "./db": {
+      "types": "./dist/db/index.d.ts",
+      "default": "./src/db/index.ts"
+    },
+    "./actions": {
+      "types": "./dist/actions/index.d.ts",
+      "default": "./src/actions/index.ts"
+    },
+    "./userContext": {
+      "types": "./dist/userContext.d.ts",
+      "default": "./src/userContext.ts"
+    },
+    "./integrations": {
+      "types": "./dist/integrations/index.d.ts",
+      "default": "./src/integrations/index.ts"
+    }
+  },
+  "license": "MIT",
+  "scripts": {
+    "build": "bun tsc",
+    "dev": "bun tsc --watch",
+    "clean": "rm -rf .turbo node_modules",
+    "format": "biome format .",
+    "format:fix": "biome format --write .",
+    "lint": "biome lint .",
+    "lint:fix": "biome lint --write .",
+    "check": "biome check .",
+    "check:fix": "biome check --write .",
+    "typecheck": "bun tsc --noEmit --emitDeclarationOnly false"
+  },
+  "dependencies": {
+    "zod": "catalog:",
+    "@date-fns/tz": "catalog:"
+  },
+  "devDependencies": {
+    "@kokoro/biome-config": "workspace:*",
+    "@kokoro/tsconfig": "workspace:*",
+    "@biomejs/biome": "catalog:",
+    "typescript": "catalog:"
+  }
+}

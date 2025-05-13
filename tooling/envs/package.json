@@ -1,0 +1,29 @@
+{
+  "name": "@kokoro/envs",
+  "private": true,
+  "version": "0.3.0",
+  "type": "module",
+  "exports": {
+    ".": "./index.ts",
+    "./ngrok": "./ngrok.ts",
+    "./urls": "./urls.ts"
+  },
+  "scripts": {
+    "clean": "rm -rf .turbo node_modules",
+    "format": "biome format .",
+    "format:fix": "biome format --write .",
+    "lint": "biome lint .",
+    "lint:fix": "biome lint --write .",
+    "check": "biome check .",
+    "check:fix": "biome check --write .",
+    "typecheck": "tsc --noEmit",
+    "ensure-env": "bun run ./ensureEnv.ts"
+  },
+  "devDependencies": {
+    "@t3-oss/env-core": "catalog:",
+    "@kokoro/biome-config": "workspace:*",
+    "@kokoro/tsconfig": "workspace:*",
+    "@biomejs/biome": "catalog:",
+    "typescript": "catalog:"
+  }
+}

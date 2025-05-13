@@ -1,0 +1,1 @@
+ALTER TABLE "memory_event" ADD COLUMN "conflict_resolved" boolean DEFAULT false NOT NULL;

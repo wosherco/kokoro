@@ -1,0 +1,68 @@
+{
+  "name": "@kokoro/linear",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/src/index.d.ts",
+      "default": "./src/index.ts"
+    },
+    "./tasks": {
+      "types": "./dist/src/tasks.d.ts",
+      "default": "./src/tasks.ts"
+    },
+    "./people": {
+      "types": "./dist/src/people.d.ts",
+      "default": "./src/people.ts"
+    },
+    "./client": {
+      "types": "./dist/src/client.d.ts",
+      "default": "./src/client.ts"
+    },
+    "./utils": {
+      "types": "./dist/src/utils.d.ts",
+      "default": "./src/utils.ts"
+    },
+    "./env": "./env.ts"
+  },
+  "license": "Apache-2.0",
+  "scripts": {
+    "build": "tsc",
+    "clean": "git clean -xdf .cache .turbo dist node_modules",
+    "dev": "tsc --watch",
+    "format": "biome format .",
+    "format:fix": "biome format --write .",
+    "lint": "biome lint .",
+    "lint:fix": "biome lint --write .",
+    "check": "biome check .",
+    "check:fix": "biome check --write .",
+    "typecheck": "tsc --noEmit --emitDeclarationOnly false",
+    "test": "vitest",
+    "test:watch": "vitest --watch"
+  },
+  "dependencies": {
+    "@date-fns/tz": "catalog:",
+    "@kokoro/db": "workspace:*",
+    "@kokoro/email": "workspace:*",
+    "@kokoro/rrule": "workspace:*",
+    "@kokoro/common": "workspace:*",
+    "@kokoro/validators": "workspace:*",
+    "@t3-oss/env-core": "catalog:",
+    "date-fns": "^4.1.0",
+    "@linear/sdk": "38.0.0",
+    "nanoid": "catalog:",
+    "neverthrow": "^8.1.1",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@kokoro/envs": "workspace:*",
+    "@kokoro/biome-config": "workspace:*",
+    "@kokoro/queues": "workspace:*",
+    "@kokoro/tsconfig": "workspace:*",
+    "@kokoro/validators": "workspace:*",
+    "dotenv-cli": "catalog:",
+    "@biomejs/biome": "catalog:",
+    "typescript": "catalog:"
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "hello_world": "Hello, {name} from es!",
+  "nav_home": "Inicio",
+  "nav_blog": "Blog",
+  "nav_get_beta": "Obtener Beta",
+  "nav_login": "Ir a cuenta",
+  "nav_contact": "Contacto",
+  "nav_download": "Descargar",
+  "nav_app": "Ir a la app",
+  "footer_created_by": "Creado con 💓 por",
+  "footer_rights": "Todos los derechos reservados.",
+  "footer_x_alt": "Cuenta X de @wosherco",
+  "features_home_title": "El único asistente que necesitas",
+  "features_home_subtitle": "Kokoro se integra con todo lo que usas, es realmente privado y súper rápido",
+
+  "features_calendar_title": "Tu asistente de calendario con IA que funciona en todas partes",
+  "features_calendar_subtitle": "Deja que Kokoro maneje la complejidad de programar y recordar como lo haría un asistente real.",
+
+  "features_chat_title": "Conversaciones naturales con tu asistente de IA",
+  "features_chat_subtitle": "Chatea naturalmente con Kokoro y logra tus objetivos a través de conversaciones simples.",
+
+  "features_contacts_title": "Gestiona relaciones de manera más inteligente con IA",
+  "features_contacts_subtitle": "Mantén un registro de tus contactos, sus preferencias y detalles importantes sobre tus relaciones sin esfuerzo.",
+
+  "features_memory_title": "Un asistente de IA que realmente entiende el contexto",
+  "features_memory_subtitle": "Kokoro construye una comprensión profunda de tu mundo a través del aprendizaje continuo y la retención de memoria.",
+
+  "features_notifications_title": "Organiza tus notificaciones con IA",
+  "features_notifications_subtitle": "Kokoro te ayuda a gestionar tus notificaciones, resumiéndolas y filtrando el ruido para que puedas concentrarte en lo que más importa.",
+
+  "features_remember_title": "Nunca olvides nada con tu asistente de memoria IA",
+  "features_remember_subtitle": "Kokoro te ayuda a recordar información importante, fechas, ubicaciones y tareas con su sistema avanzado de memoria.",
+
+  "features_search_title": "Encuentra cualquier cosa al instante con búsqueda potenciada por IA",
+  "features_search_subtitle": "Encuentra rápidamente hechos, lugares, personas y más con la búsqueda inteligente de Kokoro."
+}

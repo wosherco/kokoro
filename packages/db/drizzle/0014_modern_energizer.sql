@@ -1,0 +1,1 @@
+ALTER TABLE "tasklists" ADD COLUMN "color_override" text;

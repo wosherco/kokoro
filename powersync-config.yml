@@ -1,0 +1,55 @@
+replication:
+  connections:
+    - type: postgresql
+      uri: postgres://postgres:password@postgres:5432/postgres
+
+      # SSL settings
+      sslmode: disable # 'verify-full' (default) or 'verify-ca' or 'disable'
+
+# Connection settings for sync bucket storage
+storage:
+  type: mongodb
+  uri: mongodb://mongo:27017/powersync_demo
+
+# The port which the PowerSync API server will listen on
+port: 8080
+
+# Specify sync rules
+sync_rules:
+  content: |
+    bucket_definitions:
+      user_data:
+        parameters: SELECT id as user_id FROM "user" WHERE "user".id = request.user_id()
+        data:
+          - SELECT id, name, alias, email, profile_picture, subscribed_until, onboarding_step FROM "user" WHERE "user".id = bucket.user_id
+          - SELECT id, added_at FROM contact WHERE contact.user_id = bucket.user_id
+          - SELECT id, contact_id, type, source, photo_url, external_source_id, added_at, updated_at FROM contact_link WHERE contact_link.user_id = bucket.user_id
+          - SELECT id, link_id, email, email_type, display_name, primary, added_at, updated_at FROM contact_email WHERE contact_email.user_id = bucket.user_id
+          - SELECT id, link_id, given_name, middle_name, family_name, display_name, primary, added_at, updated_at FROM contact_name WHERE contact_name.user_id = bucket.user_id
+          - SELECT id, content, description, created_at, source FROM memory WHERE memory.user_id = bucket.user_id
+          - SELECT id, memory_id, ical_uid, platform_id, platform_account_id, platform_calendar_id, calendar_id, source, sequence, start_date, start_date_time_zone, end_date, end_date_time_zone, is_full_day, attendence_status, is_organizer, organizer_email, is_creator, creator_email, event_type, platform_data, rrule, recurring_end, recurring_event_platform_id, recurring_event_platform_calendar_id, start_original, start_original_time_zone, deleted_instance, created_at, updated_at, conflict_resolved FROM memory_event WHERE memory_event.user_id = bucket.user_id
+          - SELECT id, platform_calendar_id, platform_account_id, user_id, summary, summary_override, description, color, color_override, time_zone, hidden, platform_data, last_synced, last_events_sync_at, source FROM calendar WHERE calendar.user_id = bucket.user_id
+          - SELECT id, memory_event_id, display_name, email, comment, platform_attendee_id, optional, organizer, status, self, created_at, last_updated FROM memory_event_attendants WHERE memory_event_attendants.user_id = bucket.user_id
+          - SELECT id, platform_account_id, platform_task_list_id, source, name, config, created_at, updated_at FROM tasklists WHERE tasklists.user_id = bucket.user_id
+          - SELECT id, memory_id, tasklist_id, platform_account_id, platform_task_list_id, platform_task_id, source, due_date, recurrence, recurrence_end, created_at, updated_at FROM memory_tasks WHERE memory_tasks.user_id = bucket.user_id
+          - SELECT id, memory_task_id, platform_account_id, platform_task_list_id, platform_task_id, platform_attribute_id, source, state, priority, platform_value, created_at, updated_at FROM memory_task_attributes WHERE memory_task_attributes.user_id = bucket.user_id
+# Settings for client authentication
+client_auth:
+  # Enable this if using Supabase Auth
+  supabase: false
+
+  # JWKS URIs can be specified here.
+  jwks_uri:
+    [
+      "http://host.docker.internal:3001/powersync/keys",
+      "https://api.kokoro.ws/powersync/keys",
+    ]
+
+  # JWKS audience
+  audience: ["powersync-dev", "powersync"]
+
+  # Settings for telemetry reporting
+  # See https://docs.powersync.com/self-hosting/telemetry
+  telemetry:
+    # Opt out of reporting anonymized usage metrics to PowerSync telemetry service
+    disable_telemetry_sharing: false

@@ -1,0 +1,48 @@
+{
+  "name": "@kokoro/consumer",
+  "module": "src/index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "bun run src/index.ts",
+    "start:env": "infisical run --env prod -- bun run src/index.ts",
+    "dev": "PUBLIC_ENVIRONMENT=development bun run --watch src/index.ts",
+    "dev:env": "infisical run --env dev -- pnpm dev",
+    "dev:dotenv": "dotenv -e ../../.env -- pnpm dev",
+    "clean": "rm -rf .turbo node_modules",
+    "format": "biome format .",
+    "format:fix": "biome format --write .",
+    "lint": "biome lint .",
+    "lint:fix": "biome lint --write .",
+    "check": "biome check .",
+    "check:fix": "biome check --write .",
+    "typecheck": "tsc --noEmit --emitDeclarationOnly false"
+  },
+  "devDependencies": {
+    "@kokoro/envs": "workspace:*",
+    "@kokoro/biome-config": "workspace:*",
+    "@kokoro/tsconfig": "workspace:*",
+    "@types/bun": "latest",
+    "dotenv-cli": "7.4.2",
+    "@biomejs/biome": "catalog:",
+    "typescript": "catalog:",
+    "hono-pino": "catalog:"
+  },
+  "dependencies": {
+    "@kokoro/logger": "workspace:*",
+    "@kokoro/api": "workspace:*",
+    "@kokoro/auth": "workspace:*",
+    "@kokoro/stripe": "workspace:*",
+    "@kokoro/brain": "workspace:*",
+    "@kokoro/db": "workspace:*",
+    "@kokoro/google": "workspace:*",
+    "@kokoro/linear": "workspace:*",
+    "@kokoro/queues": "workspace:*",
+    "@kokoro/validators": "workspace:*",
+    "@sentry/bun": "^8.50.0",
+    "@t3-oss/env-core": "catalog:",
+    "cron": "^3.5.0",
+    "hono": "catalog:",
+    "zod": "catalog:"
+  }
+}

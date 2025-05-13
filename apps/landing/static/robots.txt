@@ -1,0 +1,6 @@
+User-agent: *
+Disallow: /api
+Disallow: /api/*
+Allow: /
+Allow: /*
+Sitemap: https://kokoro.ws/sitemap-index.xml

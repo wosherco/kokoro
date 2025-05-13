@@ -1,0 +1,41 @@
+{
+  "name": "@kokoro/common",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/src/index.d.ts",
+      "default": "./src/index.ts"
+    },
+    "./poldash": {
+      "types": "./dist/src/poldash/index.d.ts",
+      "default": "./src/poldash/index.ts"
+    }
+  },
+  "license": "MIT",
+  "scripts": {
+    "build": "bun tsc",
+    "dev": "bun tsc --watch",
+    "clean": "rm -rf .turbo node_modules",
+    "format": "biome format .",
+    "format:fix": "biome format --write .",
+    "lint": "biome lint .",
+    "lint:fix": "biome lint --write .",
+    "check": "biome check .",
+    "check:fix": "biome check --write .",
+    "typecheck": "bun tsc --noEmit --emitDeclarationOnly false",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@kokoro/validators": "workspace:*"
+  },
+  "devDependencies": {
+    "@kokoro/biome-config": "workspace:*",
+    "@kokoro/tsconfig": "workspace:*",
+    "@biomejs/biome": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

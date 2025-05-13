@@ -1,0 +1,6 @@
+{ "name": "@kokoro/{{name}}", "private": true, "version": "0.1.0", "type":
+"module", "exports": { ".": "./src/index.ts" }, "license": "MIT", "scripts": {
+"clean": "rm -rf .turbo node_modules", "format": "biome format", "format:fix": "biome format --write .", "lint": "biome lint", "lint:fix": "biome lint --write .", "check": "biome check", "check:fix": "biome check --write .", "typecheck": "tsc --noEmit"
+}, "devDependencies": { "@kokoro/biome-config": "workspace:*", "@kokoro/tsconfig": "workspace:*",
+"@kokoro/tsconfig": "workspace:*", "@biomejs/biome": "catalog:", "typescript": "catalog:" } 
+}

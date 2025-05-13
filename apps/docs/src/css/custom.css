@@ -1,0 +1,175 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* You can override the default Infima variables here. */
+:root {
+  --ifm-color-primary: hsl(23 60% 73%);
+  --ifm-color-primary-dark: hsl(23 60% 65%);
+  --ifm-color-primary-darker: hsl(23 60% 60%);
+  --ifm-color-primary-darkest: hsl(23 60% 55%);
+  --ifm-color-primary-light: hsl(23 60% 80%);
+  --ifm-color-primary-lighter: hsl(23 60% 85%);
+  --ifm-color-primary-lightest: hsl(23 60% 90%);
+  --ifm-code-font-size: 95%;
+  --docusaurus-highlighted-code-line-bg: rgb(0 0 0 / 0.1);
+
+  /* Custom theme variables matching shadcn */
+  --background: 23 100% 95%;
+  --foreground: 23 5% 0%;
+  --card: 23 50% 90%;
+  --card-foreground: 23 5% 10%;
+  --popover: 23 100% 95%;
+  --popover-foreground: 23 100% 0%;
+  --primary: 23 60% 73%;
+  --primary-foreground: 0 0% 0%;
+  --secondary: 23 30% 70%;
+  --secondary-foreground: 0 0% 0%;
+  --muted: -15 30% 85%;
+  --muted-foreground: 23 5% 35%;
+  --accent: -15 30% 80%;
+  --accent-foreground: 23 5% 10%;
+  --destructive: 0 100% 30%;
+  --destructive-foreground: 23 5% 90%;
+  --border: 23 30% 50%;
+  --input: 23 30% 18%;
+  --ring: 23 60% 73%;
+  --radius: 1rem;
+  --sidebar-background: 0 0% 98%;
+  --sidebar-foreground: 240 5.3% 26.1%;
+  --sidebar-primary: 240 5.9% 10%;
+  --sidebar-primary-foreground: 0 0% 98%;
+  --sidebar-accent: 240 4.8% 95.9%;
+  --sidebar-accent-foreground: 240 5.9% 10%;
+  --sidebar-border: 220 13% 91%;
+  --sidebar-ring: 217.2 91.2% 59.8%;
+}
+
+/* For readability concerns, you should choose a lighter palette in dark mode. */
+html[data-theme="dark"] {
+  --ifm-color-primary: hsl(23 60% 73%);
+  --ifm-color-primary-dark: hsl(23 60% 65%);
+  --ifm-color-primary-darker: hsl(23 60% 60%);
+  --ifm-color-primary-darkest: hsl(23 60% 55%);
+  --ifm-color-primary-light: hsl(23 60% 80%);
+  --ifm-color-primary-lighter: hsl(23 60% 85%);
+  --ifm-color-primary-lightest: hsl(23 60% 90%);
+  --docusaurus-highlighted-code-line-bg: rgb(255 255 255 / 0.1);
+
+  /* Dark mode theme variables */
+  --background: 23 50% 5%;
+  --foreground: 23 5% 90%;
+  --card: 23 50% 0%;
+  --card-foreground: 23 5% 90%;
+  --popover: 23 50% 5%;
+  --popover-foreground: 23 5% 90%;
+  --primary: 23 60% 73%;
+  --primary-foreground: 0 0% 0%;
+  --secondary: 23 30% 10%;
+  --secondary-foreground: 0 0% 100%;
+  --muted: -15 30% 15%;
+  --muted-foreground: 23 5% 60%;
+  --accent: -15 30% 15%;
+  --accent-foreground: 23 5% 90%;
+  --destructive: 0 100% 30%;
+  --destructive-foreground: 23 5% 90%;
+  --border: 23 30% 18%;
+  --input: 23 30% 18%;
+  --ring: 23 60% 73%;
+  --radius: 1rem;
+  --sidebar-background: 240 5.9% 10%;
+  --sidebar-foreground: 240 4.8% 95.9%;
+  --sidebar-primary: 224.3 76.3% 48%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 240 3.7% 15.9%;
+  --sidebar-accent-foreground: 240 4.8% 95.9%;
+  --sidebar-border: 240 3.7% 15.9%;
+  --sidebar-ring: 217.2 91.2% 59.8%;
+}
+
+/* Custom card styles for the homepage */
+.card {
+  @apply border border-[hsl(var(--border))] rounded-[var(--radius)] bg-[hsl(var(--card))] text-[hsl(var(--card-foreground))] transition-all duration-200;
+}
+
+.card:hover {
+  @apply -translate-y-0.5 shadow-lg;
+}
+
+/* Customize navbar */
+.navbar {
+  @apply bg-[hsl(var(--background))] border-b border-[hsl(var(--border))];
+}
+
+.navbar__link {
+  @apply text-[hsl(var(--foreground))];
+}
+
+.navbar__link:hover {
+  @apply text-[hsl(var(--primary))];
+}
+
+/* Customize footer */
+.footer {
+  @apply bg-[hsl(var(--card))] border-t border-[hsl(var(--border))];
+}
+
+.footer__link-item {
+  @apply text-[hsl(var(--foreground))];
+}
+
+.footer__link-item:hover {
+  @apply text-[hsl(var(--primary))];
+}
+
+/* Customize sidebar */
+.menu {
+  @apply bg-[hsl(var(--sidebar-background))] border-r border-[hsl(var(--sidebar-border))];
+}
+
+.menu__link {
+  @apply text-[hsl(var(--sidebar-foreground))];
+}
+
+.menu__link:hover {
+  @apply text-[hsl(var(--sidebar-primary))];
+}
+
+.menu__link--active {
+  @apply bg-[hsl(var(--sidebar-accent))] text-[hsl(var(--sidebar-accent-foreground))];
+}
+
+/* Custom styles for the homepage */
+.hero {
+  @apply bg-[hsl(var(--background))] text-[hsl(var(--foreground))];
+}
+
+.hero__title {
+  @apply text-4xl font-bold text-[hsl(var(--foreground))];
+}
+
+.hero__subtitle {
+  @apply text-xl text-[hsl(var(--muted-foreground))];
+}
+
+/* Custom styles for code blocks */
+.prism-code {
+  @apply bg-[hsl(var(--card))] text-[hsl(var(--card-foreground))];
+}
+
+/* Custom styles for buttons */
+.button {
+  @apply bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] px-4 py-2 rounded-[var(--radius)] transition-colors;
+}
+
+.button:hover {
+  @apply bg-[hsl(var(--primary))] opacity-90;
+}
+
+.button--secondary {
+  @apply bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))];
+}
+
+.button--secondary:hover {
+  @apply bg-[hsl(var(--secondary))] opacity-90;
+}

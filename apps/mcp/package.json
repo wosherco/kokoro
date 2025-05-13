@@ -1,0 +1,48 @@
+{
+  "name": "@kokoro.ws/mcp",
+  "version": "0.1.0",
+  "type": "module",
+  "private": false,
+  "bin": {
+    "kokoro-mcp": "./dist/index.js"
+  },
+  "scripts": {
+    "start": "NODE_ENV=development bun run bin/index.ts",
+    "start:dist": "node dist/index.js",
+    "build": "NODE_ENV=production bun run bundle.ts",
+    "build:dev": "NODE_ENV=development bun run bundle.ts",
+    "clean": "rm -rf .turbo node_modules",
+    "format": "biome format .",
+    "format:fix": "biome format --write .",
+    "lint": "biome lint .",
+    "lint:fix": "biome lint --write .",
+    "check": "biome check .",
+    "check:fix": "biome check --write .",
+    "typecheck": "tsc --noEmit --emitDeclarationOnly false",
+    "prepublish": "bun run prepublish.ts",
+    "inspector": "bunx @modelcontextprotocol/inspector node dist/index.js",
+    "inspector:dev": "pnpm build:dev && bunx @modelcontextprotocol/inspector node dist/index.js"
+  },
+  "devDependencies": {
+    "@kokoro/api": "workspace:*",
+    "@kokoro/biome-config": "workspace:*",
+    "@kokoro/tsconfig": "workspace:*",
+    "@kokoro/validators": "workspace:*",
+    "@types/bun": "latest",
+    "@biomejs/biome": "catalog:",
+    "typescript": "catalog:"
+  },
+  "dependencies": {
+    "@clack/prompts": "0.10.1",
+    "@kokoro/common": "workspace:*",
+    "@kokoro/consts": "workspace:*",
+    "@modelcontextprotocol/sdk": "^1.10.2",
+    "@trpc/client": "catalog:",
+    "superjson": "2.2.1",
+    "zod": "catalog:"
+  },
+  "files": ["dist", "package.json"],
+  "publishConfig": {
+    "access": "public"
+  }
+}

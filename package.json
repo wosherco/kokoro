@@ -1,0 +1,47 @@
+{
+  "name": "kokoro.ws",
+  "private": true,
+  "engines": {
+    "node": ">=20.12.0"
+  },
+  "packageManager": "pnpm@9.12.2",
+  "scripts": {
+    "build": "turbo build",
+    "build:docker": "docker compose -f docker-compose.build.yaml build --parallel",
+    "build:env": "infisical run -env dev -- turbo build",
+    "clean": "git clean -xdf node_modules",
+    "clean:workspaces": "turbo clean",
+    "db:push": "pnpm -F db push",
+    "db:studio": "pnpm -F db studio",
+    "db:up": "pnpm -F db db:up",
+    "db:generate": "pnpm -F db db:generate",
+    "dev": "PUBLIC_ENVIRONMENT=development infisical run --env dev -- turbo watch dev --continue --concurrency 30",
+    "dev:packages": "PUBLIC_ENVIRONMENT=development turbo watch dev --continue --concurrency 30 --filter='./packages/**'",
+    "dev:dotenv": "PUBLIC_ENVIRONMENT=development dotenv -e ./.env -- turbo watch dev --continue --concurrency 30",
+    "format": "turbo format --continue",
+    "format:fix": "turbo format:fix --continue",
+    "lint": "turbo lint --continue",
+    "lint:fix": "turbo lint:fix --continue",
+    "check": "turbo check --continue",
+    "check:fix": "turbo check:fix --continue",
+    "lint:ws": "pnpm dlx sherif@0.11.0",
+    "precommit": "pnpm typecheck && pnpm check:fix && pnpm check && pnpm build",
+    "pc": "pnpm run precommit",
+    "postinstall": "pnpm lint:ws",
+    "typecheck": "turbo typecheck --continue",
+    "ui-add": "pnpm -F ui ui-add",
+    "test": "vitest",
+    "test:watch": "vitest --watch"
+  },
+  "dependencies": {
+    "bun": "1.2.10",
+    "vitest": "catalog:",
+    "@infisical/cli": "^0.41.1"
+  },
+  "devDependencies": {
+    "@turbo/gen": "^2.3.1",
+    "turbo": "^2.3.1",
+    "typescript": "catalog:",
+    "@changesets/cli": "^2.29.2"
+  }
+}

@@ -1,0 +1,1 @@
+ALTER TABLE "memory_tasks" ADD CONSTRAINT "memory_tasks_userId_source_platformAccountId_platformTaskListId_platformTaskId_unique" UNIQUE("user_id","source","platform_account_id","platform_task_list_id","platform_task_id");

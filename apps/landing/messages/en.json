@@ -1,0 +1,37 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "hello_world": "Hello, {name} from en!",
+  "nav_home": "Home",
+  "nav_blog": "Blog",
+  "nav_get_beta": "Get the Beta",
+  "nav_login": "Go to account",
+  "nav_contact": "Contact",
+  "nav_download": "Download",
+  "nav_app": "Launch Kokoro",
+  "footer_created_by": "Created with 💓 by",
+  "footer_rights": "All Rights Reserved.",
+  "footer_x_alt": "@wosherco X account",
+  "features_home_title": "The only assistant you need",
+  "features_home_subtitle": "Kokoro integrates with everything you use, it's actually private, and hella fast",
+
+  "features_calendar_title": "Your AI calendar assistant that works everywhere",
+  "features_calendar_subtitle": "Let Kokoro handle the complexity of scheduling and reminders as a real assistant would do.",
+
+  "features_chat_title": "Natural conversations with your AI assistant",
+  "features_chat_subtitle": "Chat naturally with Kokoro and get things done through simple conversations.",
+
+  "features_contacts_title": "Manage relationships smarter with AI",
+  "features_contacts_subtitle": "Keep track of your contacts, their preferences, and important details about your relationships effortlessly.",
+
+  "features_memory_title": "An AI assistant that truly understands context",
+  "features_memory_subtitle": "Kokoro builds a rich understanding of your world through continuous learning and memory retention.",
+
+  "features_notifications_title": "Organize your notifications with AI",
+  "features_notifications_subtitle": "Kokoro helps you manage your notifications, summarizing them, and filtering out the noise so you can focus on what matters most.",
+
+  "features_remember_title": "Never forget anything with your AI memory assistant",
+  "features_remember_subtitle": "Kokoro helps you remember important information, dates, locations, and tasks with its advanced memory system.",
+
+  "features_search_title": "Find anything instantly with AI-powered search",
+  "features_search_subtitle": "Quickly find facts, places, people, and more with Kokoro's intelligent search."
+}
