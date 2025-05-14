@@ -7,7 +7,13 @@ Kokoro centralizes all your data into a centralized place for any AI agent to us
 First of all, you'll need to login to your Kokoro account. Use the `login` command to do so.
 
 ```bash
-npx @kokoro.ws/mcp login
+npx -y @kokoro.ws/mcp login
+```
+
+or with bun:
+
+```bash
+bunx @kokoro.ws/mcp login
 ```
 
 ## Installation

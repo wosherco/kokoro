@@ -3,6 +3,13 @@
   "version": "0.1.0",
   "type": "module",
   "private": false,
+  "license": "PolyForm Noncommercial License 1.0.0",
+  "homepage": "https://docs.kokoro.ws/introduction/using-kokoro/mcp",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wosherco/kokoro.git",
+    "directory": "apps/mcp"
+  },
   "bin": {
     "kokoro-mcp": "./dist/index.js"
   },
@@ -39,9 +46,13 @@
     "@modelcontextprotocol/sdk": "^1.10.2",
     "@trpc/client": "catalog:",
     "superjson": "2.2.1",
-    "zod": "catalog:"
+    "zod": "catalog:",
+    "commander": "^13.1.0"
   },
-  "files": ["dist", "package.json"],
+  "files": [
+    "dist",
+    "package.json"
+  ],
   "publishConfig": {
     "access": "public"
   }
