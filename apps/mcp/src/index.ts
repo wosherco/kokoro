@@ -4,6 +4,7 @@ import { createLoginCommand } from "./commands/login";
 import { runMCPServer } from "./server";
 import { GIT_SHA, VERSION } from "./version";
 import { createHostCommand } from "./commands/host";
+import { createLogoutCommand } from "./commands/logout";
 
 /**
  * Create and configure the CLI program
@@ -30,6 +31,7 @@ export function createCLI() {
   // Add commands
   program.addCommand(createLoginCommand());
   program.addCommand(createHostCommand());
+  program.addCommand(createLogoutCommand());
 
   return program;
 }

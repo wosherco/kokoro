@@ -1,2 +1,2 @@
-export const VERSION = "0.1.0";
-export const GIT_SHA = "d0c8bc969008ad17e6e3de25ec1fee1aad1565ce";
+export const VERSION = "0.1.1";
+export const GIT_SHA = "6127db6b886f2a20772d2272dd36e23e9c9fa45e";
