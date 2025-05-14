@@ -17,7 +17,7 @@ export function createLoginCommand(): Command {
 
       if (await isLoggedIn()) {
         p.log.success(
-          "You are already logged in. Run the command `logout` to logout"
+          "You are already logged in. Run the command `logout` to logout",
         );
         return;
       }

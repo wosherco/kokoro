@@ -1,14 +1,14 @@
 <script>
-  import SvelteSeo from "svelte-seo";
-  import { Button } from "$lib/components/ui/button";
-  import Video from "$lib/components/Video.svelte";
-  import { Brain, ListTodo, Mail, TrendingUp } from "lucide-svelte";
-  import posthog from "posthog-js";
+import Video from "$lib/components/Video.svelte";
+import { Button } from "$lib/components/ui/button";
+import { Brain, ListTodo, Mail, TrendingUp } from "lucide-svelte";
+import posthog from "posthog-js";
+import SvelteSeo from "svelte-seo";
 
-  import heroImage from "../../assets/hero.png";
+import heroImage from "../../assets/hero.png";
 
-  // const clickbait = posthog.getFeatureFlag("hero-section") === "clickbait";
-  const clickbait = true;
+// const clickbait = posthog.getFeatureFlag("hero-section") === "clickbait";
+const clickbait = true;
 </script>
 
 <SvelteSeo

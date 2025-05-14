@@ -3,8 +3,8 @@ import { TRPCError } from "@trpc/server";
 
 import { contactSchema } from "@kokoro/validators";
 
-import { publicProcedure } from "../trpc";
 import { env } from "../../env";
+import { publicProcedure } from "../trpc";
 
 export const landingRouter = {
   contact: publicProcedure.input(contactSchema).mutation(async ({ input }) => {

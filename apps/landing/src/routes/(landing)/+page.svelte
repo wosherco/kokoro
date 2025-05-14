@@ -1,18 +1,18 @@
 <script>
-  import SvelteSeo from "svelte-seo";
-  import AIChat from "$lib/components/AIChat.svelte";
-  import { Button } from "$lib/components/ui/button";
-  import {
-    ArrowRight,
-    Bot,
-    Calendar,
-    Database,
-    Github,
-    Lock,
-    Server,
-    Smartphone,
-  } from "lucide-svelte";
-  import { PUBLIC_ACCOUNT_URL } from "$env/static/public";
+import { PUBLIC_ACCOUNT_URL } from "$env/static/public";
+import AIChat from "$lib/components/AIChat.svelte";
+import { Button } from "$lib/components/ui/button";
+import {
+  ArrowRight,
+  Bot,
+  Calendar,
+  Database,
+  Github,
+  Lock,
+  Server,
+  Smartphone,
+} from "lucide-svelte";
+import SvelteSeo from "svelte-seo";
 </script>
 
 <SvelteSeo

@@ -32,8 +32,8 @@ export const calendarEventsSync = (): Consumer =>
 
       await calendarSource.syncEvents(
         message.integrationAccountId,
-        calendar.id
+        calendar.id,
       );
     },
-    logger
+    logger,
   );

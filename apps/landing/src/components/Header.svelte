@@ -1,26 +1,26 @@
 <script lang="ts">
-  import { page } from "$app/stores";
-  import { clickOutside } from "$lib/actions/click-outside";
-  import { Button } from "$lib/components/ui/button";
-  import * as m from "$lib/paraglide/messages.js";
-  import { cn } from "$lib/utils";
-  import { Github, Menu, X } from "lucide-svelte";
-  import { fade, slide } from "svelte/transition";
-  import { PUBLIC_DEVELOPERS_URL, PUBLIC_ACCOUNT_URL } from "$env/static/public";
+import { page } from "$app/stores";
+import { PUBLIC_ACCOUNT_URL, PUBLIC_DEVELOPERS_URL } from "$env/static/public";
+import { clickOutside } from "$lib/actions/click-outside";
+import { Button } from "$lib/components/ui/button";
+import * as m from "$lib/paraglide/messages.js";
+import { cn } from "$lib/utils";
+import { Github, Menu, X } from "lucide-svelte";
+import { fade, slide } from "svelte/transition";
 
-  let isMenuOpen = $state(false);
-  const { pathname } = $props();
-  let scrollY = $state(0);
+let isMenuOpen = $state(false);
+const { pathname } = $props();
+let scrollY = $state(0);
 
-  const isTransparent = $derived(pathname === "/" && scrollY === 0);
+const isTransparent = $derived(pathname === "/" && scrollY === 0);
 
-  function toggleMenu() {
-    isMenuOpen = !isMenuOpen;
-  }
+function toggleMenu() {
+  isMenuOpen = !isMenuOpen;
+}
 
-  function closeMenu() {
-    isMenuOpen = false;
-  }
+function closeMenu() {
+  isMenuOpen = false;
+}
 </script>
 
 <svelte:window bind:scrollY />

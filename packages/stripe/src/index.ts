@@ -124,7 +124,7 @@ export async function handleStripeWebhook(req: Request): Promise<Response> {
     event = await stripe.webhooks.constructEventAsync(
       body,
       signature,
-      env.STRIPE_WEBHOOK_SECRET
+      env.STRIPE_WEBHOOK_SECRET,
     );
   } catch (err) {
     Sentry.captureException(err, {
