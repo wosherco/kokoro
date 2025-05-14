@@ -1,15 +1,8 @@
 name: CI
 
 on:
-  pull_request:
-    branches: ["*"]
-  # push:
-  #   branches: ["main"]
+  push:
   merge_group:
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 # You can leverage Vercel Remote Caching with Turbo to speed up your builds
 # @link https://turborepo.org/docs/core-concepts/remote-caching#remote-caching-on-vercel-builds
@@ -21,6 +14,8 @@ env:
 jobs:
   check:
     name: Biome Check (lint, format)
+    permissions:
+      checks: write
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -36,6 +31,9 @@ jobs:
         run: pnpm check
 
   typecheck:
+    name: Typecheck
+    permissions:
+      checks: write
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -47,6 +45,9 @@ jobs:
         run: pnpm typecheck
 
   test:
+    name: Test
+    permissions:
+      checks: write
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
