@@ -1,7 +1,7 @@
 <script>
-  import SvelteSeo from "svelte-seo";
-  import { Button } from "$lib/components/ui/button";
-  import { Bot, Sparkles } from "lucide-svelte";
+import { Button } from "$lib/components/ui/button";
+import { Bot, Sparkles } from "lucide-svelte";
+import SvelteSeo from "svelte-seo";
 </script>
 
 <SvelteSeo

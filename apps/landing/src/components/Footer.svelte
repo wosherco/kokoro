@@ -1,10 +1,10 @@
 <script lang="ts">
-  import * as m from "$lib/paraglide/messages.js";
-  import { Github } from "lucide-svelte";
-  import xlogo from "../assets/logos/x.svg";
-  import { PUBLIC_DEVELOPERS_URL, PUBLIC_ACCOUNT_URL } from "$env/static/public";
+import { PUBLIC_ACCOUNT_URL, PUBLIC_DEVELOPERS_URL } from "$env/static/public";
+import * as m from "$lib/paraglide/messages.js";
+import { Github } from "lucide-svelte";
+import xlogo from "../assets/logos/x.svg";
 
-  const year = new Date().getFullYear();
+const year = new Date().getFullYear();
 </script>
 
 <footer class="mt-10 bg-black text-white">

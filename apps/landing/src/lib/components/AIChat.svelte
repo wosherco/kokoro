@@ -1,52 +1,52 @@
 <script lang="ts">
-  import { Skeleton } from "$lib/components/ui/skeleton";
-  import { Bot, Clock, Database, FileCode, Send } from "lucide-svelte";
+import { Skeleton } from "$lib/components/ui/skeleton";
+import { Bot, Clock, Database, FileCode, Send } from "lucide-svelte";
 
-  // Color scheme from screenshot
-  const COLORS = {
-    background: "#1e1e1e",
-    sidebar: "#252526",
-    editor: "#1e1e1e",
-    activeTab: "#2d2d2d",
-    inactiveTab: "#2d2d2d",
-    lineHighlight: "rgba(77, 77, 77, 0.5)",
-    textPrimary: "#d4d4d4",
-    textSecondary: "#858585",
-    accent: "#007acc",
-    green: "#4ec9b0",
-    blue: "#569cd6",
-    yellow: "#dcdcaa",
-    orange: "#ce9178",
-    purple: "#c586c0",
-    red: "#f44747",
-    lineNumber: "#858585",
-  };
+// Color scheme from screenshot
+const COLORS = {
+  background: "#1e1e1e",
+  sidebar: "#252526",
+  editor: "#1e1e1e",
+  activeTab: "#2d2d2d",
+  inactiveTab: "#2d2d2d",
+  lineHighlight: "rgba(77, 77, 77, 0.5)",
+  textPrimary: "#d4d4d4",
+  textSecondary: "#858585",
+  accent: "#007acc",
+  green: "#4ec9b0",
+  blue: "#569cd6",
+  yellow: "#dcdcaa",
+  orange: "#ce9178",
+  purple: "#c586c0",
+  red: "#f44747",
+  lineNumber: "#858585",
+};
 
-  let isTyping = $state(false);
-  let mockResponse = $state("");
+let isTyping = $state(false);
+let mockResponse = $state("");
 
-  function simulateTyping() {
-    isTyping = true;
-    mockResponse = "";
-    const fullResponse =
-      "I found task K-237 in Linear. I see it's about a rendering bug in a React dropdown component. I'll help you implement a fix for this issue.";
+function simulateTyping() {
+  isTyping = true;
+  mockResponse = "";
+  const fullResponse =
+    "I found task K-237 in Linear. I see it's about a rendering bug in a React dropdown component. I'll help you implement a fix for this issue.";
 
-    let currentChar = 0;
-    const typingInterval = setInterval(() => {
-      mockResponse += fullResponse[currentChar];
-      currentChar++;
+  let currentChar = 0;
+  const typingInterval = setInterval(() => {
+    mockResponse += fullResponse[currentChar];
+    currentChar++;
 
-      if (currentChar >= fullResponse.length) {
-        clearInterval(typingInterval);
-        isTyping = false;
-      }
-    }, 20);
-  }
+    if (currentChar >= fullResponse.length) {
+      clearInterval(typingInterval);
+      isTyping = false;
+    }
+  }, 20);
+}
 
-  // Simulate typing on mount
-  $effect(() => {
-    setTimeout(simulateTyping, 800);
-  });
+// Simulate typing on mount
+$effect(() => {
+  setTimeout(simulateTyping, 800);
+});
 </script>
 
 <div

@@ -70,7 +70,5 @@
     "lucide-svelte": "catalog:",
     "posthog-js": "^1.194.1"
   },
-  "files": [
-    "build"
-  ]
+  "files": ["build"]
 }

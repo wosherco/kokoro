@@ -21,7 +21,7 @@ app.use(
   "*",
   pinoLogger({
     pino: logger,
-  })
+  }),
 );
 
 app.use(
@@ -35,7 +35,7 @@ app.use(
       env.PUBLIC_DEVELOPERS_URL,
     ],
     credentials: true,
-  })
+  }),
 );
 
 app.use(
@@ -52,7 +52,7 @@ app.use(
       });
     },
     router: appRouter,
-  })
+  }),
 );
 
 app.route("/watch/google-calendar", watchGoogleCalendar);

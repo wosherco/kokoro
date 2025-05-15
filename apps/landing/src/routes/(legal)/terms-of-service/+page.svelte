@@ -1,5 +1,5 @@
 <script lang="ts">
-  import SvelteSeo from "svelte-seo";
+import SvelteSeo from "svelte-seo";
 </script>
 
 <SvelteSeo title="Kokoro — Terms of Service" />

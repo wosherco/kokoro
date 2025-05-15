@@ -27,7 +27,7 @@ export const DEFAULT_AUTHENTICATOR_URL = "https://auth.kokoro.ws";
 export async function getAuthenticatorUrl(): Promise<string> {
   return await getKeyValue(
     CONFIG_KEYS.AUTHENTICATOR_URL,
-    DEFAULT_AUTHENTICATOR_URL
+    DEFAULT_AUTHENTICATOR_URL,
   );
 }
 
