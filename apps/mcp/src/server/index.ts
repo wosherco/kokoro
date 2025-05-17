@@ -237,14 +237,18 @@ server.tool(
       .describe("A query to search for memories by description"),
     startDate: z
       .string()
-      .datetime()
+      .datetime({
+        offset: true
+      })
       .optional()
       .describe(
         "A start date to filter memories by. Must be in ISO 8601 format.",
       ),
     endDate: z
       .string()
-      .datetime()
+      .datetime({
+        offset: true
+      })
       .optional()
       .describe(
         "An end date to filter memories by. Must be in ISO 8601 format.",
