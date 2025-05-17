@@ -238,7 +238,7 @@ server.tool(
     startDate: z
       .string()
       .datetime({
-        offset: true
+        offset: true,
       })
       .optional()
       .describe(
@@ -247,7 +247,7 @@ server.tool(
     endDate: z
       .string()
       .datetime({
-        offset: true
+        offset: true,
       })
       .optional()
       .describe(
