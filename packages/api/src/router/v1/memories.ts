@@ -17,8 +17,18 @@ export const v1MemoriesRouter = {
         descriptionQuery: z.string().max(100).optional(),
 
         // Filter by date
-        startDate: z.string().datetime().optional(),
-        endDate: z.string().datetime().optional(),
+        startDate: z
+          .string()
+          .datetime({
+            offset: true,
+          })
+          .optional(),
+        endDate: z
+          .string()
+          .datetime({
+            offset: true,
+          })
+          .optional(),
 
         // Filter by integration
         integrationAccountIds: z.array(z.string().uuid()).optional(),
