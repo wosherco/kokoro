@@ -26,7 +26,7 @@
 export function truncate(
   str: string,
   maxLength: number,
-  suffix = "...",
+  suffix = "..."
 ): string {
   if (!str || str.length <= maxLength) {
     return str;
@@ -52,7 +52,7 @@ export function truncate(
  * ```
  */
 export function escapeDoubleQuotes(str: string): string {
-  return str.replace(/"/g, '\\"');
+  return str.replaceAll(/"/g, '\\"');
 }
 
 /**
@@ -69,11 +69,11 @@ export function escapeDoubleQuotes(str: string): string {
  */
 export function escapeHtml(str: string): string {
   return str
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
+    .replaceAll(/&/g, "&amp;")
+    .replaceAll(/</g, "&lt;")
+    .replaceAll(/>/g, "&gt;")
+    .replaceAll(/"/g, "&quot;")
+    .replaceAll(/'/g, "&#039;");
 }
 
 /**
@@ -89,5 +89,5 @@ export function escapeHtml(str: string): string {
  * ```
  */
 export function escapeRegExp(str: string): string {
-  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); // $& means the whole matched string
+  return str.replaceAll(/[.*+?^${}()|[\]\\]/g, "\\$&"); // $& means the whole matched string
 }
