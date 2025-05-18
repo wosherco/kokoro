@@ -1,5 +1,11 @@
 # @kokoro.ws/mcp
 
+## 0.1.5
+
+### Patch Changes
+
+- f59be31: Fix mcp schemas
+
 ## 0.1.4
 
 ### Patch Changes
