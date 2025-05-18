@@ -21,7 +21,12 @@ import {
   TASKS_DELETE_TASK_ACTION,
   TASKS_MODIFY_TASK_ACTION,
 } from "@kokoro/validators/actions";
-import { MEMORY_SORT_BY } from "@kokoro/validators/db";
+import {
+  MEMORY_SORT_BY,
+  MEMORY_TYPES,
+  ORDER_BY,
+  TASK_STATES,
+} from "@kokoro/validators/db";
 
 import { trpc } from "../trpc";
 import { VERSION } from "../version";
@@ -209,12 +214,10 @@ ${taskAttributes
 `;
 
 const stringifyMemory = (memory: QueriedMemory, truncateLength = 50) => `
-<memory id="${memory.id}" content="${truncate(
-  escapeDoubleQuotes(memory.content),
-  truncateLength,
-)}" description="${truncate(
-  escapeDoubleQuotes(memory.description ?? ""),
-  truncateLength,
+<memory id="${memory.id}" content="${escapeDoubleQuotes(
+  truncate(memory.content, truncateLength),
+)}" description="${escapeDoubleQuotes(
+  truncate(memory.description ?? "", truncateLength),
 )}" isVirtual="${memory.isVirtual}">
 ${memory.event ? stringifyEvent(memory.event) : ""}
 ${memory.task ? stringifyTask(memory.task, memory.taskAttributes) : ""}
@@ -223,7 +226,9 @@ ${memory.task ? stringifyTask(memory.task, memory.taskAttributes) : ""}
 
 server.tool(
   "query-memories",
-  "Memories are Kokoro's way of storing information from different sources in a single place.",
+  `Memories are Kokoro's way of storing information from different sources in a single place. \n\nToday is ${
+    new Date().toISOString().split("T")[0]
+  } (OUTDATED). If you already have today's date, it might be more precise, don't use this one.`,
   {
     contentQuery: z
       .string()
@@ -253,42 +258,63 @@ server.tool(
       .describe(
         "An end date to filter memories by. Must be in ISO 8601 format.",
       ),
+
+    // Memory filters
+    memoryTypes: z
+      .array(z.enum(MEMORY_TYPES))
+      .optional()
+      .describe(
+        "If provided, only memories of these types will be returned. If not provided, won't filter by memory types.",
+      ),
+
+    // Integration filters
     integrationAccountIds: z
       .array(z.string().uuid())
       .optional()
       .describe(
-        "If provided, only memories from these integration accounts will be returned. If not provided, won't be filtered by integration accounts.",
+        "If provided, only memories from these integration accounts will be returned. If not provided, won't filter by integration accounts.",
       ),
+
+    // Calendar filters
     calendarIds: z
       .array(z.string().uuid())
       .optional()
       .describe(
-        "If provided, only memories from these calendars will be returned. If not provided, won't be filtered by calendars.",
+        "If provided, only memories from these calendars will be returned. If not provided, won't filter by calendars.",
       ),
+
+    // Tasklist filters
     tasklistIds: z
       .array(z.string().uuid())
       .optional()
       .describe(
-        "If provided, only memories from these tasklists will be returned. If not provided, won't be filtered by tasklists.",
+        "If provided, only memories from these tasklists will be returned. If not provided, won't filter by tasklists.",
       ),
+    taskStates: z
+      .array(z.enum(TASK_STATES))
+      .optional()
+      .describe(
+        "If provided, only tasks with these statuses will be returned. If not provided, won't filter by task statuses.",
+      ),
+
     sortBy: z
       .enum(MEMORY_SORT_BY)
       .optional()
       .describe("The sort order of the memories"),
+    orderBy: z.enum(ORDER_BY).optional().describe("The order of the memories"),
   },
   async (args) => {
     const memories = await trpc.v1.memories.queryMemories.query({
       ...args,
-      integrationAccountIds: args.integrationAccountIds ?? undefined,
-      calendarIds: args.calendarIds ?? undefined,
-      tasklistIds: args.tasklistIds ?? undefined,
     });
 
-    const content = `${memories
-      .map(stringifyMemory)
-      .join(
-        "\n",
-      )}\n\nTo get full details of a memory, use the \`fetch-memory\` tool.`;
+    const content = !memories.length
+      ? "No memories found"
+      : `${memories
+          .map((memory) => stringifyMemory(memory))
+          .join(
+            "\n",
+          )}\n\nTo get full details of a memory, use the \`fetch-memory\` tool.`;
 
     return { content: [{ type: "text", text: content }] };
   },
@@ -305,7 +331,7 @@ server.tool(
       memoryIds: [memoryId],
     });
 
-    return { content: [{ type: "text", text: stringifyMemory(memory, 300) }] };
+    return { content: [{ type: "text", text: stringifyMemory(memory, 2000) }] };
   },
 );
 

@@ -315,7 +315,7 @@ export class LinearTaskSource extends ReadWriteTaskSource<
     const attributes: SimpleMemoryTaskAttribute[] = [
       {
         platformAttributeId: LINEAR_PRIORITY_ATTRIBUTE.name,
-        platformValue: String(item.priority),
+        platformValue: String(item.priorityLabel),
         priority: getActualLinearPriority(item.priority),
         state: null,
       },

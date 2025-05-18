@@ -9,6 +9,7 @@ import {
 import type { SQLWrapper } from "@kokoro/db";
 import {
   and,
+  asc,
   cosineDistance,
   desc,
   eq,
@@ -57,11 +58,15 @@ import {
   tasklistsTable,
 } from "@kokoro/db/schema";
 import { processRrule } from "@kokoro/rrule";
-import type {
-  CalendarSource,
-  MemorySortBy,
-  TaskSource,
-  TaskState,
+import {
+  type CalendarSource,
+  EVENT_MEMORY_TYPE,
+  type MemorySortBy,
+  type MemoryType,
+  type OrderBy,
+  TASK_MEMORY_TYPE,
+  type TaskSource,
+  type TaskState,
 } from "@kokoro/validators/db";
 
 import { getEmbedding } from "./embeddings";
@@ -117,16 +122,16 @@ export async function upsertMemory(
     throw new Error("You can only provide one of event or task");
   }
 
-  const [contentEmbedding, contextEmbedding] = await Promise.all([
+  const [contentEmbedding, descriptionEmbedding] = await Promise.all([
     embeddings ? getEmbedding(content) : null,
     embeddings && description ? getEmbedding(description) : null,
   ]);
 
   const values = {
-    context: description,
     content,
     contentEmbedding,
-    contextEmbedding,
+    description,
+    descriptionEmbedding,
     source,
     createdAt,
     updatedAt,
@@ -460,6 +465,9 @@ export async function queryMemories(
     startDate?: Date;
     endDate?: Date;
 
+    // Filter by memory type
+    memoryTypes?: Set<MemoryType>;
+
     // Filter by integration
     integrationAccountIds?: string[];
     calendarIds?: string[];
@@ -477,6 +485,10 @@ export async function queryMemories(
      * @default "similarity"
      */
     sortBy?: MemorySortBy;
+    /**
+     * @default "desc"
+     */
+    orderBy?: OrderBy;
 
     /**
      * @deprecated this is useless
@@ -495,11 +507,14 @@ export async function queryMemories(
     taskSources,
     taskStates,
     sortBy = "similarity",
+    orderBy = "desc",
   } = options;
 
   const [contentEmbedding, descriptionEmbedding] = await Promise.all([
-    options.contentQuery ? getEmbedding(options.contentQuery) : undefined,
-    options.descriptionQuery
+    options.contentQuery?.trim()
+      ? getEmbedding(options.contentQuery)
+      : undefined,
+    options.descriptionQuery?.trim()
       ? getEmbedding(options.descriptionQuery)
       : undefined,
   ]);
@@ -515,56 +530,80 @@ export async function queryMemories(
     );
   }
 
-  const baseFilters = [eq(memoryTable.userId, userId), sourceCondition];
+  const baseFilters = [
+    eq(memoryTable.userId, userId),
+    sourceCondition,
+    contentEmbedding ? sql<boolean>`${memoryTable.content} <> ''` : undefined,
+    descriptionEmbedding
+      ? sql<boolean>`${memoryTable.description} <> ''`
+      : undefined,
+  ];
 
-  const memoryEvents = await queryMemoryEvents(
-    [
-      isNotNull(memoryEventTable.id),
-      ...baseFilters,
-      calendarSources
-        ? inArray(memoryEventTable.source, Array.from(calendarSources))
-        : undefined,
-      integrationAccountIds
-        ? inArray(memoryEventTable.integrationAccountId, integrationAccountIds)
-        : undefined,
-      calendarIds
-        ? inArray(memoryEventTable.calendarId, calendarIds)
-        : undefined,
-    ],
-    {
-      contentEmbedding,
-      descriptionEmbedding,
-      startDate,
-      endDate,
-      sortBy,
-    },
-    db,
-  );
+  const shouldIncludeMemoryType = (type: MemoryType) =>
+    options.memoryTypes && options.memoryTypes.size > 0
+      ? options.memoryTypes.has(type)
+      : true;
 
-  const memoryTasks = await queryMemoryTasks(
-    [
-      isNotNull(memoryTaskTable.id),
-      ...baseFilters,
-      taskSources
-        ? inArray(memoryTaskTable.source, Array.from(taskSources))
-        : undefined,
-      integrationAccountIds
-        ? inArray(memoryTaskTable.integrationAccountId, integrationAccountIds)
-        : undefined,
-      tasklistIds
-        ? inArray(memoryTaskTable.tasklistId, tasklistIds)
-        : undefined,
-    ],
-    {
-      contentEmbedding,
-      descriptionEmbedding,
-      startDate,
-      endDate,
-      taskStates,
-      sortBy,
-    },
-    db,
-  );
+  const memoryEvents = shouldIncludeMemoryType(EVENT_MEMORY_TYPE)
+    ? await queryMemoryEvents(
+        [
+          isNotNull(memoryEventTable.id),
+          ...baseFilters,
+          calendarSources
+            ? inArray(memoryEventTable.source, Array.from(calendarSources))
+            : undefined,
+          integrationAccountIds
+            ? inArray(
+                memoryEventTable.integrationAccountId,
+                integrationAccountIds,
+              )
+            : undefined,
+          calendarIds
+            ? inArray(memoryEventTable.calendarId, calendarIds)
+            : undefined,
+        ],
+        {
+          contentEmbedding,
+          descriptionEmbedding,
+          startDate,
+          endDate,
+          sortBy,
+          orderBy,
+        },
+        db,
+      )
+    : [];
+
+  const memoryTasks = shouldIncludeMemoryType(TASK_MEMORY_TYPE)
+    ? await queryMemoryTasks(
+        [
+          isNotNull(memoryTaskTable.id),
+          ...baseFilters,
+          taskSources
+            ? inArray(memoryTaskTable.source, Array.from(taskSources))
+            : undefined,
+          integrationAccountIds
+            ? inArray(
+                memoryTaskTable.integrationAccountId,
+                integrationAccountIds,
+              )
+            : undefined,
+          tasklistIds
+            ? inArray(memoryTaskTable.tasklistId, tasklistIds)
+            : undefined,
+        ],
+        {
+          contentEmbedding,
+          descriptionEmbedding,
+          startDate,
+          endDate,
+          taskStates,
+          sortBy,
+          orderBy,
+        },
+        db,
+      )
+    : [];
 
   return [...memoryEvents, ...memoryTasks];
 }
@@ -577,6 +616,7 @@ export async function queryMemoryEvents(
     startDate?: Date;
     endDate?: Date;
     sortBy?: MemorySortBy;
+    orderBy?: OrderBy;
   },
   db: TransactableDBType = dbClient,
 ): Promise<QueriedMemory[]> {
@@ -592,7 +632,7 @@ export async function queryMemoryEvents(
 
   const descriptionSimilarity = descriptionEmbedding
     ? sql<number>`1 - (${cosineDistance(
-        memoryTable.description,
+        memoryTable.descriptionEmbedding,
         descriptionEmbedding,
       )})`
     : sql<number>`1`;
@@ -683,24 +723,26 @@ export async function queryMemoryEvents(
       ),
     )
     .orderBy((t) => {
+      const order = options.orderBy === "asc" ? asc : desc;
+
       switch (options.sortBy) {
         case "similarity": {
-          return [desc(t.similarity)];
+          return [order(t.similarity)];
         }
         case "relevantDate": {
-          return [desc(t.event.startDate)];
+          return [order(t.event.startDate)];
         }
         case "priority": {
-          return [desc(t.event.startDate)];
+          return [order(t.event.startDate)];
         }
         case "createdAt": {
-          return [desc(t.createdAt)];
+          return [order(t.createdAt)];
         }
         case "lastUpdate": {
-          return [desc(t.lastUpdate)];
+          return [order(t.lastUpdate)];
         }
         default: {
-          return [desc(t.lastUpdate)];
+          return [order(t.lastUpdate)];
         }
       }
     })
@@ -753,6 +795,7 @@ export async function queryMemoryTasks(
     endDate?: Date;
     taskStates?: Set<TaskState>;
     sortBy?: MemorySortBy;
+    orderBy?: OrderBy;
   },
   db: TransactableDBType = dbClient,
 ): Promise<QueriedMemory[]> {
@@ -773,7 +816,7 @@ export async function queryMemoryTasks(
 
   const descriptionSimilarity = descriptionEmbedding
     ? sql<number>`1 - (${cosineDistance(
-        memoryTable.description,
+        memoryTable.descriptionEmbedding,
         descriptionEmbedding,
       )})`
     : sql<number>`1`;
@@ -852,24 +895,26 @@ export async function queryMemoryTasks(
       ),
     )
     .orderBy((t) => {
+      const order = options.orderBy === "asc" ? asc : desc;
+
       switch (options.sortBy) {
         case "similarity": {
-          return [desc(t.similarity)];
+          return [order(t.similarity)];
         }
         case "priority": {
-          return [desc(t.latestPriority)];
+          return [order(t.latestPriority)];
         }
         case "createdAt": {
-          return [desc(t.createdAt)];
+          return [order(t.createdAt)];
         }
         case "lastUpdate": {
-          return [desc(t.lastUpdate)];
+          return [order(t.lastUpdate)];
         }
         case "relevantDate": {
-          return [desc(t.task.dueDate)];
+          return [order(t.task.dueDate)];
         }
         default: {
-          return [desc(t.lastUpdate)];
+          return [order(t.lastUpdate)];
         }
       }
     })
