@@ -24,6 +24,46 @@ If you're self-hosting Kokoro, you'll have to run `npx -y @kokoro.ws/mcp host cu
 
 ### Cursor
 
+Open `~/.cursor/mcp.json` and add the following:
+
+```json title="~/.cursor/mcp.json"
+{
+  "mcpServers": {
+    "kokoro-mcp": {
+      "command": "npx",
+      "args": ["-y", "@kokoro.ws/mcp"]
+    }
+    // ...your other mcps
+  }
+}
+```
+
+<details>
+    <summary>Snippet</summary>
+
+```json
+"kokoro-mcp": {
+  "command": "npx",
+  "args": ["-y", "@kokoro.ws/mcp"]
+}
+```
+
+</details>
+
+To edit the file quickly, do `cursor ~/.cursor/mcp.json` or open it with nano `nano ~/.cursor/mcp.json`.
+
 ### Windsurf
 
+:::warning
+
+This is a work in progress. Feel free to open a PR to add Windsurf instructions.
+
+:::
+
 ### Claude
+
+:::warning
+
+This is a work in progress. Feel free to open a PR to add Claude instructions.
+
+:::

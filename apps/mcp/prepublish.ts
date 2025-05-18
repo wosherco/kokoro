@@ -1,6 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import { $ } from "bun";
 import { parse as parseYaml } from "yaml";
 
 import { externalDependencies } from "./bundle.ts";
@@ -15,7 +13,7 @@ const dependencies = Object.keys(packageJson.dependencies);
 
 // Filtering the ones to keep
 const dependenciesToKeep = dependencies.filter((dependency) =>
-  externalDependencies.some((dep) => dependency.startsWith(dep)),
+  externalDependencies.some((dep) => dependency.startsWith(dep))
 );
 
 packageJson.dependencies = dependenciesToKeep.reduce((acc, dependency) => {
@@ -39,9 +37,11 @@ packageJson.dependencies = Object.fromEntries(
       }
 
       return [dependency, version];
-    },
-  ),
+    }
+  )
 );
 
 // Write the filtered package.json for publishing
 await Bun.write("package.json", JSON.stringify(packageJson, null, 2));
+
+await $`pnpm exec biome check --write package.json`;

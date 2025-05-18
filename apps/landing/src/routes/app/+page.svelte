@@ -32,12 +32,10 @@ const clickbait = true;
 >
   <div class="container mx-auto px-4 text-center text-primary-foreground">
     <h1 class="text-4xl sm:text-6xl font-bold tracking-tight mb-6">
-      Coming Soon: Your Digital Productivity Hub
+      The only assistant you will need.
     </h1>
     <h2 class="text-xl mb-10">
-      Introducing Kokoro App, a productivity assistant that will <b
-        >transform how you work</b
-      >.
+      Kokoro App is a productivity assistant that will <b>transform how you work</b>.
     </h2>
 
     <div class="flex flex-col sm:flex-row gap-4 justify-center mb-16">

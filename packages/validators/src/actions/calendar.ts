@@ -26,9 +26,9 @@ export const calendarCreateEventSchema = z.object({
   isFullDay: z.boolean().describe("Whether the event is a full day event."),
   recurrence: z
     .string()
-    .nullable()
+    .optional()
     .describe(
-      "The recurrence of the calendar event. Must follow RRULE format. Do not include DTSTART, DTEND, or EXDATE.",
+      "Only if the event has recurrence, the recurrence of the calendar event. Must follow RRULE format. Do not include DTSTART, DTEND, or EXDATE.",
     ),
 });
 
@@ -44,7 +44,7 @@ export type RecurrenceModifierType = (typeof RECURRENCE_MODIFIER_TYPE)[number];
 
 const recurrenceTypeSchema = z
   .enum(RECURRENCE_MODIFIER_TYPE)
-  .nullable()
+  .optional()
   .describe(
     "ONLY IF THE EVENT YOU'RE MODIFYING HAS RECURRENCE, you must provide how the update should be made. ALL will update every instance. THIS_AND_FOLLOWING will update this instance and the following ones. INSTANCE will only update the instance you're modifying.",
   );
@@ -52,26 +52,26 @@ const recurrenceTypeSchema = z
 export const modifyCalendarEventSchema = z.object({
   integrationAccountsTable: integrationAccountIdSchema,
   event: virtualEventSchema,
-  summary: z.string().nullable().describe("The summary of the calendar event."),
+  summary: z.string().optional().describe("The summary of the calendar event."),
   startDate: z
     .string()
-    .nullable()
+    .optional()
     .describe(
       "The start date of the calendar event. Must be in ISO 8601 format.",
     ),
   endDate: z
     .string()
-    .nullable()
+    .optional()
     .describe(
       "The end date of the calendar event. Must be in ISO 8601 format.",
     ),
   isFullDay: z
     .boolean()
-    .nullable()
+    .optional()
     .describe("Whether the event is a full day event."),
   recurrence: z
     .string()
-    .nullable()
+    .optional()
     .describe(
       "The recurrence of the calendar event. Must follow RRULE format. Do not include DTSTART, DTEND, or EXDATE.",
     ),
@@ -97,7 +97,7 @@ export const changeEventAttendanceStatusSchema = z.object({
     .describe("The state of the attendance change."),
   comment: z
     .string()
-    .nullable()
+    .optional()
     .describe("The comment to add to the attendance change."),
 });
 

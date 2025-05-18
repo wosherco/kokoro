@@ -93,10 +93,10 @@ ENV HOSTNAME="0.0.0.0"
 
 CMD ["pnpm", "-F", "authenticator", "start"]
 
-###########################
+#############################
 #       apps/developers     #
-###########################
-FROM deps AS developers-build
+#############################
+FROM build AS developers-build
 RUN pnpm deploy -F developers /prod/developers
 
 FROM base AS developers

@@ -14,18 +14,18 @@ export const tasksCreateTaskSchema = z.object({
   title: z.string().describe("The title of the task."),
   description: z
     .string()
-    .nullable()
+    .optional()
     .describe("The description of the task. Can use markdown."),
   dueDate: z
     .string()
-    .nullable()
+    .optional()
     .describe("The due date of the task. Must be in ISO 8601 format."),
   attributes: z
     .record(
       z.string().uuid().describe("The id of the attribute"),
       z.string().describe("The value of the attribute"),
     )
-    .nullable(),
+    .optional(),
 });
 
 export const TASKS_MODIFY_TASK_ACTION = "TASKS:modifyTask";
@@ -33,21 +33,21 @@ export const TASKS_MODIFY_TASK_ACTION = "TASKS:modifyTask";
 export const tasksModifyTaskSchema = z.object({
   integrationAccountsTable: integrationAccountIdSchema,
   taskId: taskIdSchema,
-  title: z.string().nullable().describe("The title of the task."),
+  title: z.string().optional().describe("The title of the task."),
   description: z
     .string()
-    .nullable()
+    .optional()
     .describe("The description of the task. Can use markdown."),
   dueDate: z
     .string()
-    .nullable()
+    .optional()
     .describe("The due date of the task. Must be in ISO 8601 format."),
   attributes: z
     .record(
       z.string().uuid().describe("The id of the attribute"),
       z.string().describe("The value of the attribute"),
     )
-    .nullable(),
+    .optional(),
 });
 
 export const TASKS_DELETE_TASK_ACTION = "TASKS:deleteTask";
