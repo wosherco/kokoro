@@ -21,7 +21,12 @@ import {
   TASKS_DELETE_TASK_ACTION,
   TASKS_MODIFY_TASK_ACTION,
 } from "@kokoro/validators/actions";
-import { MEMORY_SORT_BY } from "@kokoro/validators/db";
+import {
+  MEMORY_SORT_BY,
+  MEMORY_TYPES,
+  ORDER_BY,
+  TASK_STATES,
+} from "@kokoro/validators/db";
 
 import { trpc } from "../trpc";
 import { VERSION } from "../version";
@@ -59,11 +64,11 @@ server.tool(
           (calendar) => `
 <calendar id="${calendar.id}" name="${truncate(
             escapeDoubleQuotes(
-              calendar.summaryOverride ?? calendar.summary ?? "",
+              calendar.summaryOverride ?? calendar.summary ?? ""
             ),
-            50,
+            50
           )}" color="${calendar.colorOverride ?? calendar.color}" />
-`,
+`
         )
         .join("\n");
     const listTasklists = (integration: (typeof integrations)[number]) =>
@@ -72,9 +77,9 @@ server.tool(
           (tasklist) => `
 <tasklist id="${tasklist.id}" name="${truncate(
             escapeDoubleQuotes(tasklist.name),
-            50,
+            50
           )}" color="${tasklist.color}" />
-`,
+`
         )
         .join("\n");
 
@@ -84,12 +89,12 @@ server.tool(
         integration.integrationType
       }" name="${truncate(
         escapeDoubleQuotes(integration.displayName),
-        50,
+        50
       )}" supports="${integration.supports.join(", ")}">
     ${listCalendars(integration)}
     ${listTasklists(integration)}
 </integration>
-  `,
+  `
     );
 
     return {
@@ -101,7 +106,7 @@ ${content.join("\n")}`,
         },
       ],
     };
-  },
+  }
 );
 
 server.tool(
@@ -120,10 +125,10 @@ server.tool(
       calendar.integrationAccountId
     }" name="${truncate(
       escapeDoubleQuotes(calendar.summaryOverride ?? calendar.summary ?? ""),
-      300,
+      300
     )}" description="${truncate(
       escapeDoubleQuotes(calendar.description ?? ""),
-      300,
+      300
     )}" color="${calendar.colorOverride ?? calendar.color}" source="${
       calendar.source
     }" lastSyncedAt="${calendar.lastSynced?.toISOString()}">
@@ -138,7 +143,7 @@ ${prompt}
     return {
       content: [{ type: "text", text: striginfiedCalendar }],
     };
-  },
+  }
 );
 
 server.tool(
@@ -171,7 +176,7 @@ ${prompt}
     return {
       content: [{ type: "text", text: striginfiedTasklist }],
     };
-  },
+  }
 );
 
 type QueriedMemory = Awaited<
@@ -192,7 +197,7 @@ const stringifyEvent = (event: NonNullable<QueriedMemory["event"]>) => `
 
 const stringifyTask = (
   task: NonNullable<QueriedMemory["task"]>,
-  taskAttributes: NonNullable<QueriedMemory["taskAttributes"]>,
+  taskAttributes: NonNullable<QueriedMemory["taskAttributes"]>
 ) => `
 <task tasklistId="${task.tasklistId}" integrationAccountId="${
   task.integrationAccountId
@@ -202,19 +207,17 @@ const stringifyTask = (
 ${taskAttributes
   .map(
     (attribute) =>
-      `<attribute id="${attribute.platformAttributeId}" value="${attribute.platformValue}" />`,
+      `<attribute id="${attribute.platformAttributeId}" value="${attribute.platformValue}" />`
   )
   .join("\n")}
 </task>
 `;
 
 const stringifyMemory = (memory: QueriedMemory, truncateLength = 50) => `
-<memory id="${memory.id}" content="${truncate(
-  escapeDoubleQuotes(memory.content),
-  truncateLength,
-)}" description="${truncate(
-  escapeDoubleQuotes(memory.description ?? ""),
-  truncateLength,
+<memory id="${memory.id}" content="${escapeDoubleQuotes(
+  truncate(memory.content, truncateLength)
+)}" description="${escapeDoubleQuotes(
+  truncate(memory.description ?? "", truncateLength)
 )}" isVirtual="${memory.isVirtual}">
 ${memory.event ? stringifyEvent(memory.event) : ""}
 ${memory.task ? stringifyTask(memory.task, memory.taskAttributes) : ""}
@@ -223,7 +226,9 @@ ${memory.task ? stringifyTask(memory.task, memory.taskAttributes) : ""}
 
 server.tool(
   "query-memories",
-  "Memories are Kokoro's way of storing information from different sources in a single place.",
+  `Memories are Kokoro's way of storing information from different sources in a single place. \n\nToday is ${
+    new Date().toISOString().split("T")[0]
+  } (OUTDATED). If you already have today's date, it might be more precise, don't use this one.`,
   {
     contentQuery: z
       .string()
@@ -242,7 +247,7 @@ server.tool(
       })
       .optional()
       .describe(
-        "A start date to filter memories by. Must be in ISO 8601 format.",
+        "A start date to filter memories by. Must be in ISO 8601 format."
       ),
     endDate: z
       .string()
@@ -251,47 +256,68 @@ server.tool(
       })
       .optional()
       .describe(
-        "An end date to filter memories by. Must be in ISO 8601 format.",
+        "An end date to filter memories by. Must be in ISO 8601 format."
       ),
+
+    // Memory filters
+    memoryTypes: z
+      .array(z.enum(MEMORY_TYPES))
+      .optional()
+      .describe(
+        "If provided, only memories of these types will be returned. If not provided, won't filter by memory types."
+      ),
+
+    // Integration filters
     integrationAccountIds: z
       .array(z.string().uuid())
       .optional()
       .describe(
-        "If provided, only memories from these integration accounts will be returned. If not provided, won't be filtered by integration accounts.",
+        "If provided, only memories from these integration accounts will be returned. If not provided, won't filter by integration accounts."
       ),
+
+    // Calendar filters
     calendarIds: z
       .array(z.string().uuid())
       .optional()
       .describe(
-        "If provided, only memories from these calendars will be returned. If not provided, won't be filtered by calendars.",
+        "If provided, only memories from these calendars will be returned. If not provided, won't filter by calendars."
       ),
+
+    // Tasklist filters
     tasklistIds: z
       .array(z.string().uuid())
       .optional()
       .describe(
-        "If provided, only memories from these tasklists will be returned. If not provided, won't be filtered by tasklists.",
+        "If provided, only memories from these tasklists will be returned. If not provided, won't filter by tasklists."
       ),
+    taskStates: z
+      .array(z.enum(TASK_STATES))
+      .optional()
+      .describe(
+        "If provided, only tasks with these statuses will be returned. If not provided, won't filter by task statuses."
+      ),
+
     sortBy: z
       .enum(MEMORY_SORT_BY)
       .optional()
       .describe("The sort order of the memories"),
+    orderBy: z.enum(ORDER_BY).optional().describe("The order of the memories"),
   },
   async (args) => {
     const memories = await trpc.v1.memories.queryMemories.query({
       ...args,
-      integrationAccountIds: args.integrationAccountIds ?? undefined,
-      calendarIds: args.calendarIds ?? undefined,
-      tasklistIds: args.tasklistIds ?? undefined,
     });
 
-    const content = `${memories
-      .map(stringifyMemory)
-      .join(
-        "\n",
-      )}\n\nTo get full details of a memory, use the \`fetch-memory\` tool.`;
+    const content = !memories.length
+      ? "No memories found"
+      : `${memories
+          .map((memory) => stringifyMemory(memory))
+          .join(
+            "\n"
+          )}\n\nTo get full details of a memory, use the \`fetch-memory\` tool.`;
 
     return { content: [{ type: "text", text: content }] };
-  },
+  }
 );
 
 server.tool(
@@ -305,8 +331,8 @@ server.tool(
       memoryIds: [memoryId],
     });
 
-    return { content: [{ type: "text", text: stringifyMemory(memory, 300) }] };
-  },
+    return { content: [{ type: "text", text: stringifyMemory(memory, 2000) }] };
+  }
 );
 
 server.tool(
@@ -322,7 +348,7 @@ server.tool(
       .string()
       .optional()
       .describe(
-        "A name to search for contacts by. Full text search will be performed.",
+        "A name to search for contacts by. Full text search will be performed."
       ),
   },
   async ({ email, name }) => {
@@ -332,7 +358,7 @@ server.tool(
 
     const contacts = await trpc.v1.contacts.queryContacts.query(
       // biome-ignore lint/style/noNonNullAssertion: Because of the type, it's email or name.
-      email ? { email } : { name: name! },
+      email ? { email } : { name: name! }
     );
 
     type Contact = (typeof contacts)[number];
@@ -343,19 +369,19 @@ server.tool(
     const stringifyLink = (
       link: Contact["links"][number],
       names: Contact["names"],
-      emails: Contact["emails"],
+      emails: Contact["emails"]
     ) => `
 <link source="${link.source}">
   ${sortPrimary(names)
     .map(
       (name) =>
-        `<name${name.primary ? " primary" : ""}>${name.displayName}</name>`,
+        `<name${name.primary ? " primary" : ""}>${name.displayName}</name>`
     )
     .join("\n")}
   ${sortPrimary(emails)
     .map(
       (email) =>
-        `<email${email.primary ? " primary" : ""}>${email.email}</email>`,
+        `<email${email.primary ? " primary" : ""}>${email.email}</email>`
     )
     .join("\n")}
 </link>
@@ -369,7 +395,7 @@ server.tool(
 <contact id="${contact.id}">
     ${contact.links
       .map((link) =>
-        stringifyLink(link, groupedNames[link.id], groupedEmails[link.id]),
+        stringifyLink(link, groupedNames[link.id], groupedEmails[link.id])
       )
       .join("\n")}
 </contact>
@@ -379,7 +405,7 @@ server.tool(
     const content = contacts.map(stringifyContact).join("\n");
 
     return { content: [{ type: "text", text: content }] };
-  },
+  }
 );
 
 function betterActionName(actionName: KokoroActionName) {
@@ -425,7 +451,7 @@ for (const actionName of KokoroActions) {
           },
         ],
       };
-    },
+    }
   );
 }
 

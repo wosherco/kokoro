@@ -4,7 +4,7 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
 import { getMemories, queryMemories } from "@kokoro/brain";
-import { MEMORY_SORT_BY, TASK_STATES } from "@kokoro/validators/db";
+import { MEMORY_SORT_BY, ORDER_BY, TASK_STATES } from "@kokoro/validators/db";
 
 import { protectedProcedure } from "../../trpc";
 
@@ -43,8 +43,9 @@ export const v1MemoriesRouter = {
         taskStates: z.array(z.enum(TASK_STATES)).optional(),
 
         // Sort by
-        sortBy: z.enum(MEMORY_SORT_BY).optional(),
-      }),
+        sortBy: z.enum(MEMORY_SORT_BY).default("similarity").optional(),
+        orderBy: z.enum(ORDER_BY).default("desc").optional(),
+      })
     )
     .query(async ({ ctx, input }) => {
       try {
@@ -61,6 +62,7 @@ export const v1MemoriesRouter = {
 
           taskStates: input.taskStates ? new Set(input.taskStates) : undefined,
           sortBy: input.sortBy,
+          orderBy: input.orderBy,
         });
         return memories;
       } catch (error) {
