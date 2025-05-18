@@ -1,5 +1,11 @@
 # @kokoro.ws/mcp
 
+## 0.1.4
+
+### Patch Changes
+
+- f3afb3f: fixed AI confused
+
 ## 0.1.3
 
 ### Patch Changes
