@@ -4,7 +4,7 @@ export function uniqueArray<
   // biome-ignore lint/suspicious/noExplicitAny: just imitating zod
   Output = any,
   Def extends z.ZodTypeDef = z.ZodTypeDef,
-  Input = Output
+  Input = Output,
 >(schema: z.ZodType<Output, Def, Input>) {
   return z
     .array(schema)

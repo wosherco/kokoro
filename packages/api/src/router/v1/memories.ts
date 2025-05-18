@@ -45,7 +45,7 @@ export const v1MemoriesRouter = {
         // Sort by
         sortBy: z.enum(MEMORY_SORT_BY).default("similarity").optional(),
         orderBy: z.enum(ORDER_BY).default("desc").optional(),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       try {

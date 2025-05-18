@@ -60,13 +60,13 @@ import {
 import { processRrule } from "@kokoro/rrule";
 import {
   type CalendarSource,
+  EVENT_MEMORY_TYPE,
   type MemorySortBy,
+  type MemoryType,
+  type OrderBy,
+  TASK_MEMORY_TYPE,
   type TaskSource,
   type TaskState,
-  type MemoryType,
-  EVENT_MEMORY_TYPE,
-  TASK_MEMORY_TYPE,
-  type OrderBy,
 } from "@kokoro/validators/db";
 
 import { getEmbedding } from "./embeddings";
@@ -103,7 +103,7 @@ interface UpsertMemoryOptions {
 export async function upsertMemory(
   userId: string,
   options: UpsertMemoryOptions,
-  db: TransactableDBType = dbClient
+  db: TransactableDBType = dbClient,
 ) {
   const {
     content,
@@ -169,8 +169,8 @@ export async function upsertMemory(
         .where(
           eq(
             memoryEventAttendantsTable.memoryEventId,
-            memoryEvent.memoryEventId
-          )
+            memoryEvent.memoryEventId,
+          ),
         );
 
       const attendeesDiff = diff(
@@ -183,7 +183,7 @@ export async function upsertMemory(
           existing.optional !== attendee.optional ||
           existing.organizer !== attendee.organizer ||
           existing.status !== attendee.status ||
-          existing.self !== attendee.self
+          existing.self !== attendee.self,
       );
 
       await diffApply(attendeesDiff, {
@@ -192,13 +192,13 @@ export async function upsertMemory(
             and(
               eq(
                 memoryEventAttendantsTable.memoryEventId,
-                memoryEvent.memoryEventId
+                memoryEvent.memoryEventId,
               ),
               inArray(
                 memoryEventAttendantsTable.email,
-                items.map((item) => item.email)
-              )
-            )
+                items.map((item) => item.email),
+              ),
+            ),
           );
         },
         async onAdd(items) {
@@ -208,7 +208,7 @@ export async function upsertMemory(
               id: undefined,
               userId,
               memoryEventId: memoryEvent.memoryEventId,
-            }))
+            })),
           );
         },
       });
@@ -225,10 +225,10 @@ export async function upsertMemory(
               and(
                 eq(
                   memoryEventAttendantsTable.memoryEventId,
-                  memoryEvent.memoryEventId
+                  memoryEvent.memoryEventId,
                 ),
-                eq(memoryEventAttendantsTable.email, item.email)
-              )
+                eq(memoryEventAttendantsTable.email, item.email),
+              ),
             );
         },
       });
@@ -278,7 +278,7 @@ export async function upsertMemory(
         (existing, attribute) =>
           existing.state !== attribute.state ||
           existing.priority !== attribute.priority ||
-          existing.platformValue !== attribute.platformValue
+          existing.platformValue !== attribute.platformValue,
       );
 
       await diffApply(attributesDiff, {
@@ -288,9 +288,9 @@ export async function upsertMemory(
               eq(memoryTaskAttributeTable.memoryTaskId, memoryTask.id),
               inArray(
                 memoryTaskAttributeTable.platformAttributeId,
-                items.map((item) => item.platformAttributeId)
-              )
-            )
+                items.map((item) => item.platformAttributeId),
+              ),
+            ),
           );
         },
         async onAdd(items) {
@@ -305,7 +305,7 @@ export async function upsertMemory(
               platformTaskId: memoryTask.platformTaskId,
               tasklistId: memoryTask.tasklistId,
               source: memoryTask.source,
-            }))
+            })),
           );
         },
       });
@@ -323,9 +323,9 @@ export async function upsertMemory(
                 eq(memoryTaskAttributeTable.memoryTaskId, memoryTask.id),
                 eq(
                   memoryTaskAttributeTable.platformAttributeId,
-                  item.platformAttributeId
-                )
-              )
+                  item.platformAttributeId,
+                ),
+              ),
             );
         },
       });
@@ -335,7 +335,7 @@ export async function upsertMemory(
   };
 
   const handleUpdates = async (
-    memoryId: string
+    memoryId: string,
   ): Promise<{ memoryEventId?: string; memoryTaskId?: string }> => {
     const newIds = await Promise.all([
       updateMemoryEvent(memoryId),
@@ -398,9 +398,9 @@ export async function upsertMemory(
 }
 
 function processTaskAttributes<
-  T extends { taskAttributes: MemoryTaskAttribute | null }
+  T extends { taskAttributes: MemoryTaskAttribute | null },
 >(
-  memory: T[]
+  memory: T[],
 ):
   | (Omit<T, "taskAttributes"> & { taskAttributes: MemoryTaskAttribute[] })
   | null {
@@ -421,7 +421,7 @@ function processTaskAttributes<
 export async function getMemories(
   userId: string,
   ids: string[],
-  db: TransactableDBType = dbClient
+  db: TransactableDBType = dbClient,
 ): Promise<QueriedMemory[]> {
   const rows = await db
     .select({
@@ -445,7 +445,7 @@ export async function getMemories(
     .leftJoin(tasklistsTable, eq(memoryTaskTable.tasklistId, tasklistsTable.id))
     .leftJoin(
       memoryTaskAttributeTable,
-      eq(memoryTaskTable.id, memoryTaskAttributeTable.memoryTaskId)
+      eq(memoryTaskTable.id, memoryTaskAttributeTable.memoryTaskId),
     )
     .where(and(inArray(memoryTable.id, ids), eq(memoryTable.userId, userId)));
 
@@ -495,7 +495,7 @@ export async function queryMemories(
      */
     source?: MemorySource | Set<MemorySource>;
   },
-  db: TransactableDBType = dbClient
+  db: TransactableDBType = dbClient,
 ): Promise<QueriedMemory[]> {
   const {
     startDate,
@@ -526,7 +526,7 @@ export async function queryMemories(
       memoryTable.source,
       options.source instanceof Set
         ? Array.from(options.source)
-        : [options.source]
+        : [options.source],
     );
   }
 
@@ -555,7 +555,7 @@ export async function queryMemories(
           integrationAccountIds
             ? inArray(
                 memoryEventTable.integrationAccountId,
-                integrationAccountIds
+                integrationAccountIds,
               )
             : undefined,
           calendarIds
@@ -570,7 +570,7 @@ export async function queryMemories(
           sortBy,
           orderBy,
         },
-        db
+        db,
       )
     : [];
 
@@ -585,7 +585,7 @@ export async function queryMemories(
           integrationAccountIds
             ? inArray(
                 memoryTaskTable.integrationAccountId,
-                integrationAccountIds
+                integrationAccountIds,
               )
             : undefined,
           tasklistIds
@@ -601,7 +601,7 @@ export async function queryMemories(
           sortBy,
           orderBy,
         },
-        db
+        db,
       )
     : [];
 
@@ -618,7 +618,7 @@ export async function queryMemoryEvents(
     sortBy?: MemorySortBy;
     orderBy?: OrderBy;
   },
-  db: TransactableDBType = dbClient
+  db: TransactableDBType = dbClient,
 ): Promise<QueriedMemory[]> {
   const { startDate, endDate, contentEmbedding, descriptionEmbedding } =
     options;
@@ -626,14 +626,14 @@ export async function queryMemoryEvents(
   const contentSimilarity = contentEmbedding
     ? sql<number>`1 - (${cosineDistance(
         memoryTable.contentEmbedding,
-        contentEmbedding
+        contentEmbedding,
       )})`
     : sql<number>`1`;
 
   const descriptionSimilarity = descriptionEmbedding
     ? sql<number>`1 - (${cosineDistance(
         memoryTable.descriptionEmbedding,
-        descriptionEmbedding
+        descriptionEmbedding,
       )})`
     : sql<number>`1`;
 
@@ -679,7 +679,7 @@ export async function queryMemoryEvents(
       */
       and(
         lte(memoryEventTable.startDate, eventsEndDate),
-        gte(memoryEventTable.endDate, startDate)
+        gte(memoryEventTable.endDate, startDate),
       ),
       and(
         isNotNull(memoryEventTable.rrule),
@@ -687,13 +687,13 @@ export async function queryMemoryEvents(
           lte(memoryEventTable.startDate, eventsEndDate),
           or(
             isNull(memoryEventTable.recurringEnd),
-            gte(memoryEventTable.recurringEnd, startDate)
+            gte(memoryEventTable.recurringEnd, startDate),
           ),
           sql<boolean>`matching_recurrences(${memoryEventTable.startDate}, ${
             memoryEventTable.rrule
-          }, ${startDate.toISOString()}, ${endDate?.toISOString() ?? null})`
-        )
-      )
+          }, ${startDate.toISOString()}, ${endDate?.toISOString() ?? null})`,
+        ),
+      ),
     );
   }
 
@@ -719,8 +719,8 @@ export async function queryMemoryEvents(
       and(
         ...baseFilters,
         eventCondition ?? sql`TRUE`,
-        or(isNull(calendarTable.hidden), not(calendarTable.hidden))
-      )
+        or(isNull(calendarTable.hidden), not(calendarTable.hidden)),
+      ),
     )
     .orderBy((t) => {
       const order = options.orderBy === "asc" ? asc : desc;
@@ -762,7 +762,7 @@ export async function queryMemoryEvents(
       entry.event.rrule,
       entry.event.startDate,
       startDate,
-      endDate ?? new Date(startDate.getTime() + 30 * 24 * 60 * 60 * 1000)
+      endDate ?? new Date(startDate.getTime() + 30 * 24 * 60 * 60 * 1000),
     );
 
     entries.push(
@@ -774,7 +774,7 @@ export async function queryMemoryEvents(
           endDate: new Date(date.getTime() + diff),
         },
         isVirtual: true,
-      }))
+      })),
     );
   }
 
@@ -797,7 +797,7 @@ export async function queryMemoryTasks(
     sortBy?: MemorySortBy;
     orderBy?: OrderBy;
   },
-  db: TransactableDBType = dbClient
+  db: TransactableDBType = dbClient,
 ): Promise<QueriedMemory[]> {
   const {
     startDate,
@@ -810,14 +810,14 @@ export async function queryMemoryTasks(
   const contentSimilarity = contentEmbedding
     ? sql<number>`1 - (${cosineDistance(
         memoryTable.contentEmbedding,
-        contentEmbedding
+        contentEmbedding,
       )})`
     : sql<number>`1`;
 
   const descriptionSimilarity = descriptionEmbedding
     ? sql<number>`1 - (${cosineDistance(
         memoryTable.descriptionEmbedding,
-        descriptionEmbedding
+        descriptionEmbedding,
       )})`
     : sql<number>`1`;
 
@@ -827,9 +827,9 @@ export async function queryMemoryTasks(
     dueDateCondition = or(
       and(
         gte(memoryTaskTable.dueDate, startDate),
-        endDate ? lte(memoryTaskTable.dueDate, endDate) : undefined
+        endDate ? lte(memoryTaskTable.dueDate, endDate) : undefined,
       ),
-      isNull(memoryTaskTable.dueDate)
+      isNull(memoryTaskTable.dueDate),
     );
   }
 
@@ -841,8 +841,8 @@ export async function queryMemoryTasks(
     .where(
       and(
         eq(memoryTaskAttributeTable.memoryTaskId, memoryTaskTable.id),
-        isNotNull(memoryTaskAttributeTable.state)
-      )
+        isNotNull(memoryTaskAttributeTable.state),
+      ),
     )
     .orderBy(desc(memoryTaskAttributeTable.createdAt))
     .limit(1)
@@ -856,8 +856,8 @@ export async function queryMemoryTasks(
     .where(
       and(
         eq(memoryTaskAttributeTable.memoryTaskId, memoryTaskTable.id),
-        isNotNull(memoryTaskAttributeTable.priority)
-      )
+        isNotNull(memoryTaskAttributeTable.priority),
+      ),
     )
     .orderBy(desc(memoryTaskAttributeTable.createdAt))
     .limit(1)
@@ -891,8 +891,8 @@ export async function queryMemoryTasks(
         dueDateCondition,
         taskStates
           ? inArray(latestStateSubquery.state, Array.from(taskStates))
-          : undefined
-      )
+          : undefined,
+      ),
     )
     .orderBy((t) => {
       const order = options.orderBy === "asc" ? asc : desc;
@@ -943,7 +943,7 @@ export async function queryMemoryTasks(
         ...baseEntry,
         taskAttributes,
       };
-    })
+    }),
   );
 }
 
@@ -1004,7 +1004,7 @@ export async function queryContacts(
     | {
         email: string;
       },
-  db: TransactableDBType = dbClient
+  db: TransactableDBType = dbClient,
 ): Promise<QueriedContact[]> {
   // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   let results: any[];
@@ -1043,21 +1043,21 @@ export async function queryContacts(
       .from(contactTable)
       .leftJoin(
         contactLinkTable,
-        eq(contactTable.id, contactLinkTable.contactId)
+        eq(contactTable.id, contactLinkTable.contactId),
       )
       .leftJoin(
         contactEmailTable,
-        eq(contactLinkTable.id, contactEmailTable.linkId)
+        eq(contactLinkTable.id, contactEmailTable.linkId),
       )
       .leftJoin(
         contactNameTable,
-        eq(contactLinkTable.id, contactNameTable.linkId)
+        eq(contactLinkTable.id, contactNameTable.linkId),
       )
       .where(
         and(
           eq(contactTable.userId, userId),
-          eq(lower(contactEmailTable.email), options.email.toLowerCase())
-        )
+          eq(lower(contactEmailTable.email), options.email.toLowerCase()),
+        ),
       )
       .orderBy(desc(contactNameTable.primary));
   } else {
@@ -1213,6 +1213,6 @@ export async function queryContacts(
       }
 
       return contact;
-    })
+    }),
   );
 }
