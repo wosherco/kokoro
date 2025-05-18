@@ -1,8 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { parse as parseYaml } from "yaml";
 import { $ } from "bun";
+import { parse as parseYaml } from "yaml";
 
 import { externalDependencies } from "./bundle.ts";
 
