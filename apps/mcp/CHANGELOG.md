@@ -1,5 +1,11 @@
 # @kokoro.ws/mcp
 
+## 0.1.6
+
+### Patch Changes
+
+- 5d0c0e0: Fix querying
+
 ## 0.1.5
 
 ### Patch Changes
