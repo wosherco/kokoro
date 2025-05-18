@@ -166,7 +166,10 @@ const ALLOWED_IPS = [
 const linearWebhook = new Hono();
 
 linearWebhook.post("/:workspaceId", async (c) => {
-  const clientIp = c.req.header("x-forwarded-for") ?? c.req.header("x-real-ip");
+  const clientIp =
+    c.req.header("CF-Connecting-IP") ??
+    c.req.header("x-forwarded-for") ??
+    c.req.header("x-real-ip");
 
   if (!clientIp || !ALLOWED_IPS.includes(clientIp)) {
     return c.json({ error: "Unauthorized IP address" }, 403);
@@ -200,7 +203,7 @@ linearWebhook.post("/:workspaceId", async (c) => {
         error:
           "Webhook is invalid. Please, update your secret on https://account.kokoro.ws",
       },
-      400,
+      400
     );
   }
 
@@ -213,7 +216,7 @@ linearWebhook.post("/:workspaceId", async (c) => {
   const valid = webhookClient.verify(
     buf,
     signatureHeader,
-    payload[LINEAR_WEBHOOK_TS_FIELD],
+    payload[LINEAR_WEBHOOK_TS_FIELD]
   );
 
   if (!valid) {
@@ -253,8 +256,8 @@ linearWebhook.post("/:workspaceId", async (c) => {
               .where(
                 and(
                   eq(memoryTaskTable.platformTaskId, issue.id),
-                  eq(memoryTaskTable.source, LINEAR),
-                ),
+                  eq(memoryTaskTable.source, LINEAR)
+                )
               );
           } else {
             const tasklists = await db
@@ -267,15 +270,15 @@ linearWebhook.post("/:workspaceId", async (c) => {
                 integrationsAccountsTable,
                 eq(
                   tasklistsTable.integrationAccountId,
-                  integrationsAccountsTable.id,
-                ),
+                  integrationsAccountsTable.id
+                )
               )
               .where(
                 and(
                   eq(integrationsAccountsTable.integrationType, LINEAR),
                   sql<boolean>`${integrationsAccountsTable.platformData}->>'workspaceId' = ${dbWebhook.workspaceId}`,
-                  eq(tasklistsTable.platformTaskListId, issue.teamId),
-                ),
+                  eq(tasklistsTable.platformTaskListId, issue.teamId)
+                )
               );
 
             // Pushing a sync of the task to all account in this workspace
@@ -286,8 +289,8 @@ linearWebhook.post("/:workspaceId", async (c) => {
                   source: LINEAR,
                   tasklistId,
                   platformTaskId: issue.id,
-                }),
-              ),
+                })
+              )
             );
           }
 
@@ -305,15 +308,15 @@ linearWebhook.post("/:workspaceId", async (c) => {
                 contactListTable,
                 eq(
                   integrationsAccountsTable.id,
-                  contactListTable.integrationAccountId,
-                ),
+                  contactListTable.integrationAccountId
+                )
               )
               .where(
                 // There's only 1 contact list per linear account/workspace
                 and(
                   eq(integrationsAccountsTable.integrationType, LINEAR),
-                  sql<boolean>`${integrationsAccountsTable.platformData}->>'workspaceId' = ${dbWebhook.workspaceId}`,
-                ),
+                  sql<boolean>`${integrationsAccountsTable.platformData}->>'workspaceId' = ${dbWebhook.workspaceId}`
+                )
               );
 
             await Promise.all(
@@ -324,8 +327,8 @@ linearWebhook.post("/:workspaceId", async (c) => {
                     source: LINEAR,
                     contactListId,
                     platformContactId: payload.data.id,
-                  }),
-              ),
+                  })
+              )
             );
           }
           break;
