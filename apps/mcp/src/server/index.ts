@@ -256,21 +256,18 @@ server.tool(
     integrationAccountIds: z
       .array(z.string().uuid())
       .optional()
-      .nullable()
       .describe(
         "If provided, only memories from these integration accounts will be returned. If not provided, won't be filtered by integration accounts."
       ),
     calendarIds: z
       .array(z.string().uuid())
       .optional()
-      .nullable()
       .describe(
         "If provided, only memories from these calendars will be returned. If not provided, won't be filtered by calendars."
       ),
     tasklistIds: z
       .array(z.string().uuid())
       .optional()
-      .nullable()
       .describe(
         "If provided, only memories from these tasklists will be returned. If not provided, won't be filtered by tasklists."
       ),
