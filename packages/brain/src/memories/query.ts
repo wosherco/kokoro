@@ -2,6 +2,7 @@ import { filterNull, groupBy } from "@kokoro/common/poldash";
 import type { PgColumn, SQLWrapper, SubqueryWithSelection } from "@kokoro/db";
 import {
   and,
+  asc,
   desc,
   eq,
   gte,
@@ -49,14 +50,12 @@ import { getEmbedding } from "../embeddings";
 function createMemoryEventsSubquery(
   baseFilters: (SQLWrapper | undefined)[],
   options: {
-    startDate?: Date;
-    endDate?: Date;
-    sortBy?: MemorySortBy;
-    orderBy?: OrderBy;
+    dateFrom?: Date;
+    dateTo?: Date;
   },
   db: TransactableDBType = dbClient
 ) {
-  const { startDate, endDate } = options;
+  const { dateFrom: startDate, dateTo: endDate } = options;
 
   /*
     Conditional for searching for MemoryEvents
@@ -141,18 +140,32 @@ function createMemoryEventsSubquery(
   return subquery;
 }
 
+const createLatestPrioritySubquery = (db: TransactableDBType) =>
+  db
+    .select({
+      priority: memoryTaskAttributeTable.priority,
+    })
+    .from(memoryTaskAttributeTable)
+    .where(
+      and(
+        eq(memoryTaskAttributeTable.memoryTaskId, memoryTaskTable.id),
+        isNotNull(memoryTaskAttributeTable.priority)
+      )
+    )
+    .orderBy(desc(memoryTaskAttributeTable.createdAt))
+    .limit(1)
+    .as("latestPriority");
+
 function createMemoryTasksSubquery(
   baseFilters: (SQLWrapper | undefined)[],
   options: {
-    startDate?: Date;
-    endDate?: Date;
+    dateFrom?: Date;
+    dateTo?: Date;
     taskStates?: Set<TaskState>;
-    sortBy?: MemorySortBy;
-    orderBy?: OrderBy;
   },
   db: TransactableDBType = dbClient
 ) {
-  const { startDate, endDate, taskStates } = options;
+  const { dateFrom: startDate, dateTo: endDate, taskStates } = options;
 
   let dueDateCondition: SQLWrapper | undefined;
 
@@ -181,20 +194,8 @@ function createMemoryTasksSubquery(
     .limit(1)
     .as("latestState");
 
-  const latestPrioritySubquery = db
-    .select({
-      priority: memoryTaskAttributeTable.priority,
-    })
-    .from(memoryTaskAttributeTable)
-    .where(
-      and(
-        eq(memoryTaskAttributeTable.memoryTaskId, memoryTaskTable.id),
-        isNotNull(memoryTaskAttributeTable.priority)
-      )
-    )
-    .orderBy(desc(memoryTaskAttributeTable.createdAt))
-    .limit(1)
-    .as("latestPriority");
+  // Maybe allow for users to filter by priority too?
+  // const latestPrioritySubquery = createLatestPrioritySubquery(db);
 
   const subquery = db
     .select({
@@ -208,7 +209,6 @@ function createMemoryTasksSubquery(
     .leftJoin(memoryTaskTable, eq(memoryTable.id, memoryTaskTable.memoryId))
     .leftJoin(tasklistsTable, eq(memoryTaskTable.tasklistId, tasklistsTable.id))
     .leftJoinLateral(latestStateSubquery, sql`true`)
-    .leftJoinLateral(latestPrioritySubquery, sql`true`)
     .where(
       and(
         ...baseFilters,
@@ -353,8 +353,8 @@ export async function queryMemories(
     textQuery?: string;
 
     // Filter by date
-    startDate?: Date;
-    endDate?: Date;
+    dateFrom?: Date;
+    dateTo?: Date;
 
     // Filter by memory type
     memoryTypes?: Set<MemoryType>;
@@ -373,7 +373,9 @@ export async function queryMemories(
 
     // Sort by
     /**
-     * @default "similarity"
+     * When textQuery is not provided, this will be used to sort the results
+     *
+     * @default "relevantDate"
      */
     sortBy?: MemorySortBy;
     /**
@@ -390,15 +392,15 @@ export async function queryMemories(
 ): Promise<QueriedMemory[]> {
   const {
     textQuery,
-    startDate,
-    endDate,
+    dateFrom: startDate,
+    dateTo: endDate,
     integrationAccountIds,
     calendarIds,
     tasklistIds,
     calendarSources,
     taskSources,
     taskStates,
-    sortBy = "similarity",
+    sortBy = "relevantDate",
     orderBy = "desc",
   } = options;
 
@@ -449,10 +451,8 @@ export async function queryMemories(
             : undefined,
         ],
         {
-          startDate,
-          endDate,
-          sortBy,
-          orderBy,
+          dateFrom: startDate,
+          dateTo: endDate,
         },
         db
       )
@@ -477,11 +477,9 @@ export async function queryMemories(
             : undefined,
         ],
         {
-          startDate,
-          endDate,
+          dateFrom: startDate,
+          dateTo: endDate,
           taskStates,
-          sortBy,
-          orderBy,
         },
         db
       )
@@ -601,9 +599,43 @@ export async function queryMemories(
       .limit(30)
       .as("resultsSubquery");
   } else {
+    const latestPrioritySubquery = createLatestPrioritySubquery(db);
+
     resultsSubquery = db
       .select({ id: memoriesSubquery.id })
       .from(memoriesSubquery)
+      .leftJoin(
+        memoryEventTable,
+        eq(memoriesSubquery.id, memoryEventTable.memoryId)
+      )
+      .leftJoin(
+        memoryTaskTable,
+        eq(memoriesSubquery.id, memoryTaskTable.memoryId)
+      )
+      .leftJoinLateral(latestPrioritySubquery, sql`true`)
+      .orderBy(() => {
+        const order = options.orderBy === "asc" ? asc : desc;
+
+        switch (options.sortBy) {
+          case "priority": {
+            return [order(latestPrioritySubquery.priority)];
+          }
+          case "createdAt": {
+            return [order(memoryTable.createdAt)];
+          }
+          case "updatedAt": {
+            return [order(memoryTable.lastUpdate)];
+          }
+          // case "relevantDate":
+          default: {
+            return [
+              order(memoryEventTable.startDate),
+              order(memoryTaskTable.dueDate),
+            ];
+          }
+        }
+      })
+      .limit(10)
       .as("resultsSubquery");
   }
 

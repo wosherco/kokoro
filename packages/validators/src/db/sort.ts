@@ -1,8 +1,7 @@
 export const MEMORY_SORT_BY = [
-  "similarity",
   "relevantDate",
-  "lastUpdate",
   "createdAt",
+  "updatedAt",
   "priority",
 ] as const;
 

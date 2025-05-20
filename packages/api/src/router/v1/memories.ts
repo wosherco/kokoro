@@ -13,17 +13,16 @@ export const v1MemoriesRouter = {
     .input(
       z.object({
         // Filter by content
-        contentQuery: z.string().max(100).optional(),
-        descriptionQuery: z.string().max(100).optional(),
+        textQuery: z.string().max(100).optional(),
 
         // Filter by date
-        startDate: z
+        dateFrom: z
           .string()
           .datetime({
             offset: true,
           })
           .optional(),
-        endDate: z
+        dateTo: z
           .string()
           .datetime({
             offset: true,
@@ -43,19 +42,16 @@ export const v1MemoriesRouter = {
         taskStates: z.array(z.enum(TASK_STATES)).optional(),
 
         // Sort by
-        sortBy: z.enum(MEMORY_SORT_BY).default("similarity").optional(),
+        sortBy: z.enum(MEMORY_SORT_BY).optional(),
         orderBy: z.enum(ORDER_BY).default("desc").optional(),
-      }),
+      })
     )
     .query(async ({ ctx, input }) => {
       try {
         const memories = await queryMemories(ctx.user.id, {
-          contentQuery: input.contentQuery,
-          descriptionQuery: input.descriptionQuery,
-          startDate: input.startDate
-            ? new TZDateMini(input.startDate)
-            : undefined,
-          endDate: input.endDate ? new TZDateMini(input.endDate) : undefined,
+          textQuery: input.textQuery,
+          dateFrom: input.dateFrom ? new TZDateMini(input.dateFrom) : undefined,
+          dateTo: input.dateTo ? new TZDateMini(input.dateTo) : undefined,
           integrationAccountIds: input.integrationAccountIds,
           calendarIds: input.calendarIds,
           tasklistIds: input.tasklistIds,
