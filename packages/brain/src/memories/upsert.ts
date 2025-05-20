@@ -51,7 +51,7 @@ interface UpsertMemoryOptions {
 export async function upsertMemory(
   userId: string,
   options: UpsertMemoryOptions,
-  db: TransactableDBType = dbClient
+  db: TransactableDBType = dbClient,
 ) {
   const {
     content,
@@ -117,8 +117,8 @@ export async function upsertMemory(
         .where(
           eq(
             memoryEventAttendantsTable.memoryEventId,
-            memoryEvent.memoryEventId
-          )
+            memoryEvent.memoryEventId,
+          ),
         );
 
       const attendeesDiff = diff(
@@ -131,7 +131,7 @@ export async function upsertMemory(
           existing.optional !== attendee.optional ||
           existing.organizer !== attendee.organizer ||
           existing.status !== attendee.status ||
-          existing.self !== attendee.self
+          existing.self !== attendee.self,
       );
 
       await diffApply(attendeesDiff, {
@@ -140,13 +140,13 @@ export async function upsertMemory(
             and(
               eq(
                 memoryEventAttendantsTable.memoryEventId,
-                memoryEvent.memoryEventId
+                memoryEvent.memoryEventId,
               ),
               inArray(
                 memoryEventAttendantsTable.email,
-                items.map((item) => item.email)
-              )
-            )
+                items.map((item) => item.email),
+              ),
+            ),
           );
         },
         async onAdd(items) {
@@ -156,7 +156,7 @@ export async function upsertMemory(
               id: undefined,
               userId,
               memoryEventId: memoryEvent.memoryEventId,
-            }))
+            })),
           );
         },
       });
@@ -173,10 +173,10 @@ export async function upsertMemory(
               and(
                 eq(
                   memoryEventAttendantsTable.memoryEventId,
-                  memoryEvent.memoryEventId
+                  memoryEvent.memoryEventId,
                 ),
-                eq(memoryEventAttendantsTable.email, item.email)
-              )
+                eq(memoryEventAttendantsTable.email, item.email),
+              ),
             );
         },
       });
@@ -226,7 +226,7 @@ export async function upsertMemory(
         (existing, attribute) =>
           existing.state !== attribute.state ||
           existing.priority !== attribute.priority ||
-          existing.platformValue !== attribute.platformValue
+          existing.platformValue !== attribute.platformValue,
       );
 
       await diffApply(attributesDiff, {
@@ -236,9 +236,9 @@ export async function upsertMemory(
               eq(memoryTaskAttributeTable.memoryTaskId, memoryTask.id),
               inArray(
                 memoryTaskAttributeTable.platformAttributeId,
-                items.map((item) => item.platformAttributeId)
-              )
-            )
+                items.map((item) => item.platformAttributeId),
+              ),
+            ),
           );
         },
         async onAdd(items) {
@@ -253,7 +253,7 @@ export async function upsertMemory(
               platformTaskId: memoryTask.platformTaskId,
               tasklistId: memoryTask.tasklistId,
               source: memoryTask.source,
-            }))
+            })),
           );
         },
       });
@@ -271,9 +271,9 @@ export async function upsertMemory(
                 eq(memoryTaskAttributeTable.memoryTaskId, memoryTask.id),
                 eq(
                   memoryTaskAttributeTable.platformAttributeId,
-                  item.platformAttributeId
-                )
-              )
+                  item.platformAttributeId,
+                ),
+              ),
             );
         },
       });
@@ -283,7 +283,7 @@ export async function upsertMemory(
   };
 
   const handleUpdates = async (
-    memoryId: string
+    memoryId: string,
   ): Promise<{ memoryEventId?: string; memoryTaskId?: string }> => {
     const newIds = await Promise.all([
       updateMemoryEvent(memoryId),

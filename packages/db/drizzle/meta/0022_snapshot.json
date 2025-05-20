@@ -143,12 +143,8 @@
           "name": "calendar_integration_account_id_integrations_accounts_id_fk",
           "tableFrom": "calendar",
           "tableTo": "integrations_accounts",
-          "columnsFrom": [
-            "integration_account_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["integration_account_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -156,12 +152,8 @@
           "name": "calendar_user_id_user_id_fk",
           "tableFrom": "calendar",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -171,11 +163,7 @@
         "calendar_platformAccountId_platformCalendarId_source_unique": {
           "name": "calendar_platformAccountId_platformCalendarId_source_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "platform_account_id",
-            "platform_calendar_id",
-            "source"
-          ]
+          "columns": ["platform_account_id", "platform_calendar_id", "source"]
         }
       },
       "policies": {},
@@ -232,12 +220,8 @@
           "name": "chat_feedback_chat_id_chat_id_fk",
           "tableFrom": "chat_feedback",
           "tableTo": "chat",
-          "columnsFrom": [
-            "chat_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["chat_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -279,12 +263,8 @@
           "name": "chat_user_id_user_id_fk",
           "tableFrom": "chat",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -364,12 +344,8 @@
           "name": "contact_email_user_id_user_id_fk",
           "tableFrom": "contact_email",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -377,12 +353,8 @@
           "name": "contact_email_link_id_contact_link_id_fk",
           "tableFrom": "contact_email",
           "tableTo": "contact_link",
-          "columnsFrom": [
-            "link_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["link_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -489,12 +461,8 @@
           "name": "contact_link_user_id_user_id_fk",
           "tableFrom": "contact_link",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -502,12 +470,8 @@
           "name": "contact_link_contact_id_contact_id_fk",
           "tableFrom": "contact_link",
           "tableTo": "contact",
-          "columnsFrom": [
-            "contact_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["contact_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -515,12 +479,8 @@
           "name": "contact_link_contact_list_id_contact_list_id_fk",
           "tableFrom": "contact_link",
           "tableTo": "contact_list",
-          "columnsFrom": [
-            "contact_list_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["contact_list_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -649,12 +609,8 @@
           "name": "contact_list_user_id_user_id_fk",
           "tableFrom": "contact_list",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -662,12 +618,8 @@
           "name": "contact_list_integration_account_id_integrations_accounts_id_fk",
           "tableFrom": "contact_list",
           "tableTo": "integrations_accounts",
-          "columnsFrom": [
-            "integration_account_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["integration_account_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -773,12 +725,8 @@
           "name": "contact_name_user_id_user_id_fk",
           "tableFrom": "contact_name",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -786,12 +734,8 @@
           "name": "contact_name_link_id_contact_link_id_fk",
           "tableFrom": "contact_name",
           "tableTo": "contact_link",
-          "columnsFrom": [
-            "link_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["link_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -833,12 +777,8 @@
           "name": "contact_user_id_user_id_fk",
           "tableFrom": "contact",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -975,12 +915,8 @@
           "name": "memory_event_attendants_memory_event_id_memory_event_id_fk",
           "tableFrom": "memory_event_attendants",
           "tableTo": "memory_event",
-          "columnsFrom": [
-            "memory_event_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["memory_event_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -988,12 +924,8 @@
           "name": "memory_event_attendants_user_id_user_id_fk",
           "tableFrom": "memory_event_attendants",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1003,10 +935,7 @@
         "memory_event_attendants_memoryEventId_email_unique": {
           "name": "memory_event_attendants_memoryEventId_email_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "memory_event_id",
-            "email"
-          ]
+          "columns": ["memory_event_id", "email"]
         }
       },
       "policies": {},
@@ -1224,12 +1153,8 @@
           "name": "memory_event_user_id_user_id_fk",
           "tableFrom": "memory_event",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1237,12 +1162,8 @@
           "name": "memory_event_memory_id_memory_id_fk",
           "tableFrom": "memory_event",
           "tableTo": "memory",
-          "columnsFrom": [
-            "memory_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["memory_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1250,12 +1171,8 @@
           "name": "memory_event_integration_account_id_integrations_accounts_id_fk",
           "tableFrom": "memory_event",
           "tableTo": "integrations_accounts",
-          "columnsFrom": [
-            "integration_account_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["integration_account_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1263,12 +1180,8 @@
           "name": "memory_event_calendar_id_calendar_id_fk",
           "tableFrom": "memory_event",
           "tableTo": "calendar",
-          "columnsFrom": [
-            "calendar_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["calendar_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1278,9 +1191,7 @@
         "memory_event_memoryId_unique": {
           "name": "memory_event_memoryId_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "memory_id"
-          ]
+          "columns": ["memory_id"]
         },
         "memory_event_source_platformAccountId_platformId_platformCalendarId_unique": {
           "name": "memory_event_source_platformAccountId_platformId_platformCalendarId_unique",
@@ -1434,12 +1345,8 @@
           "name": "memory_user_id_user_id_fk",
           "tableFrom": "memory",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -1447,12 +1354,8 @@
           "name": "memory_interaction_source_chat_id_fk",
           "tableFrom": "memory",
           "tableTo": "chat",
-          "columnsFrom": [
-            "interaction_source"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["interaction_source"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1504,12 +1407,8 @@
           "name": "account_user_id_user_id_fk",
           "tableFrom": "account",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1519,9 +1418,7 @@
         "account_platformId_unique": {
           "name": "account_platformId_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "platform_id"
-          ]
+          "columns": ["platform_id"]
         }
       },
       "policies": {},
@@ -1587,12 +1484,8 @@
           "name": "oauth_code_client_id_oauth_client_id_fk",
           "tableFrom": "oauth_code",
           "tableTo": "oauth_client",
-          "columnsFrom": [
-            "client_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["client_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -1600,12 +1493,8 @@
           "name": "oauth_code_user_id_user_id_fk",
           "tableFrom": "oauth_code",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1686,12 +1575,8 @@
           "name": "oauth_client_owner_id_user_id_fk",
           "tableFrom": "oauth_client",
           "tableTo": "user",
-          "columnsFrom": [
-            "owner_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["owner_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1701,9 +1586,7 @@
         "oauth_client_clientId_unique": {
           "name": "oauth_client_clientId_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "client_id"
-          ]
+          "columns": ["client_id"]
         }
       },
       "policies": {},
@@ -1747,12 +1630,8 @@
           "name": "payment_user_id_user_id_fk",
           "tableFrom": "payment",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1792,12 +1671,8 @@
           "name": "session_user_id_user_id_fk",
           "tableFrom": "session",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1862,12 +1737,8 @@
           "name": "oauth_token_client_id_oauth_client_id_fk",
           "tableFrom": "oauth_token",
           "tableTo": "oauth_client",
-          "columnsFrom": [
-            "client_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["client_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -1875,12 +1746,8 @@
           "name": "oauth_token_user_id_user_id_fk",
           "tableFrom": "oauth_token",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1890,9 +1757,7 @@
         "oauth_token_refreshToken_unique": {
           "name": "oauth_token_refreshToken_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "refresh_token"
-          ]
+          "columns": ["refresh_token"]
         }
       },
       "policies": {},
@@ -1981,9 +1846,7 @@
         "user_email_unique": {
           "name": "user_email_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "email"
-          ]
+          "columns": ["email"]
         }
       },
       "policies": {},
@@ -2119,12 +1982,8 @@
           "name": "memory_task_attributes_user_id_user_id_fk",
           "tableFrom": "memory_task_attributes",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -2132,12 +1991,8 @@
           "name": "memory_task_attributes_memory_task_id_memory_tasks_id_fk",
           "tableFrom": "memory_task_attributes",
           "tableTo": "memory_tasks",
-          "columnsFrom": [
-            "memory_task_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["memory_task_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -2145,12 +2000,8 @@
           "name": "memory_task_attributes_integration_account_id_integrations_accounts_id_fk",
           "tableFrom": "memory_task_attributes",
           "tableTo": "integrations_accounts",
-          "columnsFrom": [
-            "integration_account_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["integration_account_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -2171,10 +2022,7 @@
         "memory_task_attributes_memoryTaskId_platformAttributeId_unique": {
           "name": "memory_task_attributes_memoryTaskId_platformAttributeId_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "memory_task_id",
-            "platform_attribute_id"
-          ]
+          "columns": ["memory_task_id", "platform_attribute_id"]
         }
       },
       "policies": {},
@@ -2325,12 +2173,8 @@
           "name": "memory_tasks_user_id_user_id_fk",
           "tableFrom": "memory_tasks",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -2338,12 +2182,8 @@
           "name": "memory_tasks_memory_id_memory_id_fk",
           "tableFrom": "memory_tasks",
           "tableTo": "memory",
-          "columnsFrom": [
-            "memory_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["memory_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -2351,12 +2191,8 @@
           "name": "memory_tasks_tasklist_id_tasklists_id_fk",
           "tableFrom": "memory_tasks",
           "tableTo": "tasklists",
-          "columnsFrom": [
-            "tasklist_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["tasklist_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -2364,12 +2200,8 @@
           "name": "memory_tasks_integration_account_id_integrations_accounts_id_fk",
           "tableFrom": "memory_tasks",
           "tableTo": "integrations_accounts",
-          "columnsFrom": [
-            "integration_account_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["integration_account_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -2379,9 +2211,7 @@
         "memory_tasks_memoryId_unique": {
           "name": "memory_tasks_memoryId_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "memory_id"
-          ]
+          "columns": ["memory_id"]
         },
         "memory_tasks_source_platformAccountId_platformTaskListId_platformTaskId_unique": {
           "name": "memory_tasks_source_platformAccountId_platformTaskListId_platformTaskId_unique",
@@ -2525,12 +2355,8 @@
           "name": "tasklists_user_id_user_id_fk",
           "tableFrom": "tasklists",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -2538,12 +2364,8 @@
           "name": "tasklists_integration_account_id_integrations_accounts_id_fk",
           "tableFrom": "tasklists",
           "tableTo": "integrations_accounts",
-          "columnsFrom": [
-            "integration_account_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["integration_account_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -2553,11 +2375,7 @@
         "tasklists_source_platformAccountId_platformTaskListId_unique": {
           "name": "tasklists_source_platformAccountId_platformTaskListId_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "source",
-            "platform_account_id",
-            "platform_task_list_id"
-          ]
+          "columns": ["source", "platform_account_id", "platform_task_list_id"]
         },
         "tasklists_userId_source_platformAccountId_platformTaskListId_unique": {
           "name": "tasklists_userId_source_platformAccountId_platformTaskListId_unique",
@@ -2666,12 +2484,8 @@
           "name": "integrations_accounts_user_id_user_id_fk",
           "tableFrom": "integrations_accounts",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -2681,18 +2495,12 @@
         "integrations_accounts_platformAccountId_integrationType_unique": {
           "name": "integrations_accounts_platformAccountId_integrationType_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "platform_account_id",
-            "integration_type"
-          ]
+          "columns": ["platform_account_id", "integration_type"]
         },
         "integrations_accounts_email_integrationType_unique": {
           "name": "integrations_accounts_email_integrationType_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "email",
-            "integration_type"
-          ]
+          "columns": ["email", "integration_type"]
         }
       },
       "policies": {},
@@ -2753,12 +2561,8 @@
           "name": "external_google_calendar_events_watchers_user_id_user_id_fk",
           "tableFrom": "external_google_calendar_events_watchers",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -2766,12 +2570,8 @@
           "name": "external_google_calendar_events_watchers_integration_account_id_integrations_accounts_id_fk",
           "tableFrom": "external_google_calendar_events_watchers",
           "tableTo": "integrations_accounts",
-          "columnsFrom": [
-            "integration_account_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["integration_account_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -2781,10 +2581,7 @@
         "external_google_calendar_events_watchers_integrationAccountId_calendarId_unique": {
           "name": "external_google_calendar_events_watchers_integrationAccountId_calendarId_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "integration_account_id",
-            "calendar_id"
-          ]
+          "columns": ["integration_account_id", "calendar_id"]
         }
       },
       "policies": {},
@@ -2839,12 +2636,8 @@
           "name": "external_google_calendarlist_watchers_user_id_user_id_fk",
           "tableFrom": "external_google_calendarlist_watchers",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -2852,12 +2645,8 @@
           "name": "external_google_calendarlist_watchers_integration_account_id_integrations_accounts_id_fk",
           "tableFrom": "external_google_calendarlist_watchers",
           "tableTo": "integrations_accounts",
-          "columnsFrom": [
-            "integration_account_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["integration_account_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -2867,9 +2656,7 @@
         "external_google_calendarlist_watchers_integrationAccountId_unique": {
           "name": "external_google_calendarlist_watchers_integrationAccountId_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "integration_account_id"
-          ]
+          "columns": ["integration_account_id"]
         }
       },
       "policies": {},
@@ -2928,9 +2715,7 @@
         "linear_webhooks_workspaceId_unique": {
           "name": "linear_webhooks_workspaceId_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "workspace_id"
-          ]
+          "columns": ["workspace_id"]
         }
       },
       "policies": {},

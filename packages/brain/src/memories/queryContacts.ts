@@ -54,7 +54,7 @@ export async function queryContacts(
     | {
         email: string;
       },
-  db: TransactableDBType = dbClient
+  db: TransactableDBType = dbClient,
 ): Promise<QueriedContact[]> {
   // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   let results: any[];
@@ -93,21 +93,21 @@ export async function queryContacts(
       .from(contactTable)
       .leftJoin(
         contactLinkTable,
-        eq(contactTable.id, contactLinkTable.contactId)
+        eq(contactTable.id, contactLinkTable.contactId),
       )
       .leftJoin(
         contactEmailTable,
-        eq(contactLinkTable.id, contactEmailTable.linkId)
+        eq(contactLinkTable.id, contactEmailTable.linkId),
       )
       .leftJoin(
         contactNameTable,
-        eq(contactLinkTable.id, contactNameTable.linkId)
+        eq(contactLinkTable.id, contactNameTable.linkId),
       )
       .where(
         and(
           eq(contactTable.userId, userId),
-          eq(lower(contactEmailTable.email), options.email.toLowerCase())
-        )
+          eq(lower(contactEmailTable.email), options.email.toLowerCase()),
+        ),
       )
       .orderBy(desc(contactNameTable.primary));
   } else {
@@ -263,6 +263,6 @@ export async function queryContacts(
       }
 
       return contact;
-    })
+    }),
   );
 }
