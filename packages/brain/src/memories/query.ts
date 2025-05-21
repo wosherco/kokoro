@@ -3,6 +3,7 @@ import type { PgColumn, SQLWrapper, SubqueryWithSelection } from "@kokoro/db";
 import {
   and,
   asc,
+  cosineDistance,
   desc,
   eq,
   gte,
@@ -124,6 +125,8 @@ function createMemoryEventsSubquery(
       contentEmbedding: memoryTable.contentEmbedding,
       description: memoryTable.description,
       descriptionEmbedding: memoryTable.descriptionEmbedding,
+      createdAt: memoryTable.createdAt,
+      lastUpdate: memoryTable.lastUpdate,
     })
     .from(memoryTable)
     .leftJoin(memoryEventTable, eq(memoryTable.id, memoryEventTable.memoryId))
@@ -201,9 +204,11 @@ function createMemoryTasksSubquery(
     .select({
       id: memoryTable.id,
       content: memoryTable.content,
-      description: memoryTable.description,
       contentEmbedding: memoryTable.contentEmbedding,
+      description: memoryTable.description,
       descriptionEmbedding: memoryTable.descriptionEmbedding,
+      createdAt: memoryTable.createdAt,
+      lastUpdate: memoryTable.lastUpdate,
     })
     .from(memoryTable)
     .leftJoin(memoryTaskTable, eq(memoryTable.id, memoryTaskTable.memoryId))
@@ -523,25 +528,25 @@ export async function queryMemories(
       to_tsvector('english', coalesce(${memoriesSubquery.description}, '')),
       websearch_to_tsquery('english', ${textQuery})
     )`.as("descriptionRank"),
-        contentDistance:
-          sql<number>`${memoriesSubquery.contentEmbedding} <#> ${textEmbedding}`.as(
-            "contentDistance",
-          ),
-        descriptionDistance:
-          sql<number>`${memoriesSubquery.descriptionEmbedding} <#> ${textEmbedding}`.as(
-            "descriptionDistance",
-          ),
+        contentDistance: sql<number>`${cosineDistance(
+          memoriesSubquery.contentEmbedding,
+          textEmbedding,
+        )}`.as("contentDistance"),
+        descriptionDistance: sql<number>`${cosineDistance(
+          memoriesSubquery.descriptionEmbedding,
+          textEmbedding,
+        )}`.as("descriptionDistance"),
       })
       .from(memoriesSubquery)
       .where(
         and(
           or(
-            sql<boolean>`to_tsvector('english', coalesce(${memoryTable.content}, '')) @@ websearch_to_tsquery('english', ${textQuery})`,
-            sql<boolean>`to_tsvector('english', coalesce(${memoryTable.description}, '')) @@ websearch_to_tsquery('english', ${textQuery})`,
+            sql<boolean>`to_tsvector('english', coalesce(${memoriesSubquery.content}, '')) @@ websearch_to_tsquery('english', ${textQuery})`,
+            sql<boolean>`to_tsvector('english', coalesce(${memoriesSubquery.description}, '')) @@ websearch_to_tsquery('english', ${textQuery})`,
           ),
           or(
-            isNotNull(memoryTable.contentEmbedding),
-            isNotNull(memoryTable.descriptionEmbedding),
+            isNotNull(memoriesSubquery.contentEmbedding),
+            isNotNull(memoriesSubquery.descriptionEmbedding),
           ),
         ),
       )
@@ -577,9 +582,15 @@ export async function queryMemories(
     const finalRankingSubquery = db
       .select({
         id: rankedResultsSubquery.id,
-        fullTextRankIx: sql<number>`row_number() over (order by ${rankedResultsSubquery.fullTextRank} desc)`,
+        fullTextRankIx:
+          sql<number>`row_number() over (order by ${rankedResultsSubquery.fullTextRank} desc)`.as(
+            "fullTextRankIx",
+          ),
         semanticDistance: rankedResultsSubquery.semanticDistance,
-        semanticRankIx: sql<number>`row_number() over (order by ${rankedResultsSubquery.semanticDistance} asc)`,
+        semanticRankIx:
+          sql<number>`row_number() over (order by ${rankedResultsSubquery.semanticDistance} asc)`.as(
+            "semanticRankIx",
+          ),
       })
       .from(rankedResultsSubquery)
       .as("finalRankingSubquery");
@@ -614,17 +625,17 @@ export async function queryMemories(
       )
       .leftJoinLateral(latestPrioritySubquery, sql`true`)
       .orderBy(() => {
-        const order = options.orderBy === "asc" ? asc : desc;
+        const order = orderBy === "asc" ? asc : desc;
 
-        switch (options.sortBy) {
+        switch (sortBy) {
           case "priority": {
             return [order(latestPrioritySubquery.priority)];
           }
           case "createdAt": {
-            return [order(memoryTable.createdAt)];
+            return [order(memoriesSubquery.createdAt)];
           }
           case "updatedAt": {
-            return [order(memoryTable.lastUpdate)];
+            return [order(memoriesSubquery.lastUpdate)];
           }
           // case "relevantDate":
           default: {
@@ -635,7 +646,7 @@ export async function queryMemories(
           }
         }
       })
-      .limit(10)
+      .limit(15)
       .as("resultsSubquery");
   }
 
@@ -656,9 +667,9 @@ export async function queryMemories(
     })
     .from(resultsSubquery)
     .innerJoin(memoryTable, eq(resultsSubquery.id, memoryTable.id))
-    .leftJoin(memoryEventTable, eq(memoryTable.id, memoryEventTable.memoryId))
+    .leftJoin(memoryEventTable, eq(memoryEventTable.memoryId, memoryTable.id))
     .leftJoin(calendarTable, eq(memoryEventTable.calendarId, calendarTable.id))
-    .leftJoin(memoryTaskTable, eq(memoryTable.id, memoryTaskTable.memoryId))
+    .leftJoin(memoryTaskTable, eq(memoryTaskTable.memoryId, memoryTable.id))
     .leftJoin(tasklistsTable, eq(memoryTaskTable.tasklistId, tasklistsTable.id))
     .leftJoin(
       memoryTaskAttributeTable,

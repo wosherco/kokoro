@@ -63,23 +63,23 @@ export const memoryTable = pgTable(
   (t) => ({
     contentEmbeddingIdx: index().using(
       "hnsw",
-      t.contentEmbedding.op("vector_cosine_ops")
+      t.contentEmbedding.op("vector_cosine_ops"),
     ),
     descriptionEmbeddingIdx: index().using(
       "hnsw",
-      t.descriptionEmbedding.op("vector_cosine_ops")
+      t.descriptionEmbedding.op("vector_cosine_ops"),
     ),
     // TODO: Support other languages?
     contentFTS: index("content_fts").using(
       "gin",
-      sql`to_tsvector('english', ${t.content})`
+      sql`to_tsvector('english', ${t.content})`,
     ),
     // TODO: Support other languages?
     descriptionFTS: index("description_fts").using(
       "gin",
-      sql`to_tsvector('english', ${t.description})`
+      sql`to_tsvector('english', ${t.description})`,
     ),
-  })
+  }),
 );
 
 export type Memory = InferSelectModel<typeof memoryTable>;
@@ -191,9 +191,9 @@ export const memoryEventTable = pgTable(
       t.source,
       t.platformAccountId,
       t.platformId,
-      t.platformCalendarId
+      t.platformCalendarId,
     ),
-  })
+  }),
 );
 
 export type MemoryEvent = InferSelectModel<typeof memoryEventTable>;
@@ -274,7 +274,7 @@ export const memoryEventAttendantsTable = pgTable(
     userIdIdx: index().on(t.userId),
     memoryEventIdIdx: index().on(t.memoryEventId),
     memoryEventIdEmailUnique: unique().on(t.memoryEventId, t.email),
-  })
+  }),
 );
 
 export type MemoryEventAttendant = InferSelectModel<
