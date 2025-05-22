@@ -1,4 +1,4 @@
-import { paraglide } from "@inlang/paraglide-sveltekit/vite";
+import { paraglideVitePlugin } from "@inlang/paraglide-js";
 import { sentrySvelteKit } from "@sentry/sveltekit";
 import { enhancedImages } from "@sveltejs/enhanced-img";
 import { sveltekit } from "@sveltejs/kit/vite";
@@ -9,9 +9,10 @@ export default defineConfig({
     sentrySvelteKit(),
     sveltekit(),
     enhancedImages(),
-    paraglide({
+    paraglideVitePlugin({
       project: "./project.inlang",
       outdir: "./src/lib/paraglide",
+      strategy: ["url", "cookie", "baseLocale"],
     }),
   ],
 });
