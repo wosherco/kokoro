@@ -55,6 +55,8 @@
     "@kokoro/tsconfig": "workspace:*",
     "dotenv-cli": "catalog:",
     "@biomejs/biome": "catalog:",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "@testcontainers/postgresql": "catalog:",
+    "testcontainers": "catalog:"
   }
 }

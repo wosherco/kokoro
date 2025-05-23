@@ -31,7 +31,6 @@ catalog:
   vite: ^6.3.5
   vitest: ^3.1.4
   "rrule-rust": 2.1.0-alpha.6
-
   pino: 9.6.0
   pino-pretty: 13.0.0
   hono-pino: 0.7.2
@@ -49,6 +48,8 @@ catalog:
   "@opentelemetry/exporter-trace-otlp-http": 0.57.2
   "@biomejs/biome": "1.9.4"
   nanoid: 5.1.5
+  "@testcontainers/postgresql": 10.27.0
+  testcontainers: 10.27.0
 
 catalogs:
   react18:

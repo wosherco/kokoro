@@ -7,12 +7,16 @@ import postgres from "postgres";
 import { env } from "../env";
 import * as schema from "./schema";
 
-export const connection = postgres(env.POSTGRES_URL);
+export function createClient(uri: string) {
+  const connection = postgres(uri);
 
-export const db = drizzle(connection, {
-  schema,
-  casing: "snake_case",
-});
+  return drizzle(connection, {
+    schema,
+    casing: "snake_case",
+  });
+}
+
+export const db = createClient(env.POSTGRES_URL);
 
 export type DBType = typeof db;
 export type TransactionClient = PgTransaction<
