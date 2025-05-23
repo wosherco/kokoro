@@ -1,5 +1,5 @@
 {
   "extends": "@kokoro/tsconfig/internal-package.json",
-  "include": ["src", "*.ts"],
+  "include": ["src", "*.ts", "tests"],
   "exclude": ["node_modules"]
 }
