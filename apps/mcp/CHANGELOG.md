@@ -1,5 +1,11 @@
 # @kokoro.ws/mcp
 
+## 0.2.0
+
+### Minor Changes
+
+- 9630301: New and better memory search
+
 ## 0.1.6
 
 ### Patch Changes
