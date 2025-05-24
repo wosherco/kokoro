@@ -20,12 +20,12 @@ describe("querying memories", () => {
   let databaseContainer: StartedPostgreSqlContainer | undefined;
 
   beforeAll(async () => {
-    const container = await createDatabaseContainer();
-    databaseContainer = container;
+    const { postgresContainer, uri } = await createDatabaseContainer();
+    databaseContainer = postgresContainer;
 
     vi.doMock("../../env", () => ({
       env: {
-        POSTGRES_URL: container.getConnectionUri(),
+        POSTGRES_URL: uri,
       },
     }));
 
@@ -479,7 +479,7 @@ describe("querying memories", () => {
       source: LINEAR_INTEGRATION,
       dueDate: new Date("2025-05-22T13:30:48.512Z"),
     });
-  }, 120000);
+  }, 90000);
 
   afterAll(async () => {
     await databaseContainer?.stop();

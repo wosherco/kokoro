@@ -4,7 +4,7 @@ import { GenericContainer, Wait } from "testcontainers";
 
 export async function createDatabaseContainer() {
   const postgresContainer = await new PostgreSqlContainer(
-    "timescale/timescaledb-ha:pg16-all",
+    "timescale/timescaledb-ha:pg16-all"
   )
     .withDatabase("postgres")
     .withUsername("postgres")
@@ -12,14 +12,16 @@ export async function createDatabaseContainer() {
     .withExposedPorts({ container: 5432, host: 5432 })
     .start();
 
-  await migrateDatabase(postgresContainer.getConnectionUri());
+  const uri = postgresContainer.getConnectionUri();
 
-  return postgresContainer;
+  await migrateDatabase(uri);
+
+  return { postgresContainer, uri };
 }
 
 export async function createEmbeddingServiceContainer() {
   const embeddingServiceContainer = await new GenericContainer(
-    "ghcr.io/wosherco/all-minilm-l6-v2-restapi-service",
+    "ghcr.io/wosherco/all-minilm-l6-v2-restapi-service"
   )
     .withExposedPorts({ container: 3000, host: 3000 })
     .withWaitStrategy(Wait.forHttp("/health", 3000))
