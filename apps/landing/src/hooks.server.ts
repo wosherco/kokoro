@@ -1,8 +1,22 @@
 import { PUBLIC_ENVIRONMENT } from "$env/static/public";
-import { i18n } from "$lib/i18n";
+import { paraglideMiddleware } from "$lib/paraglide/server";
 import * as Sentry from "@sentry/sveltekit";
 import type { Handle } from "@sveltejs/kit";
 import { sequence } from "@sveltejs/kit/hooks";
+
+// creating a handle to use the paraglide middleware
+const paraglideHandle: Handle = ({ event, resolve }) =>
+  paraglideMiddleware(
+    event.request,
+    ({ request: localizedRequest, locale }) => {
+      event.request = localizedRequest;
+      return resolve(event, {
+        transformPageChunk: ({ html }) => {
+          return html.replace("%lang%", locale);
+        },
+      });
+    },
+  );
 
 Sentry.init({
   dsn: "https://af2ce488089b3c0febaed094f41e18df@o4507313660428288.ingest.de.sentry.io/4508682765467728",
@@ -17,6 +31,4 @@ if (PUBLIC_ENVIRONMENT === "development") {
   Sentry.init({});
 }
 
-const handleParaglide: Handle = i18n.handle();
-
-export const handle = sequence(Sentry.sentryHandle(), handleParaglide);
+export const handle = sequence(Sentry.sentryHandle(), paraglideHandle);

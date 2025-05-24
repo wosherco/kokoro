@@ -1,8 +1,7 @@
 <script lang="ts">
-import { page } from "$app/stores";
+import { page } from "$app/state";
 import { Toaster } from "$lib/components/ui/sonner/index.js";
-import { i18n } from "$lib/i18n";
-import { ParaglideJS } from "@inlang/paraglide-sveltekit";
+import { locales, localizeHref } from "$lib/paraglide/runtime";
 
 import Footer from "../components/Footer.svelte";
 import Header from "../components/Header.svelte";
@@ -39,11 +38,15 @@ onNavigate((navigation) => {
 });
 </script>
 
-<ParaglideJS {i18n}>
-  <Toaster />
-  <Header pathname={$page.url.pathname} />
-  <main class="min-h-[100dvh]">
-    {@render children()}
-  </main>
-  <Footer />
-</ParaglideJS>
+<Toaster />
+<Header pathname={page.url.pathname} />
+<main class="min-h-[100dvh]">
+  {@render children()}
+</main>
+<Footer />
+
+<div style="display:none">
+  {#each locales as locale}
+    <a href={localizeHref(page.url.pathname, { locale })}>{locale}</a>
+  {/each}
+</div>
