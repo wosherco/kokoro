@@ -38,6 +38,8 @@ app.use(
   }),
 );
 
+app.get("/health", (c) => c.json({ status: "ok" }));
+
 app.use(
   "/trpc/*",
   trpcServer({
