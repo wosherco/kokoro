@@ -12,7 +12,7 @@ export async function createDatabaseContainer() {
     .withExposedPorts({ container: 5432, host: 5432 })
     .start();
 
-  const uri = postgresContainer.getConnectionUri();
+  const uri = "postgresql://postgres:password@localhost:5432/postgres";
 
   await migrateDatabase(uri);
 
