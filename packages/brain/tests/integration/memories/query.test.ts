@@ -1,3 +1,4 @@
+import { createDatabaseContainer } from "../containers";
 import { db } from "@kokoro/db/client";
 import {
   calendarTable,
@@ -12,9 +13,26 @@ import { GOOGLE_CALENDAR, LINEAR_INTEGRATION } from "@kokoro/validators/db";
 import type { StartedPostgreSqlContainer } from "@testcontainers/postgresql";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { getMemories } from "../../../src/memories/query";
-import { createDatabaseContainer } from "../containers";
 
 const userId = crypto.randomUUID();
+
+vi.mock("@kokoro/db/env", async () => {
+  const originalEnvModule = await vi.importActual<
+    typeof import("@kokoro/db/env")
+  >("@kokoro/db/env");
+
+  return {
+    // Preserve other exports from @kokoro/db/env (if any)
+    ...originalEnvModule,
+    // Override the 'env' export
+    env: {
+      // Preserve other properties of the original env object
+      ...originalEnvModule.env,
+      // Override POSTGRES_URL for the test
+      POSTGRES_URL: "postgresql://postgres:password@localhost:5432/postgres",
+    },
+  };
+});
 
 describe("querying memories", () => {
   let databaseContainer: StartedPostgreSqlContainer | undefined;
@@ -22,12 +40,6 @@ describe("querying memories", () => {
   beforeAll(async () => {
     const postgresContainer = await createDatabaseContainer();
     databaseContainer = postgresContainer;
-
-    vi.doMock("@kokoro/db/env", () => ({
-      env: {
-        POSTGRES_URL: postgresContainer.getConnectionUri(),
-      },
-    }));
 
     // Insert user
     await db.insert(userTable).values({
