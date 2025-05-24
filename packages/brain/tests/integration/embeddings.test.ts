@@ -88,7 +88,7 @@ describe("getEmbedding", () => {
 
   beforeAll(async () => {
     embeddingServiceContainer = await createEmbeddingServiceContainer();
-  }, 60000);
+  }, 30000);
 
   afterAll(async () => {
     await embeddingServiceContainer?.stop();
