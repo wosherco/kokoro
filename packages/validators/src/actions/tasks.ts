@@ -22,7 +22,7 @@ export const tasksCreateTaskSchema = z.object({
     .describe("The due date of the task. Must be in ISO 8601 format."),
   attributes: z
     .record(
-      z.string().uuid().describe("The id of the attribute"),
+      z.string().describe("The id of the attribute"),
       z.string().describe("The value of the attribute"),
     )
     .optional(),
@@ -44,7 +44,7 @@ export const tasksModifyTaskSchema = z.object({
     .describe("The due date of the task. Must be in ISO 8601 format."),
   attributes: z
     .record(
-      z.string().uuid().describe("The id of the attribute"),
+      z.string().describe("The id of the attribute"),
       z.string().describe("The value of the attribute"),
     )
     .optional(),
