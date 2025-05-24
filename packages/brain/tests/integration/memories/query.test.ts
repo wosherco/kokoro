@@ -1,6 +1,3 @@
-import type { StartedPostgreSqlContainer } from "@testcontainers/postgresql";
-import { createDatabaseContainer } from "../containers";
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { db } from "@kokoro/db/client";
 import {
   calendarTable,
@@ -12,7 +9,10 @@ import {
   userTable,
 } from "@kokoro/db/schema";
 import { GOOGLE_CALENDAR, LINEAR_INTEGRATION } from "@kokoro/validators/db";
+import type { StartedPostgreSqlContainer } from "@testcontainers/postgresql";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { getMemories } from "../../../src/memories/query";
+import { createDatabaseContainer } from "../containers";
 
 const userId = crypto.randomUUID();
 
