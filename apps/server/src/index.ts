@@ -21,7 +21,7 @@ app.use(
   "*",
   pinoLogger({
     pino: logger,
-  }),
+  })
 );
 
 app.use(
@@ -35,8 +35,10 @@ app.use(
       env.PUBLIC_DEVELOPERS_URL,
     ],
     credentials: true,
-  }),
+  })
 );
+
+app.get("/health", (c) => c.json({ status: "ok" }));
 
 app.use(
   "/trpc/*",
@@ -52,7 +54,7 @@ app.use(
       });
     },
     router: appRouter,
-  }),
+  })
 );
 
 app.route("/watch/google-calendar", watchGoogleCalendar);
