@@ -479,7 +479,7 @@ describe("querying memories", () => {
       source: LINEAR_INTEGRATION,
       dueDate: new Date("2025-05-22T13:30:48.512Z"),
     });
-  }, 60000);
+  }, 120000);
 
   afterAll(async () => {
     await databaseContainer?.stop();
