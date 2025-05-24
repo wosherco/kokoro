@@ -20,12 +20,12 @@ describe("querying memories", () => {
   let databaseContainer: StartedPostgreSqlContainer | undefined;
 
   beforeAll(async () => {
-    const { postgresContainer, uri } = await createDatabaseContainer();
+    const postgresContainer = await createDatabaseContainer();
     databaseContainer = postgresContainer;
 
-    vi.doMock("../../env", () => ({
+    vi.doMock("@kokoro/db/env", () => ({
       env: {
-        POSTGRES_URL: uri,
+        POSTGRES_URL: postgresContainer.getConnectionUri(),
       },
     }));
 

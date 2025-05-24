@@ -12,11 +12,9 @@ export async function createDatabaseContainer() {
     .withExposedPorts({ container: 5432, host: 5432 })
     .start();
 
-  const uri = "postgresql://postgres:password@localhost:5432/postgres";
+  await migrateDatabase(postgresContainer.getConnectionUri());
 
-  await migrateDatabase(uri);
-
-  return { postgresContainer, uri };
+  return postgresContainer;
 }
 
 export async function createEmbeddingServiceContainer() {
