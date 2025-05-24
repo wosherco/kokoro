@@ -1,8 +1,8 @@
 import { PUBLIC_ENVIRONMENT } from "$env/static/public";
+import { paraglideMiddleware } from "$lib/paraglide/server";
 import * as Sentry from "@sentry/sveltekit";
 import type { Handle } from "@sveltejs/kit";
 import { sequence } from "@sveltejs/kit/hooks";
-import { paraglideMiddleware } from "$lib/paraglide/server";
 
 // creating a handle to use the paraglide middleware
 const paraglideHandle: Handle = ({ event, resolve }) =>
@@ -15,7 +15,7 @@ const paraglideHandle: Handle = ({ event, resolve }) =>
           return html.replace("%lang%", locale);
         },
       });
-    }
+    },
   );
 
 Sentry.init({
