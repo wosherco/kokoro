@@ -26,4 +26,12 @@ export default defineWorkspace([
       globalSetup: "../../vitest.global-setup.ts",
     },
   },
+  {
+    test: {
+      name: "brain",
+      root: "./packages/brain",
+      environment: "node",
+      globalSetup: "../../vitest.global-setup.ts",
+    },
+  },
 ]);

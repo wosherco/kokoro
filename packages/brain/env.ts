@@ -6,5 +6,6 @@ export const env = createEnv({
     EMBEDDING_SERVICE_URL: z.string().min(1),
   },
   runtimeEnv: process.env,
-  skipValidation: process.env.CI !== undefined,
+  skipValidation:
+    process.env.CI !== undefined || process.env.NODE_ENV === "test",
 });

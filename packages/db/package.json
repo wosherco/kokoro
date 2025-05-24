@@ -16,6 +16,10 @@
       "types": "./dist/src/schema/index.d.ts",
       "default": "./src/schema/index.ts"
     },
+    "./migration": {
+      "types": "./dist/src/migration.d.ts",
+      "default": "./src/migration.ts"
+    },
     "./env": "./env.ts"
   },
   "license": "Apache-2.0",

@@ -1,0 +1,2 @@
+CREATE INDEX "content_fts" ON "memory" USING gin (to_tsvector('english', "content"));--> statement-breakpoint
+CREATE INDEX "description_fts" ON "memory" USING gin (to_tsvector('english', "description"));

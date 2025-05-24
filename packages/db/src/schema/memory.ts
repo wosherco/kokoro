@@ -1,4 +1,4 @@
-import type { InferSelectModel } from "drizzle-orm";
+import { type InferSelectModel, sql } from "drizzle-orm";
 import {
   boolean,
   index,
@@ -52,6 +52,9 @@ export const memoryTable = pgTable(
       .defaultNow()
       .$onUpdateFn(() => new Date()),
 
+    /**
+     * @deprecated TO BE REMOVED. IT'S USELESS
+     */
     source: varchar({ length: 255, enum: MEMORY_SOURCES }).notNull(),
 
     // Relations
@@ -65,6 +68,16 @@ export const memoryTable = pgTable(
     descriptionEmbeddingIdx: index().using(
       "hnsw",
       t.descriptionEmbedding.op("vector_cosine_ops"),
+    ),
+    // TODO: Support other languages?
+    contentFTS: index("content_fts").using(
+      "gin",
+      sql`to_tsvector('english', ${t.content})`,
+    ),
+    // TODO: Support other languages?
+    descriptionFTS: index("description_fts").using(
+      "gin",
+      sql`to_tsvector('english', ${t.description})`,
     ),
   }),
 );

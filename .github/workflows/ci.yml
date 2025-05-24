@@ -55,5 +55,11 @@ jobs:
       - name: Setup
         uses: ./tooling/github/setup
 
+      - name: Set up Docker
+        uses: docker/setup-docker-action@v4
+
+      - name: Pull Docker images
+        run: docker compose pull
+
       - name: Test
         run: pnpm test

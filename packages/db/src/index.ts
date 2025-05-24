@@ -1,10 +1,12 @@
 import type { AnyColumn } from "drizzle-orm";
 import { sql } from "drizzle-orm";
 
-export { sql, getTableColumns } from "drizzle-orm";
+export { sql, getTableColumns, getViewSelectedFields } from "drizzle-orm";
 export type { AnyColumn } from "drizzle-orm";
-export { alias } from "drizzle-orm/pg-core";
+export { alias, union, unionAll } from "drizzle-orm/pg-core";
 export * from "drizzle-orm/sql";
+export type { SubqueryWithSelection, PgColumn } from "drizzle-orm/pg-core";
+export type { ColumnsSelection } from "drizzle-orm/sql";
 
 export const increment = (column: AnyColumn, value = 1) => {
   return sql`${column} + ${value}`;

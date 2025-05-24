@@ -230,17 +230,14 @@ server.tool(
     new Date().toISOString().split("T")[0]
   } (OUTDATED). If you already have today's date, it might be more precise, don't use this one.`,
   {
-    contentQuery: z
+    textQuery: z
       .string()
       .max(100)
       .optional()
-      .describe("A query to search for memories by content"),
-    descriptionQuery: z
-      .string()
-      .max(100)
-      .optional()
-      .describe("A query to search for memories by description"),
-    startDate: z
+      .describe(
+        "A query to search for memories by their content and description",
+      ),
+    dateFrom: z
       .string()
       .datetime({
         offset: true,
@@ -249,7 +246,7 @@ server.tool(
       .describe(
         "A start date to filter memories by. Must be in ISO 8601 format.",
       ),
-    endDate: z
+    dateTo: z
       .string()
       .datetime({
         offset: true,
@@ -300,8 +297,13 @@ server.tool(
     sortBy: z
       .enum(MEMORY_SORT_BY)
       .optional()
-      .describe("The sort order of the memories"),
-    orderBy: z.enum(ORDER_BY).optional().describe("The order of the memories"),
+      .describe(
+        "The sort order of the memories. If textQuery is provided, this will be ignored.",
+      ),
+    orderBy: z
+      .enum(ORDER_BY)
+      .optional()
+      .describe("The order of the memories based on the sorting"),
   },
   async (args) => {
     const memories = await trpc.v1.memories.queryMemories.query({
