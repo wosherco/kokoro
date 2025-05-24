@@ -1,4 +1,3 @@
-import { createDatabaseContainer } from "../containers";
 import { db } from "@kokoro/db/client";
 import {
   calendarTable,
@@ -13,13 +12,13 @@ import { GOOGLE_CALENDAR, LINEAR_INTEGRATION } from "@kokoro/validators/db";
 import type { StartedPostgreSqlContainer } from "@testcontainers/postgresql";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { getMemories } from "../../../src/memories/query";
+import { createDatabaseContainer } from "../containers";
 
 const userId = crypto.randomUUID();
 
 vi.mock("@kokoro/db/env", async () => {
-  const originalEnvModule = await vi.importActual<
-    typeof import("@kokoro/db/env")
-  >("@kokoro/db/env");
+  const originalEnvModule =
+    await vi.importActual<typeof import("@kokoro/db/env")>("@kokoro/db/env");
 
   return {
     // Preserve other exports from @kokoro/db/env (if any)
