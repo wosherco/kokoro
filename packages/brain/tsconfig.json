@@ -1,5 +1,10 @@
 {
   "extends": "@kokoro/tsconfig/internal-package.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "tsBuildInfoFile": "node_modules/.cache/tsbuildinfo.json",
+    "rootDir": "."
+  },
   "include": ["src", "*.ts", "tests"],
   "exclude": ["node_modules"]
 }
