@@ -7,7 +7,7 @@ import { INTEGRATIONS_DATA } from "$lib/integrations";
 import ColorPicker from "@/components/integrations/ColorPicker.svelte";
 import TasklistOrCalendarCard from "@/components/integrations/TasklistOrCalendarCard.svelte";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { trpc } from "@/trpc";
+import { orpc } from "@/orpc";
 import { Calendar, ListTodo, RefreshCw, Trash2 } from "lucide-svelte";
 import SvelteSeo from "svelte-seo";
 import { toast } from "svelte-sonner";
@@ -49,8 +49,7 @@ const linearWebhookStatusPromise = $derived.by<
   Promise<"not_created" | "unknown" | "active" | "invalid" | undefined>
 >(async () => {
   if (data.integrationAccount.integrationType === LINEAR) {
-    return trpc.v1.integrations.linear.getWebhookStatus
-      .query({
+    return orpc.v1.integrations.linear.getWebhookStatus({
         integrationAccountId: data.integrationAccount.id,
       })
       .then(({ status }) => status);
@@ -62,7 +61,7 @@ async function deleteAccount() {
   loadingSomething = true;
 
   try {
-    await trpc.v1.integrations.deleteAccount.mutate({
+    await orpc.v1.integrations.deleteAccount({
       integrationAccountId: data.integrationAccount.id,
     });
     await goto("/integrations");
@@ -112,7 +111,7 @@ async function deleteAccount() {
         type="submit"
         onclick={() =>
           processRequest(async () => {
-            await trpc.v1.integrations.queueAccountSync.mutate({
+            await orpc.v1.integrations.queueAccountSync({
               integrationAccountId: data.integrationAccount.id,
             });
             toast.success("Account sync queued");
@@ -275,7 +274,7 @@ async function deleteAccount() {
                     color: calendar.color ?? "#00ff00",
                     onSubmit: async (color) =>
                       processRequest(async () => {
-                        await trpc.v1.integrations.changeCalendarColor.mutate({
+                        await orpc.v1.integrations.changeCalendarColor({
                           integrationAccountId: data.integrationAccount.id,
                           calendarId: calendar.id,
                           color,
@@ -285,7 +284,7 @@ async function deleteAccount() {
                   })}
                 onToggleVisibility={() =>
                   processRequest(async () => {
-                    await trpc.v1.integrations.toggleCalendarVisibility.mutate({
+                    await orpc.v1.integrations.toggleCalendarVisibility({
                       integrationAccountId: data.integrationAccount.id,
                       calendarId: calendar.id,
                       hidden: !calendar.hidden,
@@ -294,7 +293,7 @@ async function deleteAccount() {
                   })}
                 onRefresh={() =>
                   processRequest(async () => {
-                    await trpc.v1.integrations.queueCalendarSync.mutate({
+                    await orpc.v1.integrations.queueCalendarSync({
                       integrationAccountId: data.integrationAccount.id,
                       calendarId: calendar.id,
                     });
@@ -347,7 +346,7 @@ async function deleteAccount() {
                     color: tasklist.color ?? "#00ff00",
                     onSubmit: async (color) =>
                       processRequest(async () => {
-                        await trpc.v1.integrations.changeTasklistColor.mutate({
+                        await orpc.v1.integrations.changeTasklistColor({
                           integrationAccountId: data.integrationAccount.id,
                           tasklistId: tasklist.id,
                           color,
@@ -357,7 +356,7 @@ async function deleteAccount() {
                   })}
                 onToggleVisibility={() =>
                   processRequest(async () => {
-                    await trpc.v1.integrations.toggleTasklistVisibility.mutate({
+                    await orpc.v1.integrations.toggleTasklistVisibility({
                       integrationAccountId: data.integrationAccount.id,
                       tasklistId: tasklist.id,
                       hidden: !tasklist.hidden,
@@ -366,7 +365,7 @@ async function deleteAccount() {
                   })}
                 onRefresh={() =>
                   processRequest(async () => {
-                    await trpc.v1.integrations.queueTaskSync.mutate({
+                    await orpc.v1.integrations.queueTasklistSync({
                       integrationAccountId: data.integrationAccount.id,
                       tasklistId: tasklist.id,
                     });

@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { trpc } from "@/trpc";
+import { orpc } from "@/orpc";
 import { Copy, Loader2 } from "lucide-svelte";
 import type { Snippet } from "svelte";
 import { toast } from "svelte-sonner";
@@ -49,7 +49,7 @@ async function handleSave() {
   loading = true;
 
   try {
-    await trpc.v1.integrations.linear.setupWebhook.mutate({
+    await orpc.v1.integrations.linear.setupWebhook({
       integrationAccountId,
       webhookSecret,
     });

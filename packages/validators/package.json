@@ -23,6 +23,10 @@
     "./integrations": {
       "types": "./dist/integrations/index.d.ts",
       "default": "./src/integrations/index.ts"
+    },
+    "./contracts": {
+      "types": "./dist/contracts/index.d.ts",
+      "default": "./src/contracts/index.ts"
     }
   },
   "license": "MIT",
@@ -40,7 +44,8 @@
   },
   "dependencies": {
     "zod": "catalog:",
-    "@date-fns/tz": "catalog:"
+    "@date-fns/tz": "catalog:",
+    "@orpc/contract": "catalog:"
   },
   "devDependencies": {
     "@kokoro/biome-config": "workspace:*",

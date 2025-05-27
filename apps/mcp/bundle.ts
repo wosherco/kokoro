@@ -14,12 +14,12 @@ try {
 
 await Bun.write(
   "./src/version.ts",
-  `export const VERSION = "${version}";\nexport const GIT_SHA = "${commitSha}";`,
+  `export const VERSION = "${version}";\nexport const GIT_SHA = "${commitSha}";`
 );
 
 // Define external dependencies to exclude from the bundle
 export const externalDependencies = [
-  "@trpc/client",
+  "@orpc/client",
   "@clack/prompts",
   "zod",
   "superjson",

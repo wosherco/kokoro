@@ -28,8 +28,10 @@ import {
   TASK_STATES,
 } from "@kokoro/validators/db";
 
-import { trpc } from "../trpc";
+import { orpc } from "../orpc";
 import { VERSION } from "../version";
+import type { orpcContract } from "@kokoro/validators/contracts";
+import type { InferContractRouterOutputs } from "@orpc/contract";
 
 // Create server instance
 const server = new McpServer({
@@ -45,7 +47,7 @@ server.tool(
   "fetch-integrations",
   "Fetches all the integrations and accounts the user has connected with Kokoro, and operations are supported. Also displays all the calendars and tasklists the user has connected with Kokoro.",
   async () => {
-    const integrations = await trpc.v1.integrations.listIntegrations.query();
+    const integrations = await orpc.v1.integrations.listIntegrations();
 
     if (integrations.length === 0) {
       return {
@@ -64,11 +66,11 @@ server.tool(
           (calendar) => `
 <calendar id="${calendar.id}" name="${truncate(
             escapeDoubleQuotes(
-              calendar.summaryOverride ?? calendar.summary ?? "",
+              calendar.summaryOverride ?? calendar.summary ?? ""
             ),
-            50,
+            50
           )}" color="${calendar.colorOverride ?? calendar.color}" />
-`,
+`
         )
         .join("\n");
     const listTasklists = (integration: (typeof integrations)[number]) =>
@@ -77,9 +79,9 @@ server.tool(
           (tasklist) => `
 <tasklist id="${tasklist.id}" name="${truncate(
             escapeDoubleQuotes(tasklist.name),
-            50,
+            50
           )}" color="${tasklist.color}" />
-`,
+`
         )
         .join("\n");
 
@@ -89,12 +91,12 @@ server.tool(
         integration.integrationType
       }" name="${truncate(
         escapeDoubleQuotes(integration.displayName),
-        50,
+        50
       )}" supports="${integration.supports.join(", ")}">
     ${listCalendars(integration)}
     ${listTasklists(integration)}
 </integration>
-  `,
+  `
     );
 
     return {
@@ -106,7 +108,7 @@ ${content.join("\n")}`,
         },
       ],
     };
-  },
+  }
 );
 
 server.tool(
@@ -116,7 +118,7 @@ server.tool(
     calendarId: z.string().uuid(),
   },
   async ({ calendarId }) => {
-    const { calendar, prompt } = await trpc.v1.calendars.getCalendar.query({
+    const { calendar, prompt } = await orpc.v1.calendars.getCalendar({
       calendarId,
     });
 
@@ -125,13 +127,13 @@ server.tool(
       calendar.integrationAccountId
     }" name="${truncate(
       escapeDoubleQuotes(calendar.summaryOverride ?? calendar.summary ?? ""),
-      300,
+      300
     )}" description="${truncate(
       escapeDoubleQuotes(calendar.description ?? ""),
-      300,
+      300
     )}" color="${calendar.colorOverride ?? calendar.color}" source="${
       calendar.source
-    }" lastSyncedAt="${calendar.lastSynced?.toISOString()}">
+    }" lastSyncedAt="${calendar.lastSynced}">
 <platformData>
     ${JSON.stringify(calendar.platformData, null, 2)}
 </platformData>
@@ -143,7 +145,7 @@ ${prompt}
     return {
       content: [{ type: "text", text: striginfiedCalendar }],
     };
-  },
+  }
 );
 
 server.tool(
@@ -153,7 +155,7 @@ server.tool(
     tasklistId: z.string().uuid(),
   },
   async ({ tasklistId }) => {
-    const { tasklist, prompt } = await trpc.v1.tasklists.getTasklist.query({
+    const { tasklist, prompt } = await orpc.v1.tasklists.getTasklist({
       tasklistId,
     });
 
@@ -162,9 +164,7 @@ server.tool(
       tasklist.integrationAccountId
     }" name="${truncate(escapeDoubleQuotes(tasklist.name), 300)}" color="${
       tasklist.colorOverride ?? tasklist.color
-    }" source="${
-      tasklist.source
-    }" lastSyncedAt="${tasklist.lastSynced?.toISOString()}">
+    }" source="${tasklist.source}" lastSyncedAt="${tasklist.lastSynced}">
 <config>
     ${JSON.stringify(tasklist.config, null, 2)}
 </config>
@@ -176,38 +176,30 @@ ${prompt}
     return {
       content: [{ type: "text", text: striginfiedTasklist }],
     };
-  },
+  }
 );
 
-type QueriedMemory = Awaited<
-  ReturnType<typeof trpc.v1.memories.queryMemories.query>
->[number];
+type QueriedMemory = InferContractRouterOutputs<
+  typeof orpcContract
+>["v1"]["memories"]["queryMemories"][number];
 
 const stringifyEvent = (event: NonNullable<QueriedMemory["event"]>) => `
-<event calendarId="${event.calendarId}" integrationAccountId="${
-  event.integrationAccountId
-}" source="${
-  event.source
-}" startDate="${event.startDate.toISOString()}" endDate="${event.endDate.toISOString()}" isFullDay="${
-  event.isFullDay
-}" rrule="${event.rrule}" type="${event.eventType}" attendance="${
-  event.attendenceStatus
-}" />
+<event calendarId="${event.calendarId}" integrationAccountId="${event.integrationAccountId}" source="${event.source}" startDate="${event.startDate}" endDate="${event.endDate}" isFullDay="${event.isFullDay}" rrule="${event.rrule}" type="${event.eventType}" attendance="${event.attendenceStatus}" />
 `;
 
 const stringifyTask = (
   task: NonNullable<QueriedMemory["task"]>,
-  taskAttributes: NonNullable<QueriedMemory["taskAttributes"]>,
+  taskAttributes: NonNullable<QueriedMemory["taskAttributes"]>
 ) => `
 <task tasklistId="${task.tasklistId}" integrationAccountId="${
   task.integrationAccountId
-}" source="${task.source}" dueDate="${task.dueDate?.toISOString()}" priority="${
+}" source="${task.source}" dueDate="${task.dueDate}" priority="${
   taskAttributes.find((attr) => attr.priority !== null)?.priority
 }" state="${taskAttributes.find((attr) => attr.state !== null)?.state}">
 ${taskAttributes
   .map(
     (attribute) =>
-      `<attribute id="${attribute.platformAttributeId}" value="${attribute.platformValue}" />`,
+      `<attribute id="${attribute.platformAttributeId}" value="${attribute.platformValue}" />`
   )
   .join("\n")}
 </task>
@@ -215,9 +207,9 @@ ${taskAttributes
 
 const stringifyMemory = (memory: QueriedMemory, truncateLength = 50) => `
 <memory id="${memory.id}" content="${escapeDoubleQuotes(
-  truncate(memory.content, truncateLength),
+  truncate(memory.content, truncateLength)
 )}" description="${escapeDoubleQuotes(
-  truncate(memory.description ?? "", truncateLength),
+  truncate(memory.description ?? "", truncateLength)
 )}" isVirtual="${memory.isVirtual}">
 ${memory.event ? stringifyEvent(memory.event) : ""}
 ${memory.task ? stringifyTask(memory.task, memory.taskAttributes) : ""}
@@ -235,7 +227,7 @@ server.tool(
       .max(100)
       .optional()
       .describe(
-        "A query to search for memories by their content and description",
+        "A query to search for memories by their content and description"
       ),
     dateFrom: z
       .string()
@@ -244,7 +236,7 @@ server.tool(
       })
       .optional()
       .describe(
-        "A start date to filter memories by. Must be in ISO 8601 format.",
+        "A start date to filter memories by. Must be in ISO 8601 format."
       ),
     dateTo: z
       .string()
@@ -253,7 +245,7 @@ server.tool(
       })
       .optional()
       .describe(
-        "An end date to filter memories by. Must be in ISO 8601 format.",
+        "An end date to filter memories by. Must be in ISO 8601 format."
       ),
 
     // Memory filters
@@ -261,7 +253,7 @@ server.tool(
       .array(z.enum(MEMORY_TYPES))
       .optional()
       .describe(
-        "If provided, only memories of these types will be returned. If not provided, won't filter by memory types.",
+        "If provided, only memories of these types will be returned. If not provided, won't filter by memory types."
       ),
 
     // Integration filters
@@ -269,7 +261,7 @@ server.tool(
       .array(z.string().uuid())
       .optional()
       .describe(
-        "If provided, only memories from these integration accounts will be returned. If not provided, won't filter by integration accounts.",
+        "If provided, only memories from these integration accounts will be returned. If not provided, won't filter by integration accounts."
       ),
 
     // Calendar filters
@@ -277,7 +269,7 @@ server.tool(
       .array(z.string().uuid())
       .optional()
       .describe(
-        "If provided, only memories from these calendars will be returned. If not provided, won't filter by calendars.",
+        "If provided, only memories from these calendars will be returned. If not provided, won't filter by calendars."
       ),
 
     // Tasklist filters
@@ -285,20 +277,20 @@ server.tool(
       .array(z.string().uuid())
       .optional()
       .describe(
-        "If provided, only memories from these tasklists will be returned. If not provided, won't filter by tasklists.",
+        "If provided, only memories from these tasklists will be returned. If not provided, won't filter by tasklists."
       ),
     taskStates: z
       .array(z.enum(TASK_STATES))
       .optional()
       .describe(
-        "If provided, only tasks with these statuses will be returned. If not provided, won't filter by task statuses.",
+        "If provided, only tasks with these statuses will be returned. If not provided, won't filter by task statuses."
       ),
 
     sortBy: z
       .enum(MEMORY_SORT_BY)
       .optional()
       .describe(
-        "The sort order of the memories. If textQuery is provided, this will be ignored.",
+        "The sort order of the memories. If textQuery is provided, this will be ignored."
       ),
     orderBy: z
       .enum(ORDER_BY)
@@ -306,7 +298,7 @@ server.tool(
       .describe("The order of the memories based on the sorting"),
   },
   async (args) => {
-    const memories = await trpc.v1.memories.queryMemories.query({
+    const memories = await orpc.v1.memories.queryMemories({
       ...args,
     });
 
@@ -315,11 +307,11 @@ server.tool(
       : `${memories
           .map((memory) => stringifyMemory(memory))
           .join(
-            "\n",
+            "\n"
           )}\n\nTo get full details of a memory, use the \`fetch-memory\` tool.`;
 
     return { content: [{ type: "text", text: content }] };
-  },
+  }
 );
 
 server.tool(
@@ -329,12 +321,12 @@ server.tool(
     memoryId: z.string().uuid(),
   },
   async ({ memoryId }) => {
-    const [memory] = await trpc.v1.memories.getMemories.query({
+    const [memory] = await orpc.v1.memories.getMemories({
       memoryIds: [memoryId],
     });
 
     return { content: [{ type: "text", text: stringifyMemory(memory, 2000) }] };
-  },
+  }
 );
 
 server.tool(
@@ -350,7 +342,7 @@ server.tool(
       .string()
       .optional()
       .describe(
-        "A name to search for contacts by. Full text search will be performed.",
+        "A name to search for contacts by. Full text search will be performed."
       ),
   },
   async ({ email, name }) => {
@@ -358,9 +350,9 @@ server.tool(
       throw new Error("Either email or name must be provided");
     }
 
-    const contacts = await trpc.v1.contacts.queryContacts.query(
+    const contacts = await orpc.v1.contacts.queryContacts(
       // biome-ignore lint/style/noNonNullAssertion: Because of the type, it's email or name.
-      email ? { email } : { name: name! },
+      email ? { email } : { name: name! }
     );
 
     type Contact = (typeof contacts)[number];
@@ -371,19 +363,19 @@ server.tool(
     const stringifyLink = (
       link: Contact["links"][number],
       names: Contact["names"],
-      emails: Contact["emails"],
+      emails: Contact["emails"]
     ) => `
 <link source="${link.source}">
   ${sortPrimary(names)
     .map(
       (name) =>
-        `<name${name.primary ? " primary" : ""}>${name.displayName}</name>`,
+        `<name${name.primary ? " primary" : ""}>${name.displayName}</name>`
     )
     .join("\n")}
   ${sortPrimary(emails)
     .map(
       (email) =>
-        `<email${email.primary ? " primary" : ""}>${email.email}</email>`,
+        `<email${email.primary ? " primary" : ""}>${email.email}</email>`
     )
     .join("\n")}
 </link>
@@ -397,7 +389,7 @@ server.tool(
 <contact id="${contact.id}">
     ${contact.links
       .map((link) =>
-        stringifyLink(link, groupedNames[link.id], groupedEmails[link.id]),
+        stringifyLink(link, groupedNames[link.id], groupedEmails[link.id])
       )
       .join("\n")}
 </contact>
@@ -407,7 +399,7 @@ server.tool(
     const content = contacts.map(stringifyContact).join("\n");
 
     return { content: [{ type: "text", text: content }] };
-  },
+  }
 );
 
 function betterActionName(actionName: KokoroActionName) {
@@ -440,7 +432,7 @@ for (const actionName of KokoroActions) {
       // Parsing the payload to verify it's valid before sending to the server
       const payload = KokoroActionPayloadSchemas[actionName].parse(cb.payload);
 
-      const result = await trpc.v1.actions.runAction.mutate({
+      const result = await orpc.v1.actions.runAction({
         name: actionName,
         payload,
       });
@@ -453,7 +445,7 @@ for (const actionName of KokoroActions) {
           },
         ],
       };
-    },
+    }
   );
 }
 

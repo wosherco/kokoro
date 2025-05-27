@@ -1,41 +1,35 @@
-import type { TRPCRouterRecord } from "@trpc/server";
-import { TRPCError } from "@trpc/server";
-
 import {
   type BaseActionWithPayload,
   type KokoroActionName,
-  baseActionSchema,
   parsePayload,
 } from "@kokoro/validators/actions";
 
 import { executeAction } from "../../logic";
-import { protectedProcedure } from "../../trpc";
+import { authorizedMiddleware, os } from "../../orpc";
+import { ORPCError } from "@orpc/server";
 
-export const v1ActionsRouter = {
-  runAction: protectedProcedure
-    .input(baseActionSchema)
-    .mutation(async ({ ctx, input }) => {
+export const v1ActionsRouter = os.v1.actions.router({
+  runAction: os.v1.actions.runAction
+    .use(authorizedMiddleware)
+    .handler(async ({ context, input }) => {
       let parsedAction: BaseActionWithPayload<KokoroActionName>;
 
       try {
         parsedAction = await parsePayload(input);
       } catch (error) {
         console.error(error);
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Invalid action",
-        });
+        throw new ORPCError("BAD_REQUEST");
       }
 
       const result = await executeAction(
         {
-          user: ctx.user,
+          user: context.user,
         },
-        parsedAction,
+        parsedAction
       );
 
       return {
         result,
       };
     }),
-} satisfies TRPCRouterRecord;
+});

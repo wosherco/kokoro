@@ -2,64 +2,54 @@ import { eq } from "@kokoro/db";
 import { db } from "@kokoro/db/client";
 import { linearWebhooksTable } from "@kokoro/db/schema";
 import { LINEAR } from "@kokoro/validators/db";
-import { TRPCError, type TRPCRouterRecord } from "@trpc/server";
-import { z } from "zod";
-import { protectedIntegrationProcedure } from "../../../trpc";
+import { integrationAccountMiddleware, os } from "../../../orpc";
+import { ORPCError } from "@orpc/server";
 
-export const v1IntegrationsLinearRouter = {
-  getWebhookStatus: protectedIntegrationProcedure.query(async ({ ctx }) => {
-    const { integrationAccount } = ctx;
-
-    if (
-      integrationAccount.integrationType !== LINEAR ||
-      !integrationAccount.platformData ||
-      !("workspaceId" in integrationAccount.platformData)
-    ) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Invalid integration",
-      });
-    }
-
-    const [webhook] = await db
-      .select()
-      .from(linearWebhooksTable)
-      .where(
-        eq(
-          linearWebhooksTable.workspaceId,
-          integrationAccount.platformData.workspaceId,
-        ),
-      );
-
-    if (!webhook) {
-      return {
-        status: "not_created",
-      } as const;
-    }
-
-    return {
-      status: webhook.state,
-    } as const;
-  }),
-  setupWebhook: protectedIntegrationProcedure
-    .input(
-      z.object({
-        webhookSecret: z.string(),
-      }),
-    )
-    .mutation(async ({ ctx, input }) => {
-      const { integrationAccount } = ctx;
+export const v1IntegrationsLinearRouter = os.v1.integrations.linear.router({
+  getWebhookStatus: os.v1.integrations.linear.getWebhookStatus
+    .use(integrationAccountMiddleware)
+    .handler(async ({ context }) => {
+      const { integrationAccount } = context;
 
       if (
         integrationAccount.integrationType !== LINEAR ||
         !integrationAccount.platformData ||
         !("workspaceId" in integrationAccount.platformData)
       ) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message:
-            "Integration is invalid. Make sure it's linear, or try re-authenticating.",
-        });
+        throw new ORPCError("BAD_REQUEST");
+      }
+
+      const [webhook] = await db
+        .select()
+        .from(linearWebhooksTable)
+        .where(
+          eq(
+            linearWebhooksTable.workspaceId,
+            integrationAccount.platformData.workspaceId
+          )
+        );
+
+      if (!webhook) {
+        return {
+          status: "not_created",
+        } as const;
+      }
+
+      return {
+        status: webhook.state,
+      } as const;
+    }),
+  setupWebhook: os.v1.integrations.linear.setupWebhook
+    .use(integrationAccountMiddleware)
+    .handler(async ({ context, input }) => {
+      const { integrationAccount } = context;
+
+      if (
+        integrationAccount.integrationType !== LINEAR ||
+        !integrationAccount.platformData ||
+        !("workspaceId" in integrationAccount.platformData)
+      ) {
+        throw new ORPCError("BAD_REQUEST");
       }
 
       await db
@@ -78,4 +68,4 @@ export const v1IntegrationsLinearRouter = {
 
       return { success: true };
     }),
-} satisfies TRPCRouterRecord;
+});

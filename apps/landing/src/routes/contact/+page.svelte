@@ -11,7 +11,7 @@ import {
 import { Input } from "$lib/components/ui/input";
 import { Label } from "$lib/components/ui/label";
 import { Textarea } from "$lib/components/ui/textarea";
-import { trpc } from "$lib/trpc";
+import { orpc } from "$lib/orpc";
 import SvelteSeo from "svelte-seo";
 import { toast } from "svelte-sonner";
 
@@ -43,7 +43,7 @@ let loading = $state(false);
           loading = true;
 
           try {
-            await trpc.landing.contact.mutate({
+            await orpc.landing.contact({
               name,
               email,
               message,

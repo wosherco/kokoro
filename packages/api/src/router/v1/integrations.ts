@@ -1,7 +1,4 @@
-import type { TRPCRouterRecord } from "@trpc/server";
-import { TRPCError } from "@trpc/server";
 import { addMinutes } from "date-fns";
-import { z } from "zod";
 
 import { filterNil, groupBy } from "@kokoro/common/poldash";
 import { and, eq, isNull, not, or } from "@kokoro/db";
@@ -33,135 +30,138 @@ import {
 import { getCalendarSource } from "@kokoro/brain/calendar";
 import { env } from "../../../env";
 import {
+  authorizedMiddleware,
+  integrationAccountMiddleware,
+  os,
   protectedCalendarIntegrationProcedure,
-  protectedIntegrationProcedure,
-  protectedProcedure,
   protectedTasklistIntegrationProcedure,
-} from "../../trpc";
+} from "../../orpc";
 import { v1IntegrationsLinearRouter } from "./integrations/linear";
+import { ORPCError } from "@orpc/server";
 
 const SYNC_COOLDOWN_MINUTES = 30;
 
-export const v1IntegrationsRouter = {
-  listIntegrations: protectedProcedure.query(async ({ ctx }) => {
-    const dbIntegrations = await db
-      .select({
-        id: integrationsAccountsTable.id,
-        integrationType: integrationsAccountsTable.integrationType,
-        displayName: integrationsAccountsTable.platformDisplayName,
-        tasklist: {
-          id: tasklistsTable.id,
-          name: tasklistsTable.name,
-          colorOverride: tasklistsTable.colorOverride,
-          color: tasklistsTable.color,
-          hidden: tasklistsTable.hidden,
+export const v1IntegrationsRouter = os.v1.integrations.router({
+  listIntegrations: os.v1.integrations.listIntegrations
+    .use(authorizedMiddleware)
+    .handler(async ({ context }) => {
+      const dbIntegrations = await db
+        .select({
+          id: integrationsAccountsTable.id,
+          integrationType: integrationsAccountsTable.integrationType,
+          displayName: integrationsAccountsTable.platformDisplayName,
+          tasklist: {
+            id: tasklistsTable.id,
+            name: tasklistsTable.name,
+            colorOverride: tasklistsTable.colorOverride,
+            color: tasklistsTable.color,
+            hidden: tasklistsTable.hidden,
+          },
+          calendar: {
+            id: calendarTable.id,
+            summary: calendarTable.summary,
+            summaryOverride: calendarTable.summaryOverride,
+            description: calendarTable.description,
+            color: calendarTable.color,
+            colorOverride: calendarTable.colorOverride,
+            hidden: calendarTable.hidden,
+          },
+        })
+        .from(integrationsAccountsTable)
+        .leftJoin(
+          calendarTable,
+          eq(integrationsAccountsTable.id, calendarTable.integrationAccountId)
+        )
+        .leftJoin(
+          tasklistsTable,
+          eq(integrationsAccountsTable.id, tasklistsTable.integrationAccountId)
+        )
+        .where(
+          and(
+            eq(integrationsAccountsTable.userId, context.user.id),
+            or(not(calendarTable.hidden), isNull(calendarTable.hidden)),
+            or(not(tasklistsTable.hidden), isNull(tasklistsTable.hidden))
+          )
+        );
+
+      const groupedAccounts = groupBy(dbIntegrations, "id");
+      type GroupedAccount = Omit<
+        (typeof dbIntegrations)[number],
+        "calendar" | "tasklist"
+      > & {
+        calendars: NonNullable<(typeof dbIntegrations)[number]["calendar"]>[];
+        tasklists: NonNullable<(typeof dbIntegrations)[number]["tasklist"]>[];
+        supports: IntegrationType[];
+      };
+
+      const integrations = Object.values(groupedAccounts).reduce(
+        (acc, accounts) => {
+          const first = accounts[0];
+
+          if (!first) {
+            return acc;
+          }
+
+          // biome-ignore lint/performance/noDelete: performance bottleneck to be worried in the future
+          delete (first as unknown as { calendar: unknown }).calendar;
+          // biome-ignore lint/performance/noDelete: performance bottleneck to be worried in the future
+          delete (first as unknown as { tasklist: unknown }).tasklist;
+
+          acc.push({
+            ...(first as Omit<
+              (typeof dbIntegrations)[number],
+              "calendar" | "tasklist"
+            >),
+            calendars: filterNil(accounts.map((account) => account.calendar)),
+            tasklists: filterNil(accounts.map((account) => account.tasklist)),
+            supports: INTEGRATION_TYPES.filter((type) =>
+              RELAXED_MAPPED_INTEGRATION_SOURCES[type].includes(
+                first.integrationType
+              )
+            ),
+          });
+
+          return acc;
         },
-        calendar: {
-          id: calendarTable.id,
-          summary: calendarTable.summary,
-          summaryOverride: calendarTable.summaryOverride,
-          description: calendarTable.description,
-          color: calendarTable.color,
-          colorOverride: calendarTable.colorOverride,
-        },
-      })
-      .from(integrationsAccountsTable)
-      .leftJoin(
-        calendarTable,
-        eq(integrationsAccountsTable.id, calendarTable.integrationAccountId),
-      )
-      .leftJoin(
-        tasklistsTable,
-        eq(integrationsAccountsTable.id, tasklistsTable.integrationAccountId),
-      )
-      .where(
-        and(
-          eq(integrationsAccountsTable.userId, ctx.user.id),
-          or(not(calendarTable.hidden), isNull(calendarTable.hidden)),
-          or(not(tasklistsTable.hidden), isNull(tasklistsTable.hidden)),
-        ),
+        [] as GroupedAccount[]
       );
 
-    const groupedAccounts = groupBy(dbIntegrations, "id");
-    type GroupedAccount = Omit<
-      (typeof dbIntegrations)[number],
-      "calendar" | "tasklist"
-    > & {
-      calendars: NonNullable<(typeof dbIntegrations)[number]["calendar"]>[];
-      tasklists: NonNullable<(typeof dbIntegrations)[number]["tasklist"]>[];
-      supports: IntegrationType[];
-    };
+      return integrations;
+    }),
 
-    const integrations = Object.values(groupedAccounts).reduce(
-      (acc, accounts) => {
-        const first = accounts[0];
+  queueAccountSync: os.v1.integrations.queueAccountSync
+    .use(integrationAccountMiddleware)
+    .handler(async ({ context }) => {
+      const { integrationAccount } = context;
 
-        if (!first) {
-          return acc;
-        }
+      // TODO: Limit syncing with rate limiting
 
-        // biome-ignore lint/performance/noDelete: performance bottleneck to be worried in the future
-        delete (first as unknown as { calendar: unknown }).calendar;
-        // biome-ignore lint/performance/noDelete: performance bottleneck to be worried in the future
-        delete (first as unknown as { tasklist: unknown }).tasklist;
-
-        acc.push({
-          ...(first as Omit<
-            (typeof dbIntegrations)[number],
-            "calendar" | "tasklist"
-          >),
-          calendars: filterNil(accounts.map((account) => account.calendar)),
-          tasklists: filterNil(accounts.map((account) => account.tasklist)),
-          supports: INTEGRATION_TYPES.filter((type) =>
-            RELAXED_MAPPED_INTEGRATION_SOURCES[type].includes(
-              first.integrationType,
-            ),
-          ),
+      if (
+        TASK_SOURCES.includes(integrationAccount.integrationType as TaskSource)
+      ) {
+        await publish(TASKLIST_SYNC_QUEUE, {
+          integrationAccountId: integrationAccount.id,
         });
+      }
 
-        return acc;
-      },
-      [] as GroupedAccount[],
-    );
+      if (
+        CALENDAR_SOURCES.includes(
+          integrationAccount.integrationType as CalendarSource
+        )
+      ) {
+        await publish(CALENDARS_SYNC_QUEUE, {
+          integrationAccountId: integrationAccount.id,
+          source: integrationAccount.integrationType as CalendarSource,
+        });
+      }
 
-    return integrations;
-  }),
+      return { success: true };
+    }),
 
-  queueAccountSync: protectedIntegrationProcedure.mutation(async ({ ctx }) => {
-    const { integrationAccount } = ctx;
-
-    // TODO: Limit syncing with rate limiting
-
-    if (
-      TASK_SOURCES.includes(integrationAccount.integrationType as TaskSource)
-    ) {
-      await publish(TASKLIST_SYNC_QUEUE, {
-        integrationAccountId: integrationAccount.id,
-      });
-    }
-
-    if (
-      CALENDAR_SOURCES.includes(
-        integrationAccount.integrationType as CalendarSource,
-      )
-    ) {
-      await publish(CALENDARS_SYNC_QUEUE, {
-        integrationAccountId: integrationAccount.id,
-        source: integrationAccount.integrationType as CalendarSource,
-      });
-    }
-
-    return { success: true };
-  }),
-
-  toggleCalendarVisibility: protectedCalendarIntegrationProcedure
-    .input(
-      z.object({
-        hidden: z.boolean(),
-      }),
-    )
-    .mutation(async ({ ctx, input }) => {
-      const { calendar } = ctx;
+  toggleCalendarVisibility: os.v1.integrations.toggleCalendarVisibility
+    .use(protectedCalendarIntegrationProcedure)
+    .handler(async ({ context, input }) => {
+      const { calendar } = context;
       const { hidden } = input;
 
       await db
@@ -172,14 +172,10 @@ export const v1IntegrationsRouter = {
       return { success: true };
     }),
 
-  changeCalendarColor: protectedCalendarIntegrationProcedure
-    .input(
-      z.object({
-        color: z.string(),
-      }),
-    )
-    .mutation(async ({ ctx, input }) => {
-      const { calendar } = ctx;
+  changeCalendarColor: os.v1.integrations.changeCalendarColor
+    .use(protectedCalendarIntegrationProcedure)
+    .handler(async ({ context, input }) => {
+      const { calendar } = context;
       const { color } = input;
 
       await db
@@ -190,39 +186,32 @@ export const v1IntegrationsRouter = {
       return { success: true };
     }),
 
-  queueCalendarSync: protectedCalendarIntegrationProcedure.mutation(
-    async ({ ctx }) => {
-      const { calendar } = ctx;
+  queueCalendarSync: os.v1.integrations.queueCalendarSync
+    .use(protectedCalendarIntegrationProcedure)
+    .handler(async ({ context }) => {
+      const { calendar } = context;
 
       if (
         env.PUBLIC_ENVIRONMENT !== "development" &&
         calendar.lastSynced &&
         new Date() < addMinutes(calendar.lastSynced, SYNC_COOLDOWN_MINUTES)
       ) {
-        throw new TRPCError({
-          code: "TOO_MANY_REQUESTS",
-          message: `Please wait ${SYNC_COOLDOWN_MINUTES} minutes between syncs`,
-        });
+        throw new ORPCError("TOO_MANY_REQUESTS");
       }
 
       await publish(CALENDAR_EVENTS_SYNC_QUEUE, {
-        integrationAccountId: ctx.integrationAccount.id,
-        source: ctx.integrationAccount.integrationType as CalendarSource,
+        integrationAccountId: context.integrationAccount.id,
+        source: context.integrationAccount.integrationType as CalendarSource,
         calendarId: calendar.id,
       });
 
       return { success: true };
-    },
-  ),
+    }),
 
-  toggleTasklistVisibility: protectedTasklistIntegrationProcedure
-    .input(
-      z.object({
-        hidden: z.boolean(),
-      }),
-    )
-    .mutation(async ({ ctx, input }) => {
-      const { tasklist } = ctx;
+  toggleTasklistVisibility: os.v1.integrations.toggleTasklistVisibility
+    .use(protectedTasklistIntegrationProcedure)
+    .handler(async ({ context, input }) => {
+      const { tasklist } = context;
       const { hidden } = input;
 
       await db
@@ -233,14 +222,10 @@ export const v1IntegrationsRouter = {
       return { success: true };
     }),
 
-  changeTasklistColor: protectedTasklistIntegrationProcedure
-    .input(
-      z.object({
-        color: z.string(),
-      }),
-    )
-    .mutation(async ({ ctx, input }) => {
-      const { tasklist } = ctx;
+  changeTasklistColor: os.v1.integrations.changeTasklistColor
+    .use(protectedTasklistIntegrationProcedure)
+    .handler(async ({ context, input }) => {
+      const { tasklist } = context;
       const { color } = input;
 
       await db
@@ -251,57 +236,56 @@ export const v1IntegrationsRouter = {
       return { success: true };
     }),
 
-  queueTaskSync: protectedTasklistIntegrationProcedure.mutation(
-    async ({ ctx }) => {
-      const { tasklist } = ctx;
+  queueTasklistSync: os.v1.integrations.queueTasklistSync
+    .use(protectedTasklistIntegrationProcedure)
+    .handler(async ({ context }) => {
+      const { tasklist } = context;
 
       if (
         env.PUBLIC_ENVIRONMENT !== "development" &&
         tasklist.lastSynced &&
         new Date() < addMinutes(tasklist.lastSynced, SYNC_COOLDOWN_MINUTES)
       ) {
-        throw new TRPCError({
-          code: "TOO_MANY_REQUESTS",
-          message: `Please wait ${SYNC_COOLDOWN_MINUTES} minutes between syncs`,
-        });
+        throw new ORPCError("TOO_MANY_REQUESTS");
       }
 
       await publish(TASK_SYNC_QUEUE, {
-        integrationAccountId: ctx.integrationAccount.id,
-        source: ctx.integrationAccount.integrationType as TaskSource,
+        integrationAccountId: context.integrationAccount.id,
+        source: context.integrationAccount.integrationType as TaskSource,
         tasklistId: tasklist.id,
       });
 
       return { success: true };
-    },
-  ),
+    }),
 
-  deleteAccount: protectedIntegrationProcedure.mutation(async ({ ctx }) => {
-    const { integrationAccount } = ctx;
+  deleteAccount: os.v1.integrations.deleteAccount
+    .use(integrationAccountMiddleware)
+    .handler(async ({ context }) => {
+      const { integrationAccount } = context;
 
-    if (
-      CALENDAR_SOURCES.includes(
-        integrationAccount.integrationType as CalendarSource,
-      )
-    ) {
-      const calendarSource = getCalendarSource(
-        integrationAccount.integrationType as CalendarSource,
-      );
+      if (
+        CALENDAR_SOURCES.includes(
+          integrationAccount.integrationType as CalendarSource
+        )
+      ) {
+        const calendarSource = getCalendarSource(
+          integrationAccount.integrationType as CalendarSource
+        );
 
-      await calendarSource.deleteIntegrationAccount(integrationAccount.id);
-    }
+        await calendarSource.deleteIntegrationAccount(integrationAccount.id);
+      }
 
-    await db
-      .delete(integrationsAccountsTable)
-      .where(
-        and(
-          eq(integrationsAccountsTable.id, integrationAccount.id),
-          eq(integrationsAccountsTable.userId, ctx.user.id),
-        ),
-      );
+      await db
+        .delete(integrationsAccountsTable)
+        .where(
+          and(
+            eq(integrationsAccountsTable.id, integrationAccount.id),
+            eq(integrationsAccountsTable.userId, context.user.id)
+          )
+        );
 
-    return { success: true };
-  }),
+      return { success: true };
+    }),
 
   linear: v1IntegrationsLinearRouter,
-} satisfies TRPCRouterRecord;
+});

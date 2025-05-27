@@ -1,13 +1,13 @@
+import { oc } from "@orpc/contract";
+import { v1IntegrationsRouter } from "./integrations";
 import { v1ActionsRouter } from "./actions";
 import { v1CalendarsRouter } from "./calendars";
+import { v1TasklistsRouter } from "./tasklists";
+import { v1MemoriesRouter } from "./memories";
 import { v1ContactsRouter } from "./contacts";
 import { v1DevelopersApplicationsRouter } from "./developers/applications";
-import { v1IntegrationsRouter } from "./integrations";
-import { v1MemoriesRouter } from "./memories";
-import { v1TasklistsRouter } from "./tasklists";
-import { os } from "../../orpc";
 
-export const v1Router = os.v1.router({
+export const v1Router = oc.prefix("/v1").router({
   integrations: v1IntegrationsRouter,
   actions: v1ActionsRouter,
   calendars: v1CalendarsRouter,

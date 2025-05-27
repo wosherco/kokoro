@@ -1,7 +1,7 @@
 import * as p from "@clack/prompts";
 import { Command } from "commander";
 
-import { trpc } from "../trpc";
+import { orpc } from "../orpc";
 import { isLoggedIn } from "../utils/auth";
 import { saveAuthToken } from "../utils/config";
 
@@ -17,13 +17,13 @@ export function createLogoutCommand(): Command {
 
       if (!(await isLoggedIn())) {
         p.log.success(
-          "You are not logged in. Use `npx -y @kokoro.ws/mcp login` to login",
+          "You are not logged in. Use `npx -y @kokoro.ws/mcp login` to login"
         );
         return;
       }
 
       try {
-        await trpc.auth.logout.mutate();
+        await orpc.auth.logout();
       } catch {
         p.log.error("Failed to erase your token from the server");
       } finally {

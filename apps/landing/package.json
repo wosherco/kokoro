@@ -63,12 +63,15 @@
     "@kokoro/logger": "workspace:*",
     "@kokoro/validators": "workspace:*",
     "@sentry/sveltekit": "^8.50.0",
-    "@trpc/client": "catalog:",
     "@kokoro/api": "workspace:*",
     "@inlang/paraglide-js": "^2.0.13",
     "@tailwindcss/typography": "^0.5.15",
     "lucide-svelte": "catalog:",
-    "posthog-js": "^1.194.1"
+    "posthog-js": "^1.194.1",
+    "@orpc/contract": "catalog:",
+    "@orpc/client": "catalog:"
   },
-  "files": ["build"]
+  "files": [
+    "build"
+  ]
 }

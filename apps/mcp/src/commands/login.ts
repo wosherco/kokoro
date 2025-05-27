@@ -1,7 +1,7 @@
 import * as p from "@clack/prompts";
 import { Command } from "commander";
 
-import { trpc } from "../trpc";
+import { orpc } from "../orpc";
 import { isLoggedIn } from "../utils/auth";
 import { getAuthenticatorUrl, saveAuthToken } from "../utils/config";
 
@@ -17,7 +17,7 @@ export function createLoginCommand(): Command {
 
       if (await isLoggedIn()) {
         p.log.success(
-          "You are already logged in. Run the command `logout` to logout",
+          "You are already logged in. Run the command `logout` to logout"
         );
         return;
       }
@@ -49,7 +49,7 @@ export function createLoginCommand(): Command {
 
       try {
         await saveAuthToken(token);
-        const user = await trpc.auth.getUser.query();
+        const user = await orpc.auth.getUser();
         spinner.stop(`Welcome back, ${user.name}!`);
       } catch {
         spinner.stop("There was an issue logging in. Please try again.");
