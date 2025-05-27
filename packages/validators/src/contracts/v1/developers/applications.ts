@@ -6,13 +6,13 @@ export const v1DevelopersApplicationsRouter = oc.router({
     .input(
       z.object({
         name: z.string().min(5).max(100),
-      })
+      }),
     )
     .output(
       z.object({
         id: z.uuid(),
         name: z.string(),
-      })
+      }),
     ),
 
   updateRedirectUris: oc
@@ -22,13 +22,13 @@ export const v1DevelopersApplicationsRouter = oc.router({
         redirectUris: z.array(
           z.url({
             protocol: /^(https|http)$/,
-          })
+          }),
         ),
-      })
+      }),
     )
     .output(
       z.object({
         redirectUris: z.array(z.url()),
-      })
+      }),
     ),
 });

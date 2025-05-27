@@ -2,8 +2,8 @@ import { TZDateMini } from "@date-fns/tz";
 
 import { getMemories, queryMemories } from "@kokoro/brain";
 
-import { authorizedMiddleware, os } from "../../orpc";
 import { ORPCError } from "@orpc/server";
+import { os, authorizedMiddleware } from "../../orpc";
 
 export const v1MemoriesRouter = os.v1.memories.router({
   queryMemories: os.v1.memories.queryMemories

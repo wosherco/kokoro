@@ -13,6 +13,6 @@ export const v1ActionsRouter = oc.prefix("/actions").router({
     .output(
       z.object({
         result: z.string(),
-      })
+      }),
     ),
 });

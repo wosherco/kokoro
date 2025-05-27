@@ -2,8 +2,8 @@ import { and, eq, not } from "@kokoro/db";
 import { db } from "@kokoro/db/client";
 import { calendarTable } from "@kokoro/db/schema";
 
-import { authorizedMiddleware, os } from "../../orpc";
 import { ORPCError } from "@orpc/server";
+import { os, authorizedMiddleware } from "../../orpc";
 
 export const v1CalendarsRouter = os.v1.calendars.router({
   getCalendar: os.v1.calendars.getCalendar
@@ -35,8 +35,8 @@ export const v1CalendarsRouter = os.v1.calendars.router({
           and(
             eq(calendarTable.id, input.calendarId),
             eq(calendarTable.userId, context.user.id),
-            not(calendarTable.hidden)
-          )
+            not(calendarTable.hidden),
+          ),
         );
 
       if (!calendar) {

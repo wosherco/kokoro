@@ -4,9 +4,9 @@ import {
   parsePayload,
 } from "@kokoro/validators/actions";
 
-import { executeAction } from "../../logic";
-import { authorizedMiddleware, os } from "../../orpc";
 import { ORPCError } from "@orpc/server";
+import { executeAction } from "../../logic";
+import { os, authorizedMiddleware } from "../../orpc";
 
 export const v1ActionsRouter = os.v1.actions.router({
   runAction: os.v1.actions.runAction
@@ -25,7 +25,7 @@ export const v1ActionsRouter = os.v1.actions.router({
         {
           user: context.user,
         },
-        parsedAction
+        parsedAction,
       );
 
       return {

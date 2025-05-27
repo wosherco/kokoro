@@ -1,3 +1,4 @@
+import { validateSessionRequest } from "@kokoro/auth";
 import { and, eq } from "@kokoro/db";
 import { db } from "@kokoro/db/client";
 import type { Session, User } from "@kokoro/db/schema";
@@ -7,11 +8,10 @@ import {
   oauthClientTable,
   tasklistsTable,
 } from "@kokoro/db/schema";
+import { orpcContract } from "@kokoro/validators/contracts";
 import type { CalendarSource, TaskSource } from "@kokoro/validators/db";
 import { CALENDAR_SOURCES, TASK_SOURCES } from "@kokoro/validators/db";
-import { orpcContract } from "@kokoro/validators/contracts";
-import { implement, ORPCError } from "@orpc/server";
-import { validateSessionRequest } from "@kokoro/auth";
+import { ORPCError, implement } from "@orpc/server";
 
 export const os =
   implement(orpcContract).$context<Awaited<ReturnType<typeof createContext>>>();
@@ -49,7 +49,7 @@ export const protectedApiAccessMiddleware = authorizedMiddleware.concat(
       throw new ORPCError("FORBIDDEN");
     }
     return next();
-  }
+  },
 );
 
 export const protectedOauthApplicationMiddleware = authorizedMiddleware.concat(
@@ -60,8 +60,8 @@ export const protectedOauthApplicationMiddleware = authorizedMiddleware.concat(
       .where(
         and(
           eq(oauthClientTable.id, input.applicationId),
-          eq(oauthClientTable.ownerId, context.user.id)
-        )
+          eq(oauthClientTable.ownerId, context.user.id),
+        ),
       );
 
     if (!oauthApplication) {
@@ -73,7 +73,7 @@ export const protectedOauthApplicationMiddleware = authorizedMiddleware.concat(
         oauthApplication,
       },
     });
-  }
+  },
 );
 
 /**
@@ -90,8 +90,8 @@ export const integrationAccountMiddleware = authorizedMiddleware.concat(
       .where(
         and(
           eq(integrationsAccountsTable.id, input.integrationAccountId),
-          eq(integrationsAccountsTable.userId, context.user.id)
-        )
+          eq(integrationsAccountsTable.userId, context.user.id),
+        ),
       );
 
     if (!integrationAccount) {
@@ -103,7 +103,7 @@ export const integrationAccountMiddleware = authorizedMiddleware.concat(
         integrationAccount,
       },
     });
-  }
+  },
 );
 
 /**
@@ -116,11 +116,11 @@ export const protectedCalendarIntegrationProcedure =
   integrationAccountMiddleware.concat(
     async (
       { context, next },
-      input: { integrationAccountId: string; calendarId: string }
+      input: { integrationAccountId: string; calendarId: string },
     ) => {
       if (
         !CALENDAR_SOURCES.includes(
-          context.integrationAccount.integrationType as CalendarSource
+          context.integrationAccount.integrationType as CalendarSource,
         )
       ) {
         throw new ORPCError("BAD_REQUEST");
@@ -135,13 +135,13 @@ export const protectedCalendarIntegrationProcedure =
             eq(calendarTable.userId, context.user.id),
             eq(
               calendarTable.platformAccountId,
-              context.integrationAccount.platformAccountId
+              context.integrationAccount.platformAccountId,
             ),
             eq(
               calendarTable.source,
-              context.integrationAccount.integrationType as CalendarSource
-            )
-          )
+              context.integrationAccount.integrationType as CalendarSource,
+            ),
+          ),
         );
 
       if (!calendar) {
@@ -153,7 +153,7 @@ export const protectedCalendarIntegrationProcedure =
           calendar,
         },
       });
-    }
+    },
   );
 
 /**
@@ -166,11 +166,11 @@ export const protectedTasklistIntegrationProcedure =
   integrationAccountMiddleware.concat(
     async (
       { context, next },
-      input: { integrationAccountId: string; tasklistId: string }
+      input: { integrationAccountId: string; tasklistId: string },
     ) => {
       if (
         !TASK_SOURCES.includes(
-          context.integrationAccount.integrationType as TaskSource
+          context.integrationAccount.integrationType as TaskSource,
         )
       ) {
         throw new ORPCError("BAD_REQUEST");
@@ -185,13 +185,13 @@ export const protectedTasklistIntegrationProcedure =
             eq(tasklistsTable.userId, context.user.id),
             eq(
               tasklistsTable.platformAccountId,
-              context.integrationAccount.platformAccountId
+              context.integrationAccount.platformAccountId,
             ),
             eq(
               tasklistsTable.source,
-              context.integrationAccount.integrationType as TaskSource
-            )
-          )
+              context.integrationAccount.integrationType as TaskSource,
+            ),
+          ),
         );
 
       if (!tasklist) {
@@ -203,5 +203,5 @@ export const protectedTasklistIntegrationProcedure =
           tasklist,
         },
       });
-    }
+    },
   );

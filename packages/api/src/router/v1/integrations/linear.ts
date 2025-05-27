@@ -2,8 +2,8 @@ import { eq } from "@kokoro/db";
 import { db } from "@kokoro/db/client";
 import { linearWebhooksTable } from "@kokoro/db/schema";
 import { LINEAR } from "@kokoro/validators/db";
-import { integrationAccountMiddleware, os } from "../../../orpc";
 import { ORPCError } from "@orpc/server";
+import { os, integrationAccountMiddleware } from "../../../orpc";
 
 export const v1IntegrationsLinearRouter = os.v1.integrations.linear.router({
   getWebhookStatus: os.v1.integrations.linear.getWebhookStatus
@@ -25,8 +25,8 @@ export const v1IntegrationsLinearRouter = os.v1.integrations.linear.router({
         .where(
           eq(
             linearWebhooksTable.workspaceId,
-            integrationAccount.platformData.workspaceId
-          )
+            integrationAccount.platformData.workspaceId,
+          ),
         );
 
       if (!webhook) {

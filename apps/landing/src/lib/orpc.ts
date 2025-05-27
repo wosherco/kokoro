@@ -1,8 +1,8 @@
 import { env } from "$env/dynamic/public";
-import type { ContractRouterClient } from "@orpc/contract";
+import type { orpcContract } from "@kokoro/validators/contracts";
 import { createORPCClient } from "@orpc/client";
 import { RPCLink } from "@orpc/client/fetch";
-import type { orpcContract } from "@kokoro/validators/contracts";
+import type { ContractRouterClient } from "@orpc/contract";
 
 const link = new RPCLink({
   url: `${env.PUBLIC_API_URL}/rpc`,

@@ -73,7 +73,5 @@
     "@orpc/contract": "catalog:",
     "@orpc/client": "catalog:"
   },
-  "files": [
-    "build"
-  ]
+  "files": ["build"]
 }

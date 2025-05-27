@@ -1,5 +1,5 @@
 import { invalidateSession } from "@kokoro/auth";
-import { authorizedMiddleware, os } from "../orpc";
+import { os, authorizedMiddleware } from "../orpc";
 
 export const authRouter = os.auth.router({
   getUser: os.auth.getUser.use(authorizedMiddleware).handler(({ context }) => {

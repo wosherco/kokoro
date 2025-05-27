@@ -1,13 +1,13 @@
 import { eq } from "@kokoro/db";
 import { db } from "@kokoro/db/client";
 import { oauthClientTable } from "@kokoro/db/schema";
+import { ORPCError } from "@orpc/server";
 import { nanoid } from "nanoid";
 import {
-  authorizedMiddleware,
   os,
+  authorizedMiddleware,
   protectedOauthApplicationMiddleware,
 } from "../../../orpc";
-import { ORPCError } from "@orpc/server";
 
 export const v1DevelopersApplicationsRouter =
   os.v1.developers.applications.router({

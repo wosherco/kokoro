@@ -2,8 +2,8 @@ import { and, eq, not } from "@kokoro/db";
 import { db } from "@kokoro/db/client";
 import { tasklistsTable } from "@kokoro/db/schema";
 
-import { authorizedMiddleware, os } from "../../orpc";
 import { ORPCError } from "@orpc/server";
+import { os, authorizedMiddleware } from "../../orpc";
 
 export const v1TasklistsRouter = os.v1.tasklists.router({
   getTasklist: os.v1.tasklists.getTasklist
@@ -32,8 +32,8 @@ export const v1TasklistsRouter = os.v1.tasklists.router({
           and(
             eq(tasklistsTable.id, input.tasklistId),
             eq(tasklistsTable.userId, context.user.id),
-            not(tasklistsTable.hidden)
-          )
+            not(tasklistsTable.hidden),
+          ),
         );
 
       if (!tasklist) {

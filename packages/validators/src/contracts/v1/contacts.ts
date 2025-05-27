@@ -16,8 +16,8 @@ export const v1ContactsRouter = oc.prefix("/contact").router({
         .or(
           z.object({
             name: z.string(),
-          })
-        )
+          }),
+        ),
     )
     .output(
       z.array(
@@ -32,7 +32,7 @@ export const v1ContactsRouter = oc.prefix("/contact").router({
               platformContactId: z.string().nullable(),
               platformContactListId: z.string().nullable(),
               platformAccountId: z.string().nullable(),
-            })
+            }),
           ),
           emails: z.array(
             z.object({
@@ -41,7 +41,7 @@ export const v1ContactsRouter = oc.prefix("/contact").router({
               displayName: z.string().nullable(),
               primary: z.boolean(),
               linkId: z.uuid(),
-            })
+            }),
           ),
           names: z.array(
             z.object({
@@ -52,9 +52,9 @@ export const v1ContactsRouter = oc.prefix("/contact").router({
               displayName: z.string().nullable(),
               primary: z.boolean(),
               linkId: z.uuid(),
-            })
+            }),
           ),
-        })
-      )
+        }),
+      ),
     ),
 });

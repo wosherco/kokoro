@@ -49,7 +49,8 @@ const linearWebhookStatusPromise = $derived.by<
   Promise<"not_created" | "unknown" | "active" | "invalid" | undefined>
 >(async () => {
   if (data.integrationAccount.integrationType === LINEAR) {
-    return orpc.v1.integrations.linear.getWebhookStatus({
+    return orpc.v1.integrations.linear
+      .getWebhookStatus({
         integrationAccountId: data.integrationAccount.id,
       })
       .then(({ status }) => status);

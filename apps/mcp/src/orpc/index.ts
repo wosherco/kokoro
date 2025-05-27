@@ -1,6 +1,6 @@
 import type { orpcContract } from "@kokoro/validators/contracts";
-import { getAuthToken, getServerUrl } from "../utils/config";
 import type { ContractRouterClient } from "@orpc/contract";
+import { getAuthToken, getServerUrl } from "../utils/config";
 
 const serverUrl = await getServerUrl();
 

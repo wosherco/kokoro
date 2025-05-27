@@ -1,6 +1,6 @@
 import { queryContacts } from "@kokoro/brain";
 
-import { authorizedMiddleware, os } from "../../orpc";
+import { os, authorizedMiddleware } from "../../orpc";
 
 export const v1ContactsRouter = os.v1.contacts.router({
   queryContacts: os.v1.contacts.queryContacts
@@ -14,7 +14,7 @@ export const v1ContactsRouter = os.v1.contacts.router({
             }
           : {
               name: input.name,
-            }
+            },
       );
 
       return contacts;

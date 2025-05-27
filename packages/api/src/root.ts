@@ -1,7 +1,7 @@
+import { os } from "./orpc";
 import { authRouter } from "./router/auth";
 import { landingRouter } from "./router/landing";
 import { v1Router } from "./router/v1";
-import { os } from "./orpc";
 
 export const appRouter = os.router({
   auth: authRouter,

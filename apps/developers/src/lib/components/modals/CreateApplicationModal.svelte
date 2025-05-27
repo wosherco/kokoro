@@ -33,10 +33,9 @@ async function createApplication() {
   loading = true;
 
   try {
-    const createdApplication =
-      await orpc.v1.developers.applications.create({
-        name,
-      });
+    const createdApplication = await orpc.v1.developers.applications.create({
+      name,
+    });
 
     goto(`/applications/${createdApplication.id}`);
     toast.success("Application created successfully");

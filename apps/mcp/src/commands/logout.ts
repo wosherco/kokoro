@@ -17,7 +17,7 @@ export function createLogoutCommand(): Command {
 
       if (!(await isLoggedIn())) {
         p.log.success(
-          "You are not logged in. Use `npx -y @kokoro.ws/mcp login` to login"
+          "You are not logged in. Use `npx -y @kokoro.ws/mcp login` to login",
         );
         return;
       }

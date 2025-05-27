@@ -28,16 +28,16 @@ import {
 } from "@kokoro/validators/db";
 
 import { getCalendarSource } from "@kokoro/brain/calendar";
+import { ORPCError } from "@orpc/server";
 import { env } from "../../../env";
 import {
+  os,
   authorizedMiddleware,
   integrationAccountMiddleware,
-  os,
   protectedCalendarIntegrationProcedure,
   protectedTasklistIntegrationProcedure,
 } from "../../orpc";
 import { v1IntegrationsLinearRouter } from "./integrations/linear";
-import { ORPCError } from "@orpc/server";
 
 const SYNC_COOLDOWN_MINUTES = 30;
 
@@ -70,18 +70,18 @@ export const v1IntegrationsRouter = os.v1.integrations.router({
         .from(integrationsAccountsTable)
         .leftJoin(
           calendarTable,
-          eq(integrationsAccountsTable.id, calendarTable.integrationAccountId)
+          eq(integrationsAccountsTable.id, calendarTable.integrationAccountId),
         )
         .leftJoin(
           tasklistsTable,
-          eq(integrationsAccountsTable.id, tasklistsTable.integrationAccountId)
+          eq(integrationsAccountsTable.id, tasklistsTable.integrationAccountId),
         )
         .where(
           and(
             eq(integrationsAccountsTable.userId, context.user.id),
             or(not(calendarTable.hidden), isNull(calendarTable.hidden)),
-            or(not(tasklistsTable.hidden), isNull(tasklistsTable.hidden))
-          )
+            or(not(tasklistsTable.hidden), isNull(tasklistsTable.hidden)),
+          ),
         );
 
       const groupedAccounts = groupBy(dbIntegrations, "id");
@@ -116,14 +116,14 @@ export const v1IntegrationsRouter = os.v1.integrations.router({
             tasklists: filterNil(accounts.map((account) => account.tasklist)),
             supports: INTEGRATION_TYPES.filter((type) =>
               RELAXED_MAPPED_INTEGRATION_SOURCES[type].includes(
-                first.integrationType
-              )
+                first.integrationType,
+              ),
             ),
           });
 
           return acc;
         },
-        [] as GroupedAccount[]
+        [] as GroupedAccount[],
       );
 
       return integrations;
@@ -146,7 +146,7 @@ export const v1IntegrationsRouter = os.v1.integrations.router({
 
       if (
         CALENDAR_SOURCES.includes(
-          integrationAccount.integrationType as CalendarSource
+          integrationAccount.integrationType as CalendarSource,
         )
       ) {
         await publish(CALENDARS_SYNC_QUEUE, {
@@ -265,11 +265,11 @@ export const v1IntegrationsRouter = os.v1.integrations.router({
 
       if (
         CALENDAR_SOURCES.includes(
-          integrationAccount.integrationType as CalendarSource
+          integrationAccount.integrationType as CalendarSource,
         )
       ) {
         const calendarSource = getCalendarSource(
-          integrationAccount.integrationType as CalendarSource
+          integrationAccount.integrationType as CalendarSource,
         );
 
         await calendarSource.deleteIntegrationAccount(integrationAccount.id);
@@ -280,8 +280,8 @@ export const v1IntegrationsRouter = os.v1.integrations.router({
         .where(
           and(
             eq(integrationsAccountsTable.id, integrationAccount.id),
-            eq(integrationsAccountsTable.userId, context.user.id)
-          )
+            eq(integrationsAccountsTable.userId, context.user.id),
+          ),
         );
 
       return { success: true };
