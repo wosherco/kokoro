@@ -79,7 +79,7 @@ type GoogleCalendarWebhookHeaders = z.infer<
 >;
 
 function parseGoogleCalendarWebhookHeaders(
-  headers: Headers
+  headers: Headers,
 ): GoogleCalendarWebhookHeaders {
   const rawHeaders: Record<string, string> = {};
 
@@ -97,7 +97,7 @@ const watchGoogleCalendar = new Hono().use(
     pino: logger.child({
       subrouter: "watchGoogleCalendar",
     }),
-  })
+  }),
 );
 
 watchGoogleCalendar.post("/calendarlist", async (c) => {
@@ -116,8 +116,8 @@ watchGoogleCalendar.post("/calendarlist", async (c) => {
     .where(
       eq(
         externalGoogleCalendarListWatchersTable.id,
-        headers["x-goog-channel-id"]
-      )
+        headers["x-goog-channel-id"],
+      ),
     );
 
   if (channel.secret !== headers["x-goog-channel-token"]) {
@@ -149,8 +149,8 @@ watchGoogleCalendar.post("/events", async (c) => {
     .where(
       eq(
         externalGoogleCalendarEventsWatchersTable.id,
-        headers["x-goog-channel-id"]
-      )
+        headers["x-goog-channel-id"],
+      ),
     );
 
   if (channel.secret !== headers["x-goog-channel-token"]) {

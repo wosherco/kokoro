@@ -23,7 +23,7 @@ export const tasksCreateTaskSchema = z.object({
   attributes: z
     .record(
       z.string().describe("The id of the attribute"),
-      z.string().describe("The value of the attribute")
+      z.string().describe("The value of the attribute"),
     )
     .optional(),
 });
@@ -45,7 +45,7 @@ export const tasksModifyTaskSchema = z.object({
   attributes: z
     .record(
       z.string().describe("The id of the attribute"),
-      z.string().describe("The value of the attribute")
+      z.string().describe("The value of the attribute"),
     )
     .optional(),
 });

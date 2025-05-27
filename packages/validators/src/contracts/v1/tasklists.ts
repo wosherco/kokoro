@@ -11,7 +11,7 @@ export const v1TasklistsRouter = oc.prefix("/tasklist").router({
     .input(
       z.object({
         tasklistId: z.string().uuid(),
-      })
+      }),
     )
     .output(
       z.object({
@@ -31,6 +31,6 @@ export const v1TasklistsRouter = oc.prefix("/tasklist").router({
 
           lastSynced: z.string().nullable(),
         }),
-      })
+      }),
     ),
 });

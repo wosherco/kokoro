@@ -15,7 +15,7 @@ export const KokoroActionPayloadSchemas = {
   ...TasksActionSchemas,
 } as const;
 export const allActionNamesAsStringArray = KokoroActions.map(
-  (name) => name
+  (name) => name,
 ) as string[];
 
 // exports of individual actions
@@ -43,7 +43,7 @@ export interface BaseActionWithPayload<ActionName extends KokoroActionName> {
 
 // Implementation
 export async function parsePayload<
-  ActionName extends KokoroActionName
+  ActionName extends KokoroActionName,
 >(action: {
   name: ActionName;
   payload: BaseAction["payload"];

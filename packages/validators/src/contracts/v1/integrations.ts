@@ -25,7 +25,7 @@ export const v1IntegrationsRouter = oc.prefix("/integrations").router({
               colorOverride: z.string().nullable(),
               color: z.string().nullable(),
               hidden: z.boolean(),
-            })
+            }),
           ),
           tasklists: z.array(
             z.object({
@@ -34,23 +34,23 @@ export const v1IntegrationsRouter = oc.prefix("/integrations").router({
               colorOverride: z.string().nullable(),
               color: z.string().nullable(),
               hidden: z.boolean(),
-            })
+            }),
           ),
           supports: z.array(z.enum(INTEGRATION_TYPES)),
-        })
-      )
+        }),
+      ),
     ),
 
   queueAccountSync: oc
     .input(
       z.object({
         integrationAccountId: z.string().uuid(),
-      })
+      }),
     )
     .output(
       z.object({
         success: z.literal(true),
-      })
+      }),
     ),
 
   toggleCalendarVisibility: oc
@@ -59,12 +59,12 @@ export const v1IntegrationsRouter = oc.prefix("/integrations").router({
         integrationAccountId: z.string().uuid(),
         calendarId: z.string().uuid(),
         hidden: z.boolean(),
-      })
+      }),
     )
     .output(
       z.object({
         success: z.literal(true),
-      })
+      }),
     ),
 
   changeCalendarColor: oc
@@ -73,12 +73,12 @@ export const v1IntegrationsRouter = oc.prefix("/integrations").router({
         integrationAccountId: z.string().uuid(),
         calendarId: z.string().uuid(),
         color: z.string(),
-      })
+      }),
     )
     .output(
       z.object({
         success: z.literal(true),
-      })
+      }),
     ),
 
   queueCalendarSync: oc
@@ -86,12 +86,12 @@ export const v1IntegrationsRouter = oc.prefix("/integrations").router({
       z.object({
         integrationAccountId: z.string().uuid(),
         calendarId: z.string().uuid(),
-      })
+      }),
     )
     .output(
       z.object({
         success: z.literal(true),
-      })
+      }),
     ),
 
   toggleTasklistVisibility: oc
@@ -100,12 +100,12 @@ export const v1IntegrationsRouter = oc.prefix("/integrations").router({
         integrationAccountId: z.string().uuid(),
         tasklistId: z.string().uuid(),
         hidden: z.boolean(),
-      })
+      }),
     )
     .output(
       z.object({
         success: z.literal(true),
-      })
+      }),
     ),
 
   changeTasklistColor: oc
@@ -114,12 +114,12 @@ export const v1IntegrationsRouter = oc.prefix("/integrations").router({
         integrationAccountId: z.string().uuid(),
         tasklistId: z.string().uuid(),
         color: z.string(),
-      })
+      }),
     )
     .output(
       z.object({
         success: z.literal(true),
-      })
+      }),
     ),
 
   queueTasklistSync: oc
@@ -127,24 +127,24 @@ export const v1IntegrationsRouter = oc.prefix("/integrations").router({
       z.object({
         integrationAccountId: z.string().uuid(),
         tasklistId: z.string().uuid(),
-      })
+      }),
     )
     .output(
       z.object({
         success: z.literal(true),
-      })
+      }),
     ),
 
   deleteAccount: oc
     .input(
       z.object({
         integrationAccountId: z.string().uuid(),
-      })
+      }),
     )
     .output(
       z.object({
         success: z.literal(true),
-      })
+      }),
     ),
 
   linear: v1IntegrationsLinearRouter,

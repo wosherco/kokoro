@@ -87,7 +87,7 @@ function getLinearState(state: string): TaskState {
 
 function validateTaskAttributes(
   attributes: Record<string, string>,
-  tasklist: SimpleTasklist
+  tasklist: SimpleTasklist,
 ) {
   const priorityAttribute = attributes[LINEAR_PRIORITY_ATTRIBUTE.name];
   const stateAttribute = attributes[LINEAR_STATE_ATTRIBUTE_ID];
@@ -96,7 +96,7 @@ function validateTaskAttributes(
   if (
     priorityAttribute &&
     !Object.keys(
-      tasklist.config[LINEAR_PRIORITY_ATTRIBUTE.name]?.tags ?? {}
+      tasklist.config[LINEAR_PRIORITY_ATTRIBUTE.name]?.tags ?? {},
     ).includes(priorityAttribute)
   ) {
     throw new Error("Invalid priority");
@@ -106,7 +106,7 @@ function validateTaskAttributes(
   if (
     stateAttribute &&
     !Object.keys(
-      tasklist.config[LINEAR_STATE_ATTRIBUTE_ID]?.tags ?? {}
+      tasklist.config[LINEAR_STATE_ATTRIBUTE_ID]?.tags ?? {},
     ).includes(stateAttribute)
   ) {
     throw new Error("Invalid state");
@@ -125,10 +125,10 @@ export class LinearTaskSource extends ReadWriteTaskSource<
   async processTasklist(
     context: ProcessTasklistContext,
     tasklist: LinearTeam,
-    db: TransactableDBType
+    db: TransactableDBType,
   ): Promise<{ id: string }> {
     const tasklistState = await resolveLinearPaginatedRequest(
-      tasklist.states()
+      tasklist.states(),
     );
 
     const formattedTasklist: Omit<SimpleTasklist, "id"> = {
@@ -189,8 +189,8 @@ export class LinearTaskSource extends ReadWriteTaskSource<
           .where(
             and(
               eq(tasklistsTable.platformAccountId, account.platformAccountId),
-              eq(tasklistsTable.source, LINEAR)
-            )
+              eq(tasklistsTable.source, LINEAR),
+            ),
           )
           .execute(),
       ]);
@@ -202,7 +202,7 @@ export class LinearTaskSource extends ReadWriteTaskSource<
       const tasklistsDiff = diff(
         currentTasklists,
         formattedTasklists,
-        "platformTasklistId"
+        "platformTasklistId",
       );
 
       const tasklistsLookup = lookup(tasklists, "id");
@@ -211,7 +211,7 @@ export class LinearTaskSource extends ReadWriteTaskSource<
 
       await db.transaction(async (tx) => {
         const localProcessItem = async (
-          item: (typeof formattedTasklists)[number]
+          item: (typeof formattedTasklists)[number],
         ) => {
           const team = tasklistsLookup(item.platformTasklistId);
 
@@ -226,7 +226,7 @@ export class LinearTaskSource extends ReadWriteTaskSource<
               integrationAccountId,
             },
             team,
-            tx
+            tx,
           );
 
           tasklistsToPublishSync.push(tasklist.id);
@@ -242,11 +242,11 @@ export class LinearTaskSource extends ReadWriteTaskSource<
                 and(
                   eq(
                     tasklistsTable.platformTaskListId,
-                    item.platformTasklistId
+                    item.platformTasklistId,
                   ),
                   eq(tasklistsTable.source, LINEAR),
-                  eq(tasklistsTable.userId, account.userId)
-                )
+                  eq(tasklistsTable.userId, account.userId),
+                ),
               );
           },
         });
@@ -258,8 +258,8 @@ export class LinearTaskSource extends ReadWriteTaskSource<
             integrationAccountId,
             source: LINEAR,
             tasklistId,
-          })
-        )
+          }),
+        ),
       );
     });
   }
@@ -267,7 +267,7 @@ export class LinearTaskSource extends ReadWriteTaskSource<
   async processItem(
     context: ProcessTaskContext,
     item: LinearIssue,
-    db: TransactableDBType
+    db: TransactableDBType,
   ): Promise<{ memoryId: string }> {
     const [[existingMemory], issueState] = await Promise.all([
       db
@@ -278,15 +278,15 @@ export class LinearTaskSource extends ReadWriteTaskSource<
         .from(memoryTaskTable)
         .innerJoin(
           tasklistsTable,
-          eq(tasklistsTable.id, memoryTaskTable.tasklistId)
+          eq(tasklistsTable.id, memoryTaskTable.tasklistId),
         )
         .where(
           and(
             eq(memoryTaskTable.source, LINEAR),
             eq(memoryTaskTable.userId, context.userId),
             eq(memoryTaskTable.tasklistId, context.tasklistId),
-            eq(memoryTaskTable.platformTaskId, item.id)
-          )
+            eq(memoryTaskTable.platformTaskId, item.id),
+          ),
         )
         .execute(),
       item.state,
@@ -362,7 +362,7 @@ export class LinearTaskSource extends ReadWriteTaskSource<
           attributes,
         },
       },
-      db
+      db,
     );
 
     return { memoryId: upsertedMemory.id };
@@ -370,7 +370,7 @@ export class LinearTaskSource extends ReadWriteTaskSource<
 
   async syncTasks(
     integrationAccountId: string,
-    tasklistId: string
+    tasklistId: string,
   ): Promise<void> {
     const [tasklist] = await db
       .select()
@@ -390,8 +390,8 @@ export class LinearTaskSource extends ReadWriteTaskSource<
           .where(
             and(
               eq(memoryTaskTable.tasklistId, tasklistId),
-              eq(memoryTaskTable.source, LINEAR)
-            )
+              eq(memoryTaskTable.source, LINEAR),
+            ),
           ),
       ]);
 
@@ -405,7 +405,7 @@ export class LinearTaskSource extends ReadWriteTaskSource<
 
       await db.transaction(async (tx) => {
         const localProcessItem = async (
-          item: (typeof formattedTasks)[number]
+          item: (typeof formattedTasks)[number],
         ) => {
           const task = tasksLookup(item.platformTaskId);
 
@@ -422,7 +422,7 @@ export class LinearTaskSource extends ReadWriteTaskSource<
               tasklistId: tasklistId,
             },
             task,
-            tx
+            tx,
           );
         };
 
@@ -435,8 +435,8 @@ export class LinearTaskSource extends ReadWriteTaskSource<
               .where(
                 and(
                   eq(memoryTaskTable.platformTaskId, item.platformTaskId),
-                  eq(memoryTaskTable.tasklistId, tasklistId)
-                )
+                  eq(memoryTaskTable.tasklistId, tasklistId),
+                ),
               );
           },
         });
@@ -451,7 +451,7 @@ export class LinearTaskSource extends ReadWriteTaskSource<
 
   async fetchPlatformTask(
     integrationAccountId: string,
-    platformTaskId: string
+    platformTaskId: string,
   ): Promise<LinearIssue> {
     return withLinear(integrationAccountId, async (account) => {
       return account.client.issue(platformTaskId);
@@ -461,7 +461,7 @@ export class LinearTaskSource extends ReadWriteTaskSource<
   async createTask(
     integrationAccountId: string,
     tasklistId: string,
-    taskData: SupportedTaskFields
+    taskData: SupportedTaskFields,
   ): Promise<{ memoryId: string }> {
     const [tasklist] = await db
       .select()
@@ -479,7 +479,7 @@ export class LinearTaskSource extends ReadWriteTaskSource<
 
       const { priorityAttribute, stateAttribute } = validateTaskAttributes(
         taskData.attributes ?? {},
-        tasklist
+        tasklist,
       );
 
       const createdIssueReq = await account.client.createIssue({
@@ -510,7 +510,7 @@ export class LinearTaskSource extends ReadWriteTaskSource<
           tasklistId: tasklist.id,
         },
         createdIssue,
-        db
+        db,
       );
 
       return processedItem;
@@ -520,7 +520,7 @@ export class LinearTaskSource extends ReadWriteTaskSource<
   updateTask(
     integrationAccountId: string,
     taskId: string,
-    taskData: Modifiable<SupportedTaskFields>
+    taskData: Modifiable<SupportedTaskFields>,
   ): Promise<void> {
     return withLinear(integrationAccountId, async (account) => {
       const [memory] = await getMemories(account.userId, [taskId]);
@@ -541,7 +541,7 @@ export class LinearTaskSource extends ReadWriteTaskSource<
 
       const { priorityAttribute, stateAttribute } = validateTaskAttributes(
         taskData.attributes ?? {},
-        tasklist
+        tasklist,
       );
 
       const updatedIssueReq = await account.client.updateIssue(
@@ -552,7 +552,7 @@ export class LinearTaskSource extends ReadWriteTaskSource<
           dueDate: taskData.dueDate,
           priority: priorityAttribute ? Number(priorityAttribute) : undefined,
           stateId: stateAttribute,
-        }
+        },
       );
 
       if (!updatedIssueReq.success) {
@@ -574,7 +574,7 @@ export class LinearTaskSource extends ReadWriteTaskSource<
           tasklistId: memory.task.tasklistId,
         },
         updatedIssue,
-        db
+        db,
       );
     });
   }

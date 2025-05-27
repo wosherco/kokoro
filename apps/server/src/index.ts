@@ -25,7 +25,7 @@ app.use(
   "*",
   pinoLogger({
     pino: logger,
-  })
+  }),
 );
 
 app.use(
@@ -39,7 +39,7 @@ app.use(
       env.PUBLIC_DEVELOPERS_URL,
     ],
     credentials: true,
-  })
+  }),
 );
 
 app.get("/health", (c) => c.json({ status: "ok" }));
@@ -71,7 +71,7 @@ const openApiHandler = new OpenAPIHandler(appRouter, {
           title: "Kokoro Developer API",
           version: "1.0.0",
         },
-        exclude(procedure, path) {
+        exclude(procedure) {
           // If no path, means we haven't specified it, which means it's not part of the rest api
           return !procedure["~orpc"].route.path;
         },

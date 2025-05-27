@@ -11,7 +11,7 @@ export const v1CalendarsRouter = oc.prefix("/calendar").router({
     .input(
       z.object({
         calendarId: z.string().uuid(),
-      })
+      }),
     )
     .output(
       z.object({
@@ -45,6 +45,6 @@ export const v1CalendarsRouter = oc.prefix("/calendar").router({
             offset: true,
           }),
         }),
-      })
+      }),
     ),
 });

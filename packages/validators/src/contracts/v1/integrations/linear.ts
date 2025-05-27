@@ -15,12 +15,12 @@ export const v1IntegrationsLinearRouter = oc.router({
     .input(
       z.object({
         integrationAccountId: z.string(),
-      })
+      }),
     )
     .output(
       z.object({
         status: z.enum(LINEAR_WEBHOOK_STATE),
-      })
+      }),
     ),
 
   setupWebhook: oc
@@ -28,11 +28,11 @@ export const v1IntegrationsLinearRouter = oc.router({
       z.object({
         integrationAccountId: z.string(),
         webhookSecret: z.string(),
-      })
+      }),
     )
     .output(
       z.object({
         success: z.literal(true),
-      })
+      }),
     ),
 });

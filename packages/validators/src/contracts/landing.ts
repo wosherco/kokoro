@@ -7,6 +7,6 @@ export const landingRouter = oc.router({
       name: z.string(),
       email: z.string(),
       message: z.string(),
-    })
+    }),
   ),
 });

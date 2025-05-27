@@ -16,7 +16,7 @@ export const virtualEventSchema = z.object({
     .string()
     .nullable()
     .describe(
-      "<nullable> IF VIRTUAL ONLY, provide the start date of the virtual event."
+      "<nullable> IF VIRTUAL ONLY, provide the start date of the virtual event.",
     ),
 });
 

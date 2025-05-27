@@ -8,7 +8,7 @@ export const authRouter = oc.router({
       email: z.string(),
       name: z.string(),
       profilePicture: z.string().nullable(),
-    })
+    }),
   ),
   logout: oc.output(z.void()),
 });

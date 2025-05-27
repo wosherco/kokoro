@@ -6,13 +6,13 @@ export const v1DevelopersApplicationsRouter = oc.router({
     .input(
       z.object({
         name: z.string().min(5).max(100),
-      })
+      }),
     )
     .output(
       z.object({
         id: z.string().uuid(),
         name: z.string(),
-      })
+      }),
     ),
 
   updateRedirectUris: oc
@@ -35,14 +35,14 @@ export const v1DevelopersApplicationsRouter = oc.router({
                 } catch {
                   return false;
                 }
-              })()
-            )
+              })(),
+            ),
         ),
-      })
+      }),
     )
     .output(
       z.object({
         redirectUris: z.array(z.string().url()),
-      })
+      }),
     ),
 });
