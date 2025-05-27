@@ -1,21 +1,14 @@
-import type { TRPCRouterRecord } from "@trpc/server";
-import { TRPCError } from "@trpc/server";
-import { z } from "zod";
-
 import { and, eq, not } from "@kokoro/db";
 import { db } from "@kokoro/db/client";
 import { tasklistsTable } from "@kokoro/db/schema";
 
-import { protectedProcedure } from "../../trpc";
+import { ORPCError } from "@orpc/server";
+import { os, authorizedMiddleware } from "../../orpc";
 
-export const v1TasklistsRouter = {
-  getTasklist: protectedProcedure
-    .input(
-      z.object({
-        tasklistId: z.string().uuid(),
-      }),
-    )
-    .query(async ({ ctx, input }) => {
+export const v1TasklistsRouter = os.v1.tasklists.router({
+  getTasklist: os.v1.tasklists.getTasklist
+    .use(authorizedMiddleware)
+    .handler(async ({ context, input }) => {
       const [tasklist] = await db
         .select({
           id: tasklistsTable.id,
@@ -38,21 +31,21 @@ export const v1TasklistsRouter = {
         .where(
           and(
             eq(tasklistsTable.id, input.tasklistId),
-            eq(tasklistsTable.userId, ctx.user.id),
+            eq(tasklistsTable.userId, context.user.id),
             not(tasklistsTable.hidden),
           ),
         );
 
       if (!tasklist) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Tasklist not found",
-        });
+        throw new ORPCError("NOT_FOUND");
       }
 
       return {
-        tasklist,
+        tasklist: {
+          ...tasklist,
+          lastSynced: tasklist.lastSynced?.toISOString() ?? null,
+        },
         prompt: "TODO",
       };
     }),
-} satisfies TRPCRouterRecord;
+});

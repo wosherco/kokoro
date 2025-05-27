@@ -1,4 +1,4 @@
-import { trpc } from "../trpc";
+import { orpc } from "../orpc";
 import { getAuthToken } from "./config";
 
 export async function getUser() {
@@ -8,7 +8,7 @@ export async function getUser() {
     return null;
   }
 
-  return await trpc.auth.getUser.query();
+  return await orpc.auth.getUser();
 }
 
 export async function isLoggedIn() {

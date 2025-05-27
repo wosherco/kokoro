@@ -1,7 +1,7 @@
 import * as p from "@clack/prompts";
 import { Command } from "commander";
 
-import { trpc } from "../trpc";
+import { orpc } from "../orpc";
 import { isLoggedIn } from "../utils/auth";
 import { saveAuthToken } from "../utils/config";
 
@@ -23,7 +23,7 @@ export function createLogoutCommand(): Command {
       }
 
       try {
-        await trpc.auth.logout.mutate();
+        await orpc.auth.logout();
       } catch {
         p.log.error("Failed to erase your token from the server");
       } finally {

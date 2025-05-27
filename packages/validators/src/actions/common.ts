@@ -27,4 +27,4 @@ export const tasklistIdSchema = z
   .uuid()
   .describe("The id of the tasklist");
 
-export const taskIdSchema = z.string().uuid().describe("The id of the task");
+export const taskIdSchema = z.string().describe("The id of the task");

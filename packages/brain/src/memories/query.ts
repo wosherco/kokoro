@@ -234,9 +234,6 @@ export interface QueriedMemory {
   description: string | null;
   createdAt: Date;
   source: MemorySource;
-  contentSimilarity?: number;
-  descriptionSimilarity?: number;
-  similarity?: number;
   lastUpdate: Date;
   event: MemoryEvent | null;
   calendar: DBCalendar | null;

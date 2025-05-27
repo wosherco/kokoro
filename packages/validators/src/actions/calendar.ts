@@ -10,7 +10,7 @@ import {
 export const CALENDAR_CREATE_EVENT_ACTION = "CALENDAR:createEvent";
 
 export const calendarCreateEventSchema = z.object({
-  integrationAccountsTable: integrationAccountIdSchema,
+  integrationAccountId: integrationAccountIdSchema,
   calendarId: calendarIdSchema,
   summary: z.string().describe("The summary of the calendar event."),
   startDate: z
@@ -50,7 +50,7 @@ const recurrenceTypeSchema = z
   );
 
 export const modifyCalendarEventSchema = z.object({
-  integrationAccountsTable: integrationAccountIdSchema,
+  integrationAccountId: integrationAccountIdSchema,
   event: virtualEventSchema,
   summary: z.string().optional().describe("The summary of the calendar event."),
   startDate: z
@@ -81,7 +81,7 @@ export const modifyCalendarEventSchema = z.object({
 export const CALENDAR_DELETE_EVENT_ACTION = "CALENDAR:deleteEvent";
 
 export const deleteCalendarEventSchema = z.object({
-  integrationAccountsTable: integrationAccountIdSchema,
+  integrationAccountId: integrationAccountIdSchema,
   event: virtualEventSchema,
   recurrenceAction: recurrenceTypeSchema,
 });
@@ -90,7 +90,7 @@ export const CALENDAR_CHANGE_EVENT_ATTENDANCE_ACTION =
   "CALENDAR:changeEventAttendance";
 
 export const changeEventAttendanceStatusSchema = z.object({
-  integrationAccountsTable: integrationAccountIdSchema,
+  integrationAccountId: integrationAccountIdSchema,
   event: virtualEventSchema,
   state: z
     .enum(GOOGLE_CALENDAR_EVENT_ATTENDANT_STATUS)

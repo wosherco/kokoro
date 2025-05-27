@@ -1,30 +1,19 @@
-import type { TRPCRouterRecord } from "@trpc/server";
-import { z } from "zod";
-
 import { invalidateSession } from "@kokoro/auth";
+import { os, authorizedMiddleware } from "../orpc";
 
-import { protectedProcedure } from "../trpc";
-
-export const authRouter = {
-  getUser: protectedProcedure
-    .output(
-      z.object({
-        id: z.string(),
-        email: z.string(),
-        name: z.string(),
-        profilePicture: z.string().nullable(),
-      }),
-    )
-    .query(({ ctx }) => {
-      return {
-        id: ctx.user.id,
-        email: ctx.user.email,
-        name: ctx.user.name,
-        profilePicture: ctx.user.profilePicture,
-      };
-    }),
-
-  logout: protectedProcedure.mutation(async ({ ctx }) => {
-    await invalidateSession(ctx.session.id);
+export const authRouter = os.auth.router({
+  getUser: os.auth.getUser.use(authorizedMiddleware).handler(({ context }) => {
+    return {
+      id: context.user.id,
+      email: context.user.email,
+      name: context.user.name,
+      profilePicture: context.user.profilePicture,
+    };
   }),
-} satisfies TRPCRouterRecord;
+
+  logout: os.auth.logout
+    .use(authorizedMiddleware)
+    .handler(async ({ context }) => {
+      await invalidateSession(context.session.id);
+    }),
+});

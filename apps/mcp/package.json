@@ -44,7 +44,8 @@
     "@kokoro/common": "workspace:*",
     "@kokoro/consts": "workspace:*",
     "@modelcontextprotocol/sdk": "^1.10.2",
-    "@trpc/client": "catalog:",
+    "@orpc/client": "catalog:",
+    "@orpc/contract": "catalog:",
     "superjson": "2.2.1",
     "zod": "catalog:",
     "commander": "^13.1.0"

@@ -45,7 +45,7 @@
     "@kokoro/validators": "workspace:*",
     "@kokoro/queues": "workspace:*",
     "@t3-oss/env-core": "catalog:",
-    "@trpc/server": "catalog:",
+    "@orpc/server": "catalog:",
     "lodash.isnil": "^4.0.0",
     "nanoid": "catalog:",
     "superjson": "2.2.1",

@@ -1,6 +1,6 @@
 <script lang="ts">
 import { goto } from "$app/navigation";
-import { trpc } from "@/trpc";
+import { orpc } from "@/orpc";
 import type { Snippet } from "svelte";
 import { toast } from "svelte-sonner";
 import {
@@ -33,10 +33,9 @@ async function createApplication() {
   loading = true;
 
   try {
-    const createdApplication =
-      await trpc.v1.developers.applications.create.mutate({
-        name,
-      });
+    const createdApplication = await orpc.v1.developers.applications.create({
+      name,
+    });
 
     goto(`/applications/${createdApplication.id}`);
     toast.success("Application created successfully");

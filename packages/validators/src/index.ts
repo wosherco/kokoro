@@ -1,18 +1,5 @@
 import { z } from "zod";
 
-export function uniqueArray<
-  // biome-ignore lint/suspicious/noExplicitAny: just imitating zod
-  Output = any,
-  Def extends z.ZodTypeDef = z.ZodTypeDef,
-  Input = Output,
->(schema: z.ZodType<Output, Def, Input>) {
-  return z
-    .array(schema)
-    .refine((items) => new Set(items).size === items.length, {
-      message: "All items must be unique, no duplicate values allowed",
-    });
-}
-
 export const contactSchema = z.object({
   name: z.string().min(1, "Name is required").max(200, "Name is too long"),
   email: z

@@ -19,7 +19,7 @@ await Bun.write(
 
 // Define external dependencies to exclude from the bundle
 export const externalDependencies = [
-  "@trpc/client",
+  "@orpc/client",
   "@clack/prompts",
   "zod",
   "superjson",

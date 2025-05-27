@@ -1,5 +1,5 @@
 <script lang="ts">
-import { trpc } from "$lib/trpc";
+import { orpc } from "$lib/orpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -51,7 +51,7 @@ function removeUri(uri: string) {
 async function saveUris() {
   isSubmitting = true;
   try {
-    await trpc.v1.developers.applications.updateRedirectUris.mutate({
+    await orpc.v1.developers.applications.updateRedirectUris({
       applicationId,
       redirectUris,
     });

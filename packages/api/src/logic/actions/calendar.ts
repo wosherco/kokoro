@@ -82,7 +82,7 @@ export async function createCalendarEventAction(
   const { integrationAccount, calendarSource } =
     await getValidatedCalendarContext(
       context.user.id,
-      payload.integrationAccountsTable,
+      payload.integrationAccountId,
     );
 
   const event = await calendarSource.createEvent(
@@ -171,7 +171,7 @@ export async function modifyCalendarEventAction(
   const { integrationAccount, calendarSource } =
     await getValidatedCalendarContext(
       context.user.id,
-      payload.integrationAccountsTable,
+      payload.integrationAccountId,
     );
 
   await calendarSource.updateEvent(
@@ -214,7 +214,7 @@ export async function deleteCalendarEventAction(
   const { integrationAccount, calendarSource } =
     await getValidatedCalendarContext(
       context.user.id,
-      payload.integrationAccountsTable,
+      payload.integrationAccountId,
     );
 
   await calendarSource.deleteEvent(
@@ -245,7 +245,7 @@ export async function changeEventAttendanceAction(
   const { integrationAccount, calendarSource } =
     await getValidatedCalendarContext(
       context.user.id,
-      payload.integrationAccountsTable,
+      payload.integrationAccountId,
     );
 
   await calendarSource.updateEvent(

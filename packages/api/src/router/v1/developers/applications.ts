@@ -1,83 +1,59 @@
 import { eq } from "@kokoro/db";
 import { db } from "@kokoro/db/client";
 import { oauthClientTable } from "@kokoro/db/schema";
-import { TRPCError, type TRPCRouterRecord } from "@trpc/server";
+import { ORPCError } from "@orpc/server";
 import { nanoid } from "nanoid";
-import { z } from "zod";
 import {
-  protectedApiAccessProcedure,
-  protectedOauthApplicationProcedure,
-} from "../../../trpc";
+  os,
+  authorizedMiddleware,
+  protectedOauthApplicationMiddleware,
+} from "../../../orpc";
 
-export const v1DevelopersApplicationsRouter = {
-  create: protectedApiAccessProcedure
-    .input(
-      z.object({
-        name: z.string().min(5).max(100),
+export const v1DevelopersApplicationsRouter =
+  os.v1.developers.applications.router({
+    create: os.v1.developers.applications.create
+      .use(authorizedMiddleware)
+      .handler(async ({ context, input }) => {
+        const [application] = await db
+          .insert(oauthClientTable)
+          .values({
+            name: input.name,
+            ownerId: context.user.id,
+            clientId: nanoid(),
+            clientSecret: nanoid(40),
+          })
+          .returning({
+            id: oauthClientTable.id,
+            name: oauthClientTable.name,
+          });
+
+        if (!application) {
+          throw new ORPCError("INTERNAL_SERVER_ERROR");
+        }
+
+        return {
+          id: application.id,
+          name: application.name,
+        };
       }),
-    )
-    .mutation(async ({ ctx, input }) => {
-      const [application] = await db
-        .insert(oauthClientTable)
-        .values({
-          name: input.name,
-          ownerId: ctx.user.id,
-          clientId: nanoid(),
-          clientSecret: nanoid(40),
-        })
-        .returning({
-          id: oauthClientTable.id,
-          name: oauthClientTable.name,
-        });
 
-      if (!application) {
-        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
-      }
+    updateRedirectUris: os.v1.developers.applications.updateRedirectUris
+      .use(protectedOauthApplicationMiddleware)
+      .handler(async ({ input }) => {
+        const [updated] = await db
+          .update(oauthClientTable)
+          .set({
+            redirectUris: input.redirectUris,
+          })
+          .where(eq(oauthClientTable.id, input.applicationId))
+          .returning({
+            redirectUris: oauthClientTable.redirectUris,
+          });
 
-      return {
-        id: application.id,
-        name: application.name,
-      };
-    }),
+        if (!updated) {
+          throw new ORPCError("INTERNAL_SERVER_ERROR");
+        }
 
-  updateRedirectUris: protectedOauthApplicationProcedure
-    .input(
-      z.object({
-        redirectUris: z.array(
-          z
-            .string()
-            .url()
-            .refine(
-              (url) => {
-                try {
-                  const parsed = new URL(url);
-                  return (
-                    parsed.protocol === "https:" || parsed.protocol === "http:"
-                  );
-                } catch {
-                  return false;
-                }
-              },
-              { message: "Invalid redirect URI format" },
-            ),
-        ),
+        return updated;
       }),
-    )
-    .mutation(async ({ input }) => {
-      const [updated] = await db
-        .update(oauthClientTable)
-        .set({
-          redirectUris: input.redirectUris,
-        })
-        .where(eq(oauthClientTable.id, input.applicationId))
-        .returning({
-          redirectUris: oauthClientTable.redirectUris,
-        });
-
-      if (!updated) {
-        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
-      }
-
-      return updated;
-    }),
-} satisfies TRPCRouterRecord;
+  });

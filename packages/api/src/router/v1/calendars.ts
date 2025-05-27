@@ -1,21 +1,14 @@
-import type { TRPCRouterRecord } from "@trpc/server";
-import { TRPCError } from "@trpc/server";
-import { z } from "zod";
-
 import { and, eq, not } from "@kokoro/db";
 import { db } from "@kokoro/db/client";
 import { calendarTable } from "@kokoro/db/schema";
 
-import { protectedProcedure } from "../../trpc";
+import { ORPCError } from "@orpc/server";
+import { os, authorizedMiddleware } from "../../orpc";
 
-export const v1CalendarsRouter = {
-  getCalendar: protectedProcedure
-    .input(
-      z.object({
-        calendarId: z.string().uuid(),
-      }),
-    )
-    .query(async ({ ctx, input }) => {
+export const v1CalendarsRouter = os.v1.calendars.router({
+  getCalendar: os.v1.calendars.getCalendar
+    .use(authorizedMiddleware)
+    .handler(async ({ context, input }) => {
       const [calendar] = await db
         .select({
           id: calendarTable.id,
@@ -41,21 +34,25 @@ export const v1CalendarsRouter = {
         .where(
           and(
             eq(calendarTable.id, input.calendarId),
-            eq(calendarTable.userId, ctx.user.id),
+            eq(calendarTable.userId, context.user.id),
             not(calendarTable.hidden),
           ),
         );
 
       if (!calendar) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Calendar not found",
-        });
+        throw new ORPCError("NOT_FOUND");
       }
 
       return {
-        calendar,
+        calendar: {
+          ...calendar,
+          lastSynced: calendar.lastSynced
+            ? calendar.lastSynced.toISOString()
+            : null,
+          createdAt: calendar.createdAt.toISOString(),
+          updatedAt: calendar.updatedAt.toISOString(),
+        },
         prompt: "TODO",
       };
     }),
-} satisfies TRPCRouterRecord;
+});

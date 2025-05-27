@@ -1,5 +1,4 @@
 import { OpenAPIHono, createRoute, z } from "@hono/zod-openapi";
-import { Hono } from "hono";
 import { pinoLogger } from "hono-pino";
 
 import crypto from "node:crypto";
@@ -8,9 +7,10 @@ import { db } from "@kokoro/db/client";
 import { authCodeTable, oauthClientTable, tokenTable } from "@kokoro/db/schema";
 import { createAccessToken } from "@kokoro/jwt";
 import { logger } from "../../logger";
-const v1Router = new OpenAPIHono();
 
-v1Router.use(
+export const v1OauthRouter = new OpenAPIHono();
+
+v1OauthRouter.use(
   "*",
   pinoLogger({
     pino: logger.child({
@@ -74,7 +74,7 @@ const v1TokenRoute = createRoute({
   },
 });
 
-v1Router.openapi(v1TokenRoute, async (c) => {
+v1OauthRouter.openapi(v1TokenRoute, async (c) => {
   let clientId: string | undefined;
   let clientSecret: string | undefined;
   const headerAuthorization = c.req.header("authorization");

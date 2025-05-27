@@ -29,7 +29,6 @@
     "hono-pino": "catalog:"
   },
   "dependencies": {
-    "@hono/trpc-server": "^0.3.2",
     "@hono/zod-openapi": "^0.19.6",
     "@kokoro/api": "workspace:*",
     "@kokoro/auth": "workspace:*",
@@ -43,7 +42,9 @@
     "@ngrok/ngrok": "^1.4.1",
     "@sentry/bun": "^8.50.0",
     "@t3-oss/env-core": "catalog:",
-    "@trpc/server": "catalog:",
+    "@orpc/server": "catalog:",
+    "@orpc/openapi": "catalog:",
+    "@orpc/zod": "catalog:",
     "hono": "catalog:",
     "zod": "catalog:"
   }

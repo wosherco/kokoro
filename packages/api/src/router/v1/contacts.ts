@@ -1,26 +1,13 @@
-import type { TRPCRouterRecord } from "@trpc/server";
-import { z } from "zod";
-
 import { queryContacts } from "@kokoro/brain";
 
-import { protectedProcedure } from "../../trpc";
+import { os, authorizedMiddleware } from "../../orpc";
 
-export const v1ContactsRouter = {
-  queryContacts: protectedProcedure
-    .input(
-      z
-        .object({
-          email: z.string().email(),
-        })
-        .or(
-          z.object({
-            name: z.string(),
-          }),
-        ),
-    )
-    .query(async ({ ctx, input }) => {
+export const v1ContactsRouter = os.v1.contacts.router({
+  queryContacts: os.v1.contacts.queryContacts
+    .use(authorizedMiddleware)
+    .handler(async ({ context, input }) => {
       const contacts = await queryContacts(
-        ctx.user.id,
+        context.user.id,
         "email" in input
           ? {
               email: input.email,
@@ -32,4 +19,4 @@ export const v1ContactsRouter = {
 
       return contacts;
     }),
-} satisfies TRPCRouterRecord;
+});

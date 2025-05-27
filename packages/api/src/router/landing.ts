@@ -1,13 +1,9 @@
-import type { TRPCRouterRecord } from "@trpc/server";
-import { TRPCError } from "@trpc/server";
-
-import { contactSchema } from "@kokoro/validators";
-
+import { ORPCError } from "@orpc/server";
 import { env } from "../../env";
-import { publicProcedure } from "../trpc";
+import { os } from "../orpc";
 
-export const landingRouter = {
-  contact: publicProcedure.input(contactSchema).mutation(async ({ input }) => {
+export const landingRouter = os.landing.router({
+  contact: os.landing.contact.handler(async ({ input }) => {
     const { name, email, message } = input;
 
     if (!env.DISCORD_WEBHOOK_CONTACT_URL) {
@@ -36,14 +32,11 @@ export const landingRouter = {
     });
 
     if (!req.ok) {
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Failed to send message to Discord",
-      });
+      throw new ORPCError("INTERNAL_SERVER_ERROR");
     }
 
     return {
       success: true,
     };
   }),
-} satisfies TRPCRouterRecord;
+});

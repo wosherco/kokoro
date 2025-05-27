@@ -9,7 +9,7 @@ import {
 export const TASKS_CREATE_TASK_ACTION = "TASKS:createTask";
 
 export const tasksCreateTaskSchema = z.object({
-  integrationAccountsTable: integrationAccountIdSchema,
+  integrationAccountId: integrationAccountIdSchema,
   tasklistId: tasklistIdSchema,
   title: z.string().describe("The title of the task."),
   description: z
@@ -31,7 +31,7 @@ export const tasksCreateTaskSchema = z.object({
 export const TASKS_MODIFY_TASK_ACTION = "TASKS:modifyTask";
 
 export const tasksModifyTaskSchema = z.object({
-  integrationAccountsTable: integrationAccountIdSchema,
+  integrationAccountId: integrationAccountIdSchema,
   taskId: taskIdSchema,
   title: z.string().optional().describe("The title of the task."),
   description: z
@@ -53,7 +53,7 @@ export const tasksModifyTaskSchema = z.object({
 export const TASKS_DELETE_TASK_ACTION = "TASKS:deleteTask";
 
 export const tasksDeleteTaskSchema = z.object({
-  integrationAccountsTable: integrationAccountIdSchema,
+  integrationAccountId: integrationAccountIdSchema,
   taskId: taskIdSchema,
 });
 

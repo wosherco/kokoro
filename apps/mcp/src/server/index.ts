@@ -28,7 +28,9 @@ import {
   TASK_STATES,
 } from "@kokoro/validators/db";
 
-import { trpc } from "../trpc";
+import type { orpcContract } from "@kokoro/validators/contracts";
+import type { InferContractRouterOutputs } from "@orpc/contract";
+import { orpc } from "../orpc";
 import { VERSION } from "../version";
 
 // Create server instance
@@ -45,7 +47,7 @@ server.tool(
   "fetch-integrations",
   "Fetches all the integrations and accounts the user has connected with Kokoro, and operations are supported. Also displays all the calendars and tasklists the user has connected with Kokoro.",
   async () => {
-    const integrations = await trpc.v1.integrations.listIntegrations.query();
+    const integrations = await orpc.v1.integrations.listIntegrations();
 
     if (integrations.length === 0) {
       return {
@@ -116,7 +118,7 @@ server.tool(
     calendarId: z.string().uuid(),
   },
   async ({ calendarId }) => {
-    const { calendar, prompt } = await trpc.v1.calendars.getCalendar.query({
+    const { calendar, prompt } = await orpc.v1.calendars.getCalendar({
       calendarId,
     });
 
@@ -131,7 +133,7 @@ server.tool(
       300,
     )}" color="${calendar.colorOverride ?? calendar.color}" source="${
       calendar.source
-    }" lastSyncedAt="${calendar.lastSynced?.toISOString()}">
+    }" lastSyncedAt="${calendar.lastSynced}">
 <platformData>
     ${JSON.stringify(calendar.platformData, null, 2)}
 </platformData>
@@ -153,7 +155,7 @@ server.tool(
     tasklistId: z.string().uuid(),
   },
   async ({ tasklistId }) => {
-    const { tasklist, prompt } = await trpc.v1.tasklists.getTasklist.query({
+    const { tasklist, prompt } = await orpc.v1.tasklists.getTasklist({
       tasklistId,
     });
 
@@ -162,9 +164,7 @@ server.tool(
       tasklist.integrationAccountId
     }" name="${truncate(escapeDoubleQuotes(tasklist.name), 300)}" color="${
       tasklist.colorOverride ?? tasklist.color
-    }" source="${
-      tasklist.source
-    }" lastSyncedAt="${tasklist.lastSynced?.toISOString()}">
+    }" source="${tasklist.source}" lastSyncedAt="${tasklist.lastSynced}">
 <config>
     ${JSON.stringify(tasklist.config, null, 2)}
 </config>
@@ -179,20 +179,12 @@ ${prompt}
   },
 );
 
-type QueriedMemory = Awaited<
-  ReturnType<typeof trpc.v1.memories.queryMemories.query>
->[number];
+type QueriedMemory = InferContractRouterOutputs<
+  typeof orpcContract
+>["v1"]["memories"]["queryMemories"][number];
 
 const stringifyEvent = (event: NonNullable<QueriedMemory["event"]>) => `
-<event calendarId="${event.calendarId}" integrationAccountId="${
-  event.integrationAccountId
-}" source="${
-  event.source
-}" startDate="${event.startDate.toISOString()}" endDate="${event.endDate.toISOString()}" isFullDay="${
-  event.isFullDay
-}" rrule="${event.rrule}" type="${event.eventType}" attendance="${
-  event.attendenceStatus
-}" />
+<event calendarId="${event.calendarId}" integrationAccountId="${event.integrationAccountId}" source="${event.source}" startDate="${event.startDate}" endDate="${event.endDate}" isFullDay="${event.isFullDay}" rrule="${event.rrule}" type="${event.eventType}" attendance="${event.attendenceStatus}" />
 `;
 
 const stringifyTask = (
@@ -201,7 +193,7 @@ const stringifyTask = (
 ) => `
 <task tasklistId="${task.tasklistId}" integrationAccountId="${
   task.integrationAccountId
-}" source="${task.source}" dueDate="${task.dueDate?.toISOString()}" priority="${
+}" source="${task.source}" dueDate="${task.dueDate}" priority="${
   taskAttributes.find((attr) => attr.priority !== null)?.priority
 }" state="${taskAttributes.find((attr) => attr.state !== null)?.state}">
 ${taskAttributes
@@ -306,7 +298,7 @@ server.tool(
       .describe("The order of the memories based on the sorting"),
   },
   async (args) => {
-    const memories = await trpc.v1.memories.queryMemories.query({
+    const memories = await orpc.v1.memories.queryMemories({
       ...args,
     });
 
@@ -329,7 +321,7 @@ server.tool(
     memoryId: z.string().uuid(),
   },
   async ({ memoryId }) => {
-    const [memory] = await trpc.v1.memories.getMemories.query({
+    const [memory] = await orpc.v1.memories.getMemories({
       memoryIds: [memoryId],
     });
 
@@ -358,7 +350,7 @@ server.tool(
       throw new Error("Either email or name must be provided");
     }
 
-    const contacts = await trpc.v1.contacts.queryContacts.query(
+    const contacts = await orpc.v1.contacts.queryContacts(
       // biome-ignore lint/style/noNonNullAssertion: Because of the type, it's email or name.
       email ? { email } : { name: name! },
     );
@@ -440,7 +432,7 @@ for (const actionName of KokoroActions) {
       // Parsing the payload to verify it's valid before sending to the server
       const payload = KokoroActionPayloadSchemas[actionName].parse(cb.payload);
 
-      const result = await trpc.v1.actions.runAction.mutate({
+      const result = await orpc.v1.actions.runAction({
         name: actionName,
         payload,
       });

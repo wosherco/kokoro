@@ -60,7 +60,7 @@ export async function createTaskAction(
 ): Promise<string> {
   const { integrationAccount, taskSource } = await getValidatedTaskContext(
     context.user.id,
-    payload.integrationAccountsTable,
+    payload.integrationAccountId,
   );
 
   const [tasklist] = await db
@@ -99,7 +99,7 @@ export async function updateTaskAction(
 ): Promise<string> {
   const { integrationAccount, taskSource } = await getValidatedTaskContext(
     context.user.id,
-    payload.integrationAccountsTable,
+    payload.integrationAccountId,
   );
 
   const [memory] = await getMemories(context.user.id, [payload.taskId]);
@@ -124,7 +124,7 @@ export async function deleteTaskAction(
 ): Promise<string> {
   const { integrationAccount, taskSource } = await getValidatedTaskContext(
     context.user.id,
-    payload.integrationAccountsTable,
+    payload.integrationAccountId,
   );
 
   const [memory] = await getMemories(context.user.id, [payload.taskId]);
