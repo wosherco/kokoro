@@ -1,5 +1,5 @@
 import { oc } from "@orpc/contract";
-import { z } from "zod/v4";
+import { z } from "zod";
 import {
   CALENDAR_SOURCES,
   GOOGLE_CALENDAR_EVENT_ATTENDANT_STATUS,
@@ -11,20 +11,20 @@ import {
 } from "../../db";
 
 const queriedMemorySchema = z.object({
-  id: z.uuid(),
+  id: z.string().uuid(),
   content: z.string(),
   description: z.string().nullable(),
   createdAt: z.date(),
   lastUpdate: z.date(),
   event: z
     .object({
-      id: z.uuid(),
+      id: z.string().uuid(),
       icalUid: z.string(),
-      integrationAccountId: z.uuid(),
+      integrationAccountId: z.string().uuid(),
       platformId: z.string(),
       platformAccountId: z.string(),
       platformCalendarId: z.string(),
-      calendarId: z.uuid(),
+      calendarId: z.string().uuid(),
       source: z.enum(CALENDAR_SOURCES),
       sequence: z.number(),
       startDate: z.date(),
@@ -52,11 +52,11 @@ const queriedMemorySchema = z.object({
     .nullable(),
   calendar: z
     .object({
-      id: z.uuid(),
-      integrationAccountId: z.uuid(),
+      id: z.string().uuid(),
+      integrationAccountId: z.string().uuid(),
       platformCalendarId: z.string(),
       platformAccountId: z.string(),
-      userId: z.uuid(),
+      userId: z.string().uuid(),
       summary: z.string().nullable(),
       summaryOverride: z.string().nullable(),
       description: z.string().nullable(),
@@ -73,9 +73,9 @@ const queriedMemorySchema = z.object({
     .nullable(),
   task: z
     .object({
-      id: z.uuid(),
-      tasklistId: z.uuid(),
-      integrationAccountId: z.uuid(),
+      id: z.string().uuid(),
+      tasklistId: z.string().uuid(),
+      integrationAccountId: z.string().uuid(),
       platformAccountId: z.string(),
       platformTaskListId: z.string(),
       platformTaskId: z.string(),
@@ -91,8 +91,8 @@ const queriedMemorySchema = z.object({
     .nullable(),
   tasklist: z
     .object({
-      id: z.uuid(),
-      integrationAccountId: z.uuid(),
+      id: z.string().uuid(),
+      integrationAccountId: z.string().uuid(),
       platformAccountId: z.string(),
       platformTaskListId: z.string(),
       source: z.enum(TASK_SOURCES),
@@ -110,7 +110,7 @@ const queriedMemorySchema = z.object({
     .nullable(),
   taskAttributes: z.array(
     z.object({
-      id: z.uuid(),
+      id: z.string().uuid(),
       platformAttributeId: z.string(),
       state: z.enum(TASK_STATES).nullable(),
       priority: z.number().nullable(),
@@ -118,7 +118,7 @@ const queriedMemorySchema = z.object({
 
       createdAt: z.date(),
       updatedAt: z.date(),
-    }),
+    })
   ),
   isVirtual: z.boolean(),
 });
@@ -164,7 +164,7 @@ export const v1MemoriesRouter = oc.prefix("/memory").router({
         // Sort by
         sortBy: z.enum(MEMORY_SORT_BY).optional(),
         orderBy: z.enum(ORDER_BY).default("desc").optional(),
-      }),
+      })
     )
     .output(z.array(queriedMemorySchema)),
 
@@ -176,8 +176,8 @@ export const v1MemoriesRouter = oc.prefix("/memory").router({
     })
     .input(
       z.object({
-        memoryIds: z.array(z.uuid()).max(25),
-      }),
+        memoryIds: z.array(z.string().uuid()).max(25),
+      })
     )
     .output(z.array(queriedMemorySchema)),
 });

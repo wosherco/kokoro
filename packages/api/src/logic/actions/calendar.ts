@@ -24,7 +24,7 @@ import type { ActionContext } from "./context";
 
 async function getValidatedCalendarContext(
   userId: string,
-  integrationAccountId: string,
+  integrationAccountId: string
 ) {
   const [integrationAccount] = await db
     .select({
@@ -35,8 +35,8 @@ async function getValidatedCalendarContext(
     .where(
       and(
         eq(integrationsAccountsTable.id, integrationAccountId),
-        eq(integrationsAccountsTable.userId, userId),
-      ),
+        eq(integrationsAccountsTable.userId, userId)
+      )
     );
 
   if (!integrationAccount) {
@@ -64,14 +64,14 @@ async function getValidatedCalendarContext(
 
 export async function createCalendarEventAction(
   context: ActionContext,
-  payload: ActionPayload<typeof CALENDAR_CREATE_EVENT_ACTION>,
+  payload: ActionPayload<typeof CALENDAR_CREATE_EVENT_ACTION>
 ) {
   const startDate = parseDate(payload.startDate);
   const endDate = parseDate(payload.endDate);
 
   if (!startDate || !endDate) {
     throw new Error(
-      "You need to provide a start and end date to create an event.",
+      "You need to provide a start and end date to create an event."
     );
   }
 
@@ -82,7 +82,7 @@ export async function createCalendarEventAction(
   const { integrationAccount, calendarSource } =
     await getValidatedCalendarContext(
       context.user.id,
-      payload.integrationAccountsTable,
+      payload.integrationAccountId
     );
 
   const event = await calendarSource.createEvent(
@@ -96,7 +96,7 @@ export async function createCalendarEventAction(
       isFullDay: payload.isFullDay,
       summary: payload.summary,
       recurrence: payload.recurrence ?? undefined,
-    },
+    }
   );
 
   return `Calendar event created successfully. The memory has the ID: ${event.memoryId}`;
@@ -104,7 +104,7 @@ export async function createCalendarEventAction(
 
 export async function modifyCalendarEventAction(
   context: ActionContext,
-  payload: ActionPayload<typeof CALENDAR_MODIFY_EVENT_ACTION>,
+  payload: ActionPayload<typeof CALENDAR_MODIFY_EVENT_ACTION>
 ) {
   const [memory] = await getMemories(context.user.id, [payload.event.memoryId]);
 
@@ -136,7 +136,7 @@ export async function modifyCalendarEventAction(
       !isDateMatchingRrule(
         memory.event.rrule,
         memory.event.startDate,
-        virtualStartDate,
+        virtualStartDate
       )
     ) {
       throw new Error("Start date does not match recurrence rule");
@@ -148,7 +148,7 @@ export async function modifyCalendarEventAction(
         const relativeOffset =
           virtualStartDate.getTime() - memory.event.startDate.getTime();
         payload.startDate = new Date(
-          startDate.getTime() - relativeOffset,
+          startDate.getTime() - relativeOffset
         ).toISOString();
       }
 
@@ -156,7 +156,7 @@ export async function modifyCalendarEventAction(
         const relativeOffset =
           virtualStartDate.getTime() - memory.event.startDate.getTime();
         payload.endDate = new Date(
-          endDate.getTime() - relativeOffset,
+          endDate.getTime() - relativeOffset
         ).toISOString();
       }
     }
@@ -171,7 +171,7 @@ export async function modifyCalendarEventAction(
   const { integrationAccount, calendarSource } =
     await getValidatedCalendarContext(
       context.user.id,
-      payload.integrationAccountsTable,
+      payload.integrationAccountId
     );
 
   await calendarSource.updateEvent(
@@ -191,7 +191,7 @@ export async function modifyCalendarEventAction(
           type: recurrenceType,
           virtualStartDate: parseDate(payload.event.virtualStartDate ?? null),
         }
-      : undefined,
+      : undefined
   );
 
   return "Calendar event updated successfully.";
@@ -199,7 +199,7 @@ export async function modifyCalendarEventAction(
 
 export async function deleteCalendarEventAction(
   context: ActionContext,
-  payload: ActionPayload<typeof CALENDAR_DELETE_EVENT_ACTION>,
+  payload: ActionPayload<typeof CALENDAR_DELETE_EVENT_ACTION>
 ) {
   const [memory] = await getMemories(context.user.id, [payload.event.memoryId]);
 
@@ -214,7 +214,7 @@ export async function deleteCalendarEventAction(
   const { integrationAccount, calendarSource } =
     await getValidatedCalendarContext(
       context.user.id,
-      payload.integrationAccountsTable,
+      payload.integrationAccountId
     );
 
   await calendarSource.deleteEvent(
@@ -226,7 +226,7 @@ export async function deleteCalendarEventAction(
           type: payload.recurrenceAction,
           virtualStartDate: payloadVirtualStartDate,
         }
-      : undefined,
+      : undefined
   );
 
   return "Event deleted successfully.";
@@ -234,7 +234,7 @@ export async function deleteCalendarEventAction(
 
 export async function changeEventAttendanceAction(
   context: ActionContext,
-  payload: ActionPayload<typeof CALENDAR_CHANGE_EVENT_ATTENDANCE_ACTION>,
+  payload: ActionPayload<typeof CALENDAR_CHANGE_EVENT_ATTENDANCE_ACTION>
 ) {
   const [memory] = await getMemories(context.user.id, [payload.event.memoryId]);
 
@@ -245,7 +245,7 @@ export async function changeEventAttendanceAction(
   const { integrationAccount, calendarSource } =
     await getValidatedCalendarContext(
       context.user.id,
-      payload.integrationAccountsTable,
+      payload.integrationAccountId
     );
 
   await calendarSource.updateEvent(
@@ -268,7 +268,7 @@ export async function changeEventAttendanceAction(
           type: "INSTANCE",
           virtualStartDate: parseDate(payload.event.virtualStartDate ?? null),
         }
-      : undefined,
+      : undefined
   );
 
   return "Events attendance changed successfully.";

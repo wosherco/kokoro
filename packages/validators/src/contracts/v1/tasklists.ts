@@ -1,5 +1,5 @@
 import { oc } from "@orpc/contract";
-import { z } from "zod/v4";
+import { z } from "zod";
 
 export const v1TasklistsRouter = oc.prefix("/tasklist").router({
   getTasklist: oc
@@ -10,15 +10,15 @@ export const v1TasklistsRouter = oc.prefix("/tasklist").router({
     })
     .input(
       z.object({
-        tasklistId: z.uuid(),
-      }),
+        tasklistId: z.string().uuid(),
+      })
     )
     .output(
       z.object({
         prompt: z.string(),
         tasklist: z.object({
-          id: z.uuid(),
-          integrationAccountId: z.uuid(),
+          id: z.string().uuid(),
+          integrationAccountId: z.string().uuid(),
           platformAccountId: z.string(),
           platformTaskListId: z.string(),
           source: z.string(),
@@ -31,6 +31,6 @@ export const v1TasklistsRouter = oc.prefix("/tasklist").router({
 
           lastSynced: z.string().nullable(),
         }),
-      }),
+      })
     ),
 });

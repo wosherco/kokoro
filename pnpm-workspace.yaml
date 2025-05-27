@@ -14,7 +14,7 @@ catalog:
   typescript: ^5.5.4
   zod: ^3.25.7
   dotenv-cli: ^7.4.2
-  "@t3-oss/env-core": ^0.11.1
+  "@t3-oss/env-core": ^0.13.6
   hono: ^4.6.9
   "svelte": ^5.19.0
   "@sveltejs/kit": ^2.16.0

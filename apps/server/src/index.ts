@@ -16,8 +16,7 @@ import { linearWebhook } from "./routes/webhooks/linear.ts";
 import { OpenAPIHandler } from "@orpc/openapi/fetch";
 import { OpenAPIReferencePlugin } from "@orpc/openapi/plugins";
 import { RPCHandler } from "@orpc/server/fetch";
-import { ZodToJsonSchemaConverter } from "@orpc/zod";
-import { experimental_ZodSmartCoercionPlugin as ZodSmartCoercionPlugin } from "@orpc/zod/zod4"; // <-- zod v4
+import { ZodSmartCoercionPlugin, ZodToJsonSchemaConverter } from "@orpc/zod";
 import { v1OauthRouter } from "./routes/v1/index.ts";
 
 const app = new Hono();
@@ -26,7 +25,7 @@ app.use(
   "*",
   pinoLogger({
     pino: logger,
-  }),
+  })
 );
 
 app.use(
@@ -40,7 +39,7 @@ app.use(
       env.PUBLIC_DEVELOPERS_URL,
     ],
     credentials: true,
-  }),
+  })
 );
 
 app.get("/health", (c) => c.json({ status: "ok" }));
@@ -72,6 +71,10 @@ const openApiHandler = new OpenAPIHandler(appRouter, {
           title: "Kokoro Developer API",
           version: "1.0.0",
         },
+        exclude(procedure, path) {
+          // If no path, means we haven't specified it, which means it's not part of the rest api
+          return !procedure["~orpc"].route.path;
+        },
       },
       specPath: "/openapi.json",
       docsPath: "/docs",
@@ -80,15 +83,20 @@ const openApiHandler = new OpenAPIHandler(appRouter, {
 });
 
 app.use("/v1/*", async (c, next) => {
-  const context = await createContext(c.req.raw.headers);
+  try {
+    const context = await createContext(c.req.raw.headers);
 
-  const { matched, response } = await openApiHandler.handle(c.req.raw, {
-    prefix: "/v1",
-    context,
-  });
+    const { matched, response } = await openApiHandler.handle(c.req.raw, {
+      prefix: "/v1",
+      context,
+    });
 
-  if (matched) {
-    return c.newResponse(response.body, response);
+    if (matched) {
+      return c.newResponse(response.body, response);
+    }
+  } catch (error) {
+    logger.error(error);
+    return c.newResponse("Internal Server Error", 500);
   }
 
   await next();

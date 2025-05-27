@@ -7,7 +7,7 @@ import { v1IntegrationsRouter } from "./integrations";
 import { v1MemoriesRouter } from "./memories";
 import { v1TasklistsRouter } from "./tasklists";
 
-export const v1Router = oc.prefix("/v1").router({
+export const v1Router = oc.router({
   integrations: v1IntegrationsRouter,
   actions: v1ActionsRouter,
   calendars: v1CalendarsRouter,

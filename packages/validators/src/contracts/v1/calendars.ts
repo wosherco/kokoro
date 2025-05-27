@@ -1,5 +1,5 @@
 import { oc } from "@orpc/contract";
-import { z } from "zod/v4";
+import { z } from "zod";
 
 export const v1CalendarsRouter = oc.prefix("/calendar").router({
   getCalendar: oc
@@ -10,15 +10,15 @@ export const v1CalendarsRouter = oc.prefix("/calendar").router({
     })
     .input(
       z.object({
-        calendarId: z.uuid(),
-      }),
+        calendarId: z.string().uuid(),
+      })
     )
     .output(
       z.object({
         prompt: z.string(),
         calendar: z.object({
-          id: z.uuid(),
-          integrationAccountId: z.uuid(),
+          id: z.string().uuid(),
+          integrationAccountId: z.string().uuid(),
           platformCalendarId: z.string(),
           platformAccountId: z.string(),
 
@@ -45,6 +45,6 @@ export const v1CalendarsRouter = oc.prefix("/calendar").router({
             offset: true,
           }),
         }),
-      }),
+      })
     ),
 });

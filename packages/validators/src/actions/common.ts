@@ -16,7 +16,7 @@ export const virtualEventSchema = z.object({
     .string()
     .nullable()
     .describe(
-      "<nullable> IF VIRTUAL ONLY, provide the start date of the virtual event.",
+      "<nullable> IF VIRTUAL ONLY, provide the start date of the virtual event."
     ),
 });
 
@@ -27,4 +27,4 @@ export const tasklistIdSchema = z
   .uuid()
   .describe("The id of the tasklist");
 
-export const taskIdSchema = z.string().uuid().describe("The id of the task");
+export const taskIdSchema = z.string().describe("The id of the task");

@@ -100,8 +100,8 @@ export const load: PageServerLoad = async ({ url, cookies, locals }) => {
         .where(
           and(
             eq(integrationsAccountsTable.platformAccountId, userResponse.id),
-            eq(integrationsAccountsTable.integrationType, LINEAR_INTEGRATION),
-          ),
+            eq(integrationsAccountsTable.integrationType, LINEAR_INTEGRATION)
+          )
         );
 
       if (existingUser) {

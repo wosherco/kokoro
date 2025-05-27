@@ -1,5 +1,5 @@
 import { oc } from "@orpc/contract";
-import { z } from "zod/v4";
+import { z } from "zod";
 
 export const landingRouter = oc.router({
   contact: oc.input(
@@ -7,6 +7,6 @@ export const landingRouter = oc.router({
       name: z.string(),
       email: z.string(),
       message: z.string(),
-    }),
+    })
   ),
 });

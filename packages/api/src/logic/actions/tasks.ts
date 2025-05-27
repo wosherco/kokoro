@@ -17,7 +17,7 @@ import type { ActionContext } from "./context";
 
 async function getValidatedTaskContext(
   userId: string,
-  integrationAccountId: string,
+  integrationAccountId: string
 ) {
   const [integrationAccount] = await db
     .select({
@@ -28,8 +28,8 @@ async function getValidatedTaskContext(
     .where(
       and(
         eq(integrationsAccountsTable.id, integrationAccountId),
-        eq(integrationsAccountsTable.userId, userId),
-      ),
+        eq(integrationsAccountsTable.userId, userId)
+      )
     );
 
   if (!integrationAccount) {
@@ -56,11 +56,11 @@ async function getValidatedTaskContext(
 
 export async function createTaskAction(
   context: ActionContext,
-  payload: ActionPayload<typeof TASKS_CREATE_TASK_ACTION>,
+  payload: ActionPayload<typeof TASKS_CREATE_TASK_ACTION>
 ): Promise<string> {
   const { integrationAccount, taskSource } = await getValidatedTaskContext(
     context.user.id,
-    payload.integrationAccountsTable,
+    payload.integrationAccountId
   );
 
   const [tasklist] = await db
@@ -71,8 +71,8 @@ export async function createTaskAction(
     .where(
       and(
         eq(tasklistsTable.id, payload.tasklistId),
-        eq(tasklistsTable.integrationAccountId, integrationAccount.id),
-      ),
+        eq(tasklistsTable.integrationAccountId, integrationAccount.id)
+      )
     );
 
   if (!tasklist) {
@@ -87,7 +87,7 @@ export async function createTaskAction(
       description: payload.description ?? undefined,
       dueDate: payload.dueDate ? parseDate(payload.dueDate) : undefined,
       attributes: payload.attributes ?? undefined,
-    },
+    }
   );
 
   return `Created task with memory id ${createdTask.memoryId} successfully`;
@@ -95,11 +95,11 @@ export async function createTaskAction(
 
 export async function updateTaskAction(
   context: ActionContext,
-  payload: ActionPayload<typeof TASKS_MODIFY_TASK_ACTION>,
+  payload: ActionPayload<typeof TASKS_MODIFY_TASK_ACTION>
 ): Promise<string> {
   const { integrationAccount, taskSource } = await getValidatedTaskContext(
     context.user.id,
-    payload.integrationAccountsTable,
+    payload.integrationAccountId
   );
 
   const [memory] = await getMemories(context.user.id, [payload.taskId]);
@@ -120,11 +120,11 @@ export async function updateTaskAction(
 
 export async function deleteTaskAction(
   context: ActionContext,
-  payload: ActionPayload<typeof TASKS_DELETE_TASK_ACTION>,
+  payload: ActionPayload<typeof TASKS_DELETE_TASK_ACTION>
 ): Promise<string> {
   const { integrationAccount, taskSource } = await getValidatedTaskContext(
     context.user.id,
-    payload.integrationAccountsTable,
+    payload.integrationAccountId
   );
 
   const [memory] = await getMemories(context.user.id, [payload.taskId]);

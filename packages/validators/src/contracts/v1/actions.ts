@@ -1,5 +1,5 @@
 import { oc } from "@orpc/contract";
-import { z } from "zod/v4";
+import { z } from "zod";
 import { baseActionSchema } from "../../actions";
 
 export const v1ActionsRouter = oc.prefix("/actions").router({
@@ -13,6 +13,6 @@ export const v1ActionsRouter = oc.prefix("/actions").router({
     .output(
       z.object({
         result: z.string(),
-      }),
+      })
     ),
 });

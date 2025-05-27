@@ -1,5 +1,5 @@
 import { oc } from "@orpc/contract";
-import { z } from "zod/v4";
+import { z } from "zod";
 
 export const authRouter = oc.router({
   getUser: oc.output(
@@ -8,7 +8,7 @@ export const authRouter = oc.router({
       email: z.string(),
       name: z.string(),
       profilePicture: z.string().nullable(),
-    }),
+    })
   ),
   logout: oc.output(z.void()),
 });
