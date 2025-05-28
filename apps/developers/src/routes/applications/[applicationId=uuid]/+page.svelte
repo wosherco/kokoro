@@ -1,31 +1,31 @@
 <script lang="ts">
-  import { goto } from "$app/navigation";
-  import OAuthUrlBuilder from "@/components/OAuthUrlBuilder.svelte";
-  import RedirectUrisManager from "@/components/RedirectUrisManager.svelte";
-  import { Button } from "@/components/ui/button";
-  import { Input } from "@/components/ui/input";
-  import { Label } from "@/components/ui/label";
-  import {
-    ArrowLeftIcon,
-    BookOpenIcon,
-    CopyIcon,
-    ExternalLinkIcon,
-    EyeIcon,
-    EyeOffIcon,
-  } from "lucide-svelte";
-  import SvelteSeo from "svelte-seo";
-  import { toast } from "svelte-sonner";
-  import type { PageData } from "./$types";
-  import CardLink from "@/components/CardLink.svelte";
+import { goto } from "$app/navigation";
+import CardLink from "@/components/CardLink.svelte";
+import OAuthUrlBuilder from "@/components/OAuthUrlBuilder.svelte";
+import RedirectUrisManager from "@/components/RedirectUrisManager.svelte";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  ArrowLeftIcon,
+  BookOpenIcon,
+  CopyIcon,
+  ExternalLinkIcon,
+  EyeIcon,
+  EyeOffIcon,
+} from "lucide-svelte";
+import SvelteSeo from "svelte-seo";
+import { toast } from "svelte-sonner";
+import type { PageData } from "./$types";
 
-  const { data }: { data: PageData } = $props();
+const { data }: { data: PageData } = $props();
 
-  let showClientSecret = $state(false);
+let showClientSecret = $state(false);
 
-  function copy(text: string) {
-    navigator.clipboard.writeText(text);
-    toast.success("Copied to clipboard");
-  }
+function copy(text: string) {
+  navigator.clipboard.writeText(text);
+  toast.success("Copied to clipboard");
+}
 </script>
 
 <SvelteSeo
