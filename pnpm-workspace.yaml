@@ -17,18 +17,17 @@ catalog:
   "@t3-oss/env-core": ^0.13.6
   hono: ^4.6.9
   "svelte": ^5.19.0
-  "@sveltejs/kit": ^2.16.0
+  "@sveltejs/kit": ^2.21.1
   "@sveltejs/vite-plugin-svelte": ^5.0.3
   "@sveltejs/adapter-auto": ^4.0.0
   "@sveltejs/adapter-node": ^5.2.9
   "@sveltejs/enhanced-img": ^0.4.1
   "svelte-check": ^4.0.0
-  "mdsvex": ^0.12.3
+  "mdsvex": ^0.12.6
   "svelte-seo": ^1.6.1
   "bits-ui": "1.0.0-next.84"
   "@date-fns/tz": ^1.2.0
   "lucide-svelte": ^0.473.0
-  # Waiting for this to be merged: https://github.com/Menci/vite-plugin-top-level-await/pull/63
   vite: ^6.3.5
   vitest: ^3.1.4
   "rrule-rust": 2.1.0-alpha.6
