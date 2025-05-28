@@ -15,7 +15,7 @@ export function isOauthToken(token: string): boolean {
 }
 
 export async function validateSessionRequest(
-  headers: Headers
+  headers: Headers,
 ): Promise<SessionValidationResult> {
   const token = getTokenFromRequest(headers);
 
@@ -56,7 +56,7 @@ export function getTokenFromRequest(headers: Headers): string | null {
 }
 
 export async function validateOauthToken(
-  token: string
+  token: string,
 ): Promise<SessionValidationResult> {
   const payload = await verifyAccessToken(token);
 
@@ -73,7 +73,7 @@ export async function validateOauthToken(
 }
 
 export async function validateSessionToken(
-  token: string
+  token: string,
 ): Promise<SessionValidationResult> {
   const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
 

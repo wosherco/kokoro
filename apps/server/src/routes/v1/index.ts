@@ -16,7 +16,7 @@ v1OauthRouter.use(
     pino: logger.child({
       subrouter: "v1-rest-api",
     }),
-  })
+  }),
 );
 
 const v1TokenRoute = createRoute({
@@ -54,7 +54,7 @@ const v1TokenRoute = createRoute({
               {
                 message:
                   "Missing required parameters for the selected grant_type",
-              }
+              },
             ),
         },
       },
@@ -133,7 +133,7 @@ v1OauthRouter.openapi(v1TokenRoute, async (c) => {
           error: "invalid_request",
           error_description: "code_verifier is required for public clients",
         },
-        400
+        400,
       );
     }
 
@@ -159,7 +159,7 @@ v1OauthRouter.openapi(v1TokenRoute, async (c) => {
             error: "invalid_grant",
             error_description: "code_verifier required for PKCE",
           },
-          403
+          403,
         );
       }
 
@@ -169,7 +169,7 @@ v1OauthRouter.openapi(v1TokenRoute, async (c) => {
             codeChallenge: authCode.codeChallenge,
             codeChallengeMethod: authCode.codeChallengeMethod,
           },
-          code_verifier
+          code_verifier,
         )
       ) {
         return c.json({ error: "invalid_grant" }, 403);
@@ -180,7 +180,7 @@ v1OauthRouter.openapi(v1TokenRoute, async (c) => {
     const atExpiresIn = 3600;
     const accessToken = await createAccessToken(
       { sub: authCode.userId, aud: clientId },
-      { expiresIn: `${atExpiresIn}s` }
+      { expiresIn: `${atExpiresIn}s` },
     );
     const refreshToken = crypto.randomBytes(32).toString("hex");
 
@@ -205,7 +205,7 @@ v1OauthRouter.openapi(v1TokenRoute, async (c) => {
         refresh_token: refreshToken,
         scope: scope ?? authCode.scope,
       },
-      200
+      200,
     );
   }
 
@@ -231,7 +231,7 @@ v1OauthRouter.openapi(v1TokenRoute, async (c) => {
     const atExpiresIn = 3600;
     const newAccessToken = await createAccessToken(
       { sub: existing.userId, aud: clientId },
-      { expiresIn: `${atExpiresIn}s` }
+      { expiresIn: `${atExpiresIn}s` },
     );
     const newRefreshToken = crypto.randomBytes(32).toString("hex");
 
@@ -260,7 +260,7 @@ v1OauthRouter.openapi(v1TokenRoute, async (c) => {
         refresh_token: newRefreshToken,
         scope: scope ?? existing.scope,
       },
-      200
+      200,
     );
   }
 
@@ -271,7 +271,7 @@ v1OauthRouter.openapi(v1TokenRoute, async (c) => {
 // --- PKCE helper ---
 function verifyPKCE(
   authCode: { codeChallenge: string; codeChallengeMethod: string | null },
-  verifier: string
+  verifier: string,
 ) {
   if (authCode.codeChallengeMethod === "S256") {
     const hash = crypto.createHash("sha256").update(verifier).digest();

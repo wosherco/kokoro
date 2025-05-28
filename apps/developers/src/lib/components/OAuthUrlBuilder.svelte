@@ -1,57 +1,57 @@
 <script lang="ts">
-  import { env } from "$env/dynamic/public";
-  import { Button } from "@/components/ui/button";
-  import { Input } from "@/components/ui/input";
-  import { Label } from "@/components/ui/label";
-  import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-  } from "@/components/ui/select";
-  import { OAUTH_SCOPES } from "@kokoro/validators/db";
-  import { CopyIcon } from "lucide-svelte";
-  import { toast } from "svelte-sonner";
-  import { Checkbox } from "./ui/checkbox";
+import { env } from "$env/dynamic/public";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+} from "@/components/ui/select";
+import { OAUTH_SCOPES } from "@kokoro/validators/db";
+import { CopyIcon } from "lucide-svelte";
+import { toast } from "svelte-sonner";
+import { Checkbox } from "./ui/checkbox";
 
-  let { clientId } = $props<{ clientId: string }>();
+let { clientId } = $props<{ clientId: string }>();
 
-  let usePKCE = $state(false);
-  let redirectUri = $state("");
-  let scope = $state<string[]>([]);
-  let stateParam = $state("");
-  let codeChallenge = $state("");
-  let codeChallengeMethod = $state<"S256" | "plain">("S256");
+let usePKCE = $state(false);
+let redirectUri = $state("");
+let scope = $state<string[]>([]);
+let stateParam = $state("");
+let codeChallenge = $state("");
+let codeChallengeMethod = $state<"S256" | "plain">("S256");
 
-  function copy(text: string) {
-    navigator.clipboard.writeText(text);
-    toast.success("Copied to clipboard");
-  }
+function copy(text: string) {
+  navigator.clipboard.writeText(text);
+  toast.success("Copied to clipboard");
+}
 
-  const oauthUrl = $derived.by(() => {
-    const baseUrl = `${env.PUBLIC_AUTHENTICATOR_URL}/authorize`;
-    const params = new URLSearchParams({
-      response_type: "code",
-      client_id: clientId,
-      redirect_uri: redirectUri,
-      scope: scope.join(" "),
-      ...(stateParam && { state: stateParam }),
-      ...(usePKCE && {
-        code_challenge: codeChallenge,
-        code_challenge_method: codeChallengeMethod,
-      }),
-    });
-
-    return `${baseUrl}?${params.toString()}`;
+const oauthUrl = $derived.by(() => {
+  const baseUrl = `${env.PUBLIC_AUTHENTICATOR_URL}/authorize`;
+  const params = new URLSearchParams({
+    response_type: "code",
+    client_id: clientId,
+    redirect_uri: redirectUri,
+    scope: scope.join(" "),
+    ...(stateParam && { state: stateParam }),
+    ...(usePKCE && {
+      code_challenge: codeChallenge,
+      code_challenge_method: codeChallengeMethod,
+    }),
   });
 
-  function toggleScope(selectedScope: string) {
-    if (scope.includes(selectedScope)) {
-      scope = scope.filter((s) => s !== selectedScope);
-    } else {
-      scope = [...scope, selectedScope];
-    }
+  return `${baseUrl}?${params.toString()}`;
+});
+
+function toggleScope(selectedScope: string) {
+  if (scope.includes(selectedScope)) {
+    scope = scope.filter((s) => s !== selectedScope);
+  } else {
+    scope = [...scope, selectedScope];
   }
+}
 </script>
 
 <div class="grid gap-6 p-6 border rounded-lg bg-card">

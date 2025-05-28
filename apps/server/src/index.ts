@@ -13,13 +13,13 @@ import { stripeWebhook } from "./routes/stripeWebhook";
 import { watchGoogleCalendar } from "./routes/watch/googleCalendar";
 import { linearWebhook } from "./routes/webhooks/linear.ts";
 
+import { isDev } from "@kokoro/consts";
+import { OAUTH_SCOPES, OAUTH_SCOPES_MAP } from "@kokoro/validators/db";
 import { OpenAPIHandler } from "@orpc/openapi/fetch";
 import { OpenAPIReferencePlugin } from "@orpc/openapi/plugins";
 import { RPCHandler } from "@orpc/server/fetch";
 import { ZodSmartCoercionPlugin, ZodToJsonSchemaConverter } from "@orpc/zod";
 import { v1OauthRouter } from "./routes/v1/index.ts";
-import { OAUTH_SCOPES, OAUTH_SCOPES_MAP } from "@kokoro/validators/db";
-import { isDev } from "@kokoro/consts";
 
 const app = new Hono();
 
@@ -27,7 +27,7 @@ app.use(
   "*",
   pinoLogger({
     pino: logger,
-  })
+  }),
 );
 
 app.use(
@@ -41,7 +41,7 @@ app.use(
       env.PUBLIC_DEVELOPERS_URL,
     ],
     credentials: true,
-  })
+  }),
 );
 
 app.get("/health", (c) => c.json({ status: "ok" }));

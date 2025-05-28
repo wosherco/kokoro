@@ -44,7 +44,7 @@ interface TokenParameters {
 
 async function createToken<T extends jose.JWTPayload>(
   payload: T,
-  parameters: Partial<TokenParameters> = {}
+  parameters: Partial<TokenParameters> = {},
 ) {
   const jwt = new jose.SignJWT({ ...payload })
     .setProtectedHeader({ alg: "HS256" }) // Algorithm to be used
@@ -84,7 +84,7 @@ export type AccessTokenPayload = z.infer<typeof AccessTokenPayloadSchema>;
 
 export async function createAccessToken(
   payload: AccessTokenPayload,
-  parameters?: Partial<TokenParameters>
+  parameters?: Partial<TokenParameters>,
 ) {
   return await createToken(payload, parameters);
 }
@@ -110,7 +110,7 @@ export type OauthAuthorizeTokenPayload = z.infer<
 
 export async function createOauthAuthorizeToken(
   payload: OauthAuthorizeTokenPayload,
-  parameters?: Partial<TokenParameters>
+  parameters?: Partial<TokenParameters>,
 ) {
   return await createToken(payload, parameters);
 }
