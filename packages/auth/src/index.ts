@@ -5,11 +5,17 @@ import { eq } from "@kokoro/db";
 import { db } from "@kokoro/db/client";
 import type { Session, User } from "@kokoro/db/schema";
 import { sessionTable, userTable } from "@kokoro/db/schema";
+import { verifyAccessToken } from "@kokoro/jwt";
 
 export const SESSION_COOKIE = "acc_session_token";
 
+export function isOauthToken(token: string): boolean {
+  // In reality is 32, but we're being safe. Maybe we can also check for starting with "ey", but that's not a good idea.
+  return token.length >= 40;
+}
+
 export async function validateSessionRequest(
-  headers: Headers,
+  headers: Headers
 ): Promise<SessionValidationResult> {
   const token = getTokenFromRequest(headers);
 
@@ -17,28 +23,57 @@ export async function validateSessionRequest(
     return { session: null, user: null };
   }
 
+  if (isOauthToken(token)) {
+    return validateOauthToken(token);
+  }
+
   return validateSessionToken(token);
 }
 
 export function getTokenFromRequest(headers: Headers): string | null {
-  // Trying to get from cookie from the headers, and then the SESSION_COOKIE cookie
-  let token =
-    headers
-      .get("Cookie")
-      ?.split("; ")
-      .find((row) => row.startsWith(`${SESSION_COOKIE}=`))
-      ?.split("=")[1] ?? null;
+  let token: string | null = null;
 
-  if (token === null) {
+  if (headers.get("Authorization")) {
     // Trying to get from Authorization header
     token = headers.get("Authorization")?.split(" ")[1] ?? null;
+  }
+
+  if (token && isOauthToken(token)) {
+    return token;
+  }
+
+  // Trying to get from cookie from the headers, and then the SESSION_COOKIE cookie
+  if (!token) {
+    token =
+      headers
+        .get("Cookie")
+        ?.split("; ")
+        .find((row) => row.startsWith(`${SESSION_COOKIE}=`))
+        ?.split("=")[1] ?? null;
   }
 
   return token;
 }
 
+export async function validateOauthToken(
+  token: string
+): Promise<SessionValidationResult> {
+  const payload = await verifyAccessToken(token);
+
+  const [user] = await db
+    .select()
+    .from(userTable)
+    .where(eq(userTable.id, payload.sub));
+
+  if (!user) {
+    return { session: null, user: null };
+  }
+
+  return { session: null, user };
+}
+
 export async function validateSessionToken(
-  token: string,
+  token: string
 ): Promise<SessionValidationResult> {
   const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
 
@@ -80,4 +115,5 @@ export async function invalidateSession(sessionId: string): Promise<void> {
 
 export type SessionValidationResult =
   | { session: Session; user: User }
+  | { session: null; user: User }
   | { session: null; user: null };

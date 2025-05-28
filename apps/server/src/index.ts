@@ -18,6 +18,8 @@ import { OpenAPIReferencePlugin } from "@orpc/openapi/plugins";
 import { RPCHandler } from "@orpc/server/fetch";
 import { ZodSmartCoercionPlugin, ZodToJsonSchemaConverter } from "@orpc/zod";
 import { v1OauthRouter } from "./routes/v1/index.ts";
+import { OAUTH_SCOPES, OAUTH_SCOPES_MAP } from "@kokoro/validators/db";
+import { isDev } from "@kokoro/consts";
 
 const app = new Hono();
 
@@ -25,7 +27,7 @@ app.use(
   "*",
   pinoLogger({
     pino: logger,
-  }),
+  })
 );
 
 app.use(
@@ -39,7 +41,7 @@ app.use(
       env.PUBLIC_DEVELOPERS_URL,
     ],
     credentials: true,
-  }),
+  })
 );
 
 app.get("/health", (c) => c.json({ status: "ok" }));
@@ -61,7 +63,7 @@ app.use("/rpc/*", async (c, next) => {
   await next();
 });
 
-const openApiHandler = new OpenAPIHandler(appRouter, {
+const openApiHandler = new OpenAPIHandler(appRouter.v1, {
   plugins: [
     new ZodSmartCoercionPlugin(),
     new OpenAPIReferencePlugin({
@@ -70,11 +72,49 @@ const openApiHandler = new OpenAPIHandler(appRouter, {
         info: {
           title: "Kokoro Developer API",
           version: "1.0.0",
+          description:
+            "The Kokoro Developer API is a REST API that allows you to interact with the Kokoro platform.",
         },
+        servers: [
+          {
+            url: isDev
+              ? "http://localhost:3001/v1"
+              : "https://api.kokoro.ws/v1",
+          },
+        ],
         exclude(procedure) {
           // If no path, means we haven't specified it, which means it's not part of the rest api
           return !procedure["~orpc"].route.path;
         },
+        components: {
+          securitySchemes: {
+            oauth2: {
+              type: "oauth2",
+              flows: {
+                authorizationCode: {
+                  authorizationUrl: isDev
+                    ? "http://localhost:5173/authorize"
+                    : "https://auth.kokoro.ws/authorize",
+                  tokenUrl: isDev
+                    ? "http://localhost:3001/v1/oauth/token"
+                    : "https://api.kokoro.ws/v1/oauth/token",
+                  scopes: OAUTH_SCOPES_MAP,
+                  // @ts-expect-error This is for Scalar, the UI we expose for exploring the API
+                  "x-scalar-client-id": isDev
+                    ? "EN25N8EL9N-uXyCYiuWVQ"
+                    : "g8rg9N0g9k50Dug4gsU-n",
+                  selectedScopes: OAUTH_SCOPES,
+                  "x-usePkce": "SHA-256",
+                },
+              },
+            },
+          },
+        },
+        security: [
+          {
+            oauth2: [],
+          },
+        ],
       },
       specPath: "/openapi.json",
       docsPath: "/docs",
