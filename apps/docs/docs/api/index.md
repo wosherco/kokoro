@@ -7,7 +7,7 @@ Our API follows [OpenAPI](https://www.openapis.org/) and [OAuth 2.0](https://oau
 
 ## Authentication
 
-For authentication, we use [OAuth 2.0](https://oauth.net/2/). Any library that supports OAuth 2.0 should work with our API. Feel free to use wathever you prefer.
+For authentication, we use [OAuth 2.0](https://oauth.net/2/). Any library that supports OAuth 2.0 should work with our API. Feel free to use whatever you prefer.
 
 To get your OAuth cretentials, you need to create an app on [https://developers.kokoro.ws](https://developers.kokoro.ws).
 
