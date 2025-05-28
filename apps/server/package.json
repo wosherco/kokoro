@@ -39,6 +39,7 @@
     "@kokoro/validators": "workspace:*",
     "@kokoro/stripe": "workspace:*",
     "@kokoro/logger": "workspace:*",
+    "@kokoro/consts": "workspace:*",
     "@ngrok/ngrok": "^1.4.1",
     "@sentry/bun": "^8.50.0",
     "@t3-oss/env-core": "catalog:",
