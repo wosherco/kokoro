@@ -6,7 +6,13 @@ import { defineConfig } from "vite";
 
 export default defineConfig({
   plugins: [
-    sentrySvelteKit(),
+    sentrySvelteKit({
+      sourceMapsUploadOptions: {
+        org: process.env.SENTRY_ORG,
+        project: process.env.SENTRY_PROJECT,
+        authToken: process.env.SENTRY_AUTH_TOKEN,
+      },
+    }),
     sveltekit(),
     enhancedImages(),
     paraglideVitePlugin({
