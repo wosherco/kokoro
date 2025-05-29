@@ -25,7 +25,6 @@
     "with-env": "dotenv -e ../../.env --"
   },
   "dependencies": {
-    "@kokoro/logger": "workspace:*",
     "@kokoro/validators": "workspace:*",
     "@t3-oss/env-core": "catalog:",
     "nanoid": "catalog:",

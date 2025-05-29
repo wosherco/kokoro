@@ -14,7 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { orpc } from "@/orpc";
-import { Copy, Loader2 } from "lucide-svelte";
+import { Copy, Loader2 } from "@lucide/svelte";
 import type { Snippet } from "svelte";
 import { toast } from "svelte-sonner";
 

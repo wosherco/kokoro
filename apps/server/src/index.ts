@@ -2,13 +2,11 @@ import "./instrumentation.ts";
 
 import ngrok from "@ngrok/ngrok";
 import { Hono } from "hono";
-import { pinoLogger } from "hono-pino";
 import { cors } from "hono/cors";
 
 import { appRouter, createContext } from "@kokoro/api";
 
 import { env } from "./env";
-import { logger } from "./logger.ts";
 import { stripeWebhook } from "./routes/stripeWebhook";
 import { watchGoogleCalendar } from "./routes/watch/googleCalendar";
 import { linearWebhook } from "./routes/webhooks/linear.ts";
@@ -19,16 +17,46 @@ import { OpenAPIHandler } from "@orpc/openapi/fetch";
 import { OpenAPIReferencePlugin } from "@orpc/openapi/plugins";
 import { RPCHandler } from "@orpc/server/fetch";
 import { ZodSmartCoercionPlugin, ZodToJsonSchemaConverter } from "@orpc/zod";
+import { captureException, logger } from "@sentry/bun";
 import { v1OauthRouter } from "./routes/v1/index.ts";
 
 const app = new Hono();
 
-app.use(
-  "*",
-  pinoLogger({
-    pino: logger,
-  }),
-);
+app.use("*", async (c, next) => {
+  const requestId = crypto.randomUUID();
+  logger.info("Received request", {
+    url: c.req.url,
+    method: c.req.method,
+    headers: c.req.header(),
+    requestId,
+  });
+
+  try {
+    await next();
+  } catch (error) {
+    logger.error("Request failed", {
+      url: c.req.url,
+      method: c.req.method,
+      headers: c.req.header(),
+      error,
+    });
+
+    captureException(error, {
+      tags: {
+        requestId,
+      },
+    });
+
+    return c.newResponse(
+      `Internal Server Error. Request id: ${requestId}`,
+      500,
+    );
+  }
+
+  logger.info("Request completed", {
+    requestId,
+  });
+});
 
 app.use(
   "*",
@@ -123,20 +151,15 @@ const openApiHandler = new OpenAPIHandler(appRouter.v1, {
 });
 
 app.use("/v1/*", async (c, next) => {
-  try {
-    const context = await createContext(c.req.raw.headers);
+  const context = await createContext(c.req.raw.headers);
 
-    const { matched, response } = await openApiHandler.handle(c.req.raw, {
-      prefix: "/v1",
-      context,
-    });
+  const { matched, response } = await openApiHandler.handle(c.req.raw, {
+    prefix: "/v1",
+    context,
+  });
 
-    if (matched) {
-      return c.newResponse(response.body, response);
-    }
-  } catch (error) {
-    logger.error(error);
-    return c.newResponse("Internal Server Error", 500);
+  if (matched) {
+    return c.newResponse(response.body, response);
   }
 
   await next();

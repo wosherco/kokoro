@@ -2,7 +2,7 @@
 import CardLink from "@/components/CardLink.svelte";
 import CreateApplicationModal from "@/components/modals/CreateApplicationModal.svelte";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-svelte";
+import { Loader2 } from "@lucide/svelte";
 import SvelteSeo from "svelte-seo";
 import type { PageData } from "./$types";
 

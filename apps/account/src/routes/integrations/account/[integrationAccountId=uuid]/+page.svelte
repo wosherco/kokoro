@@ -8,7 +8,7 @@ import ColorPicker from "@/components/integrations/ColorPicker.svelte";
 import TasklistOrCalendarCard from "@/components/integrations/TasklistOrCalendarCard.svelte";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { orpc } from "@/orpc";
-import { Calendar, ListTodo, RefreshCw, Trash2 } from "lucide-svelte";
+import { Calendar, ListTodo, RefreshCw, Trash2 } from "@lucide/svelte";
 import SvelteSeo from "svelte-seo";
 import { toast } from "svelte-sonner";
 

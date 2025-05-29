@@ -1,7 +1,7 @@
 <script lang="ts">
 import { Button } from "$lib/components/ui/button";
 import { Card, CardContent } from "$lib/components/ui/card";
-import { Check, Copy, Eye, EyeOff } from "lucide-svelte";
+import { Check, Copy, Eye, EyeOff } from "@lucide/svelte";
 
 import type { PageProps } from "./$types";
 

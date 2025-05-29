@@ -1,6 +1,6 @@
 <script lang="ts">
 import { Skeleton } from "$lib/components/ui/skeleton";
-import { Bot, Clock, Database, FileCode, Send } from "lucide-svelte";
+import { Bot, Clock, Database, FileCode, Send } from "@lucide/svelte";
 
 // Color scheme from screenshot
 const COLORS = {

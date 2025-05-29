@@ -1,7 +1,7 @@
 <script>
 import Video from "$lib/components/Video.svelte";
 import { Button } from "$lib/components/ui/button";
-import { Brain, ListTodo, Mail, TrendingUp } from "lucide-svelte";
+import { Brain, ListTodo, Mail, TrendingUp } from "@lucide/svelte";
 import posthog from "posthog-js";
 import SvelteSeo from "svelte-seo";
 
@@ -35,7 +35,9 @@ const clickbait = true;
       The only assistant you will need.
     </h1>
     <h2 class="text-xl mb-10">
-      Kokoro App is a productivity assistant that will <b>transform how you work</b>.
+      Kokoro App is a productivity assistant that will <b
+        >transform how you work</b
+      >.
     </h2>
 
     <div class="flex flex-col sm:flex-row gap-4 justify-center mb-16">

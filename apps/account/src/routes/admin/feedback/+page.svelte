@@ -17,7 +17,7 @@ import {
   MessageSquare,
   ThumbsDown,
   ThumbsUp,
-} from "lucide-svelte";
+} from "@lucide/svelte";
 
 import type { PageData } from "./$types";
 

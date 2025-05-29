@@ -1,23 +1,12 @@
 import { OpenAPIHono, createRoute, z } from "@hono/zod-openapi";
-import { pinoLogger } from "hono-pino";
 
 import crypto from "node:crypto";
 import { eq } from "@kokoro/db";
 import { db } from "@kokoro/db/client";
 import { authCodeTable, oauthClientTable, tokenTable } from "@kokoro/db/schema";
 import { createAccessToken } from "@kokoro/jwt";
-import { logger } from "../../logger";
 
 export const v1OauthRouter = new OpenAPIHono();
-
-v1OauthRouter.use(
-  "*",
-  pinoLogger({
-    pino: logger.child({
-      subrouter: "v1-rest-api",
-    }),
-  }),
-);
 
 const v1TokenRoute = createRoute({
   method: "post",

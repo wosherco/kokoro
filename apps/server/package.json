@@ -25,8 +25,7 @@
     "@types/bun": "latest",
     "dotenv-cli": "7.4.2",
     "@biomejs/biome": "catalog:",
-    "typescript": "catalog:",
-    "hono-pino": "catalog:"
+    "typescript": "catalog:"
   },
   "dependencies": {
     "@hono/zod-openapi": "^0.19.6",
@@ -38,10 +37,9 @@
     "@kokoro/queues": "workspace:*",
     "@kokoro/validators": "workspace:*",
     "@kokoro/stripe": "workspace:*",
-    "@kokoro/logger": "workspace:*",
     "@kokoro/consts": "workspace:*",
     "@ngrok/ngrok": "^1.4.1",
-    "@sentry/bun": "^8.50.0",
+    "@sentry/bun": "catalog:",
     "@t3-oss/env-core": "catalog:",
     "@orpc/server": "catalog:",
     "@orpc/openapi": "catalog:",

@@ -1,7 +1,7 @@
 <script lang="ts">
 import { PUBLIC_ACCOUNT_URL, PUBLIC_DEVELOPERS_URL } from "$env/static/public";
 import * as m from "$lib/paraglide/messages.js";
-import { Github } from "lucide-svelte";
+import { Github } from "@lucide/svelte";
 import xlogo from "../assets/logos/x.svg";
 
 const year = new Date().getFullYear();
@@ -17,9 +17,7 @@ const year = new Date().getFullYear();
           <a href="/" class="hover:underline">Kokoro</a>
           <a href="/app" class="hover:underline">Kokoro App</a>
           <a href="/ai" class="hover:underline">Kokoro AI</a>
-          <a href={PUBLIC_DEVELOPERS_URL} class="hover:underline"
-            >Kokoro API</a
-          >
+          <a href={PUBLIC_DEVELOPERS_URL} class="hover:underline">Kokoro API</a>
           <a href={PUBLIC_ACCOUNT_URL} class="hover:underline"
             >Account Dashboard</a
           >

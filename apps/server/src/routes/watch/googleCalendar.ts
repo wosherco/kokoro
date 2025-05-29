@@ -1,5 +1,4 @@
 import { Hono } from "hono";
-import { pinoLogger } from "hono-pino";
 import { z } from "zod";
 
 import { eq } from "@kokoro/db";
@@ -14,8 +13,6 @@ import {
   publish,
 } from "@kokoro/queues";
 import { GOOGLE_CALENDAR } from "@kokoro/validators/db";
-
-import { logger } from "../../logger";
 
 /**
  * Schema for Google Calendar webhook headers
@@ -91,14 +88,7 @@ function parseGoogleCalendarWebhookHeaders(
   return googleCalendarWebhookHeadersSchema.parse(rawHeaders);
 }
 
-const watchGoogleCalendar = new Hono().use(
-  "*",
-  pinoLogger({
-    pino: logger.child({
-      subrouter: "watchGoogleCalendar",
-    }),
-  }),
-);
+const watchGoogleCalendar = new Hono();
 
 watchGoogleCalendar.post("/calendarlist", async (c) => {
   let headers: GoogleCalendarWebhookHeaders;
@@ -106,7 +96,7 @@ watchGoogleCalendar.post("/calendarlist", async (c) => {
   try {
     headers = parseGoogleCalendarWebhookHeaders(c.req.raw.headers);
   } catch (error) {
-    c.var.logger.error(error, "Request failed");
+    console.warn(error, "Wrong headers from google calendar watcher");
     return c.text("Bad Request", 400);
   }
 
@@ -139,7 +129,7 @@ watchGoogleCalendar.post("/events", async (c) => {
   try {
     headers = parseGoogleCalendarWebhookHeaders(c.req.raw.headers);
   } catch (error) {
-    c.var.logger.error(error, "Request failed");
+    console.warn(error, "Wrong headers from google calendar watcher");
     return c.text("Bad Request", 400);
   }
 

@@ -7,7 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "$lib/components/ui/card";
-import { CheckCircle2 } from "lucide-svelte";
+import { CheckCircle2 } from "@lucide/svelte";
 import SvelteSeo from "svelte-seo";
 </script>
 

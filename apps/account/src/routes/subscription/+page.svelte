@@ -7,7 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "$lib/components/ui/card";
-import { CalendarDays } from "lucide-svelte";
+import { CalendarDays } from "@lucide/svelte";
 import SvelteSeo from "svelte-seo";
 
 import type { PageData } from "./$types";

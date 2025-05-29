@@ -7,15 +7,15 @@ import {
   EyeOffIcon,
   MoreVerticalIcon,
   RefreshCw,
-} from "lucide-svelte";
-import type { ComponentType } from "svelte";
+} from "@lucide/svelte";
+import type { Component } from "svelte";
 
 interface Props {
   title: string;
   description?: string;
   lastSynced: Date | null;
   hidden: boolean;
-  icon: ComponentType;
+  icon: Component;
   color?: string;
   loading?: boolean;
   onColorChange?: (() => Promise<void>) | (() => void);
