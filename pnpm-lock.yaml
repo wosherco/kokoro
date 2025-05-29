@@ -817,6 +817,9 @@ importers:
       '@kokoro/auth':
         specifier: workspace:*
         version: link:../../packages/auth
+      '@kokoro/consts':
+        specifier: workspace:*
+        version: link:../../packages/consts
       '@kokoro/db':
         specifier: workspace:*
         version: link:../../packages/db
@@ -960,6 +963,9 @@ importers:
       '@kokoro/db':
         specifier: workspace:*
         version: link:../db
+      '@kokoro/jwt':
+        specifier: workspace:*
+        version: link:../jwt
       '@oslojs/crypto':
         specifier: ^1.0.1
         version: 1.0.1

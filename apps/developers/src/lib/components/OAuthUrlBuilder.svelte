@@ -12,10 +12,11 @@ import {
 import { OAUTH_SCOPES } from "@kokoro/validators/db";
 import { CopyIcon } from "@lucide/svelte";
 import { toast } from "svelte-sonner";
+import { Checkbox } from "./ui/checkbox";
 
 let { clientId } = $props<{ clientId: string }>();
 
-let oauthType = $state<"client" | "server">("client");
+let usePKCE = $state(false);
 let redirectUri = $state("");
 let scope = $state<string[]>([]);
 let stateParam = $state("");
@@ -35,7 +36,7 @@ const oauthUrl = $derived.by(() => {
     redirect_uri: redirectUri,
     scope: scope.join(" "),
     ...(stateParam && { state: stateParam }),
-    ...(oauthType === "server" && {
+    ...(usePKCE && {
       code_challenge: codeChallenge,
       code_challenge_method: codeChallengeMethod,
     }),
@@ -56,24 +57,6 @@ function toggleScope(selectedScope: string) {
 <div class="grid gap-6 p-6 border rounded-lg bg-card">
   <h3 class="text-lg font-medium">OAuth URL Builder</h3>
   <div class="space-y-4">
-    <div class="flex items-center gap-4">
-      <Label class="text-sm font-medium">OAuth Type</Label>
-      <div class="flex items-center gap-2">
-        <Button
-          variant={oauthType === "client" ? "default" : "outline"}
-          onclick={() => (oauthType = "client")}
-        >
-          Client-side
-        </Button>
-        <Button
-          variant={oauthType === "server" ? "default" : "outline"}
-          onclick={() => (oauthType = "server")}
-        >
-          Server-side (PKCE)
-        </Button>
-      </div>
-    </div>
-
     <div class="space-y-2">
       <Label class="text-sm font-medium">Redirect URI</Label>
       <Input
@@ -107,7 +90,12 @@ function toggleScope(selectedScope: string) {
       />
     </div>
 
-    {#if oauthType === "server"}
+    <div class="flex items-center gap-2">
+      <Checkbox id="use-pkce" bind:checked={usePKCE} />
+      <Label for="use-pkce" class="text-sm font-medium">Use PKCE</Label>
+    </div>
+
+    {#if usePKCE}
       <div class="space-y-2">
         <Label class="text-sm font-medium">Code Challenge</Label>
         <Input

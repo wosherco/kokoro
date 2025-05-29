@@ -101,10 +101,19 @@ export const actions: Actions = {
       throw error(400, "Invalid query or token expired");
     }
 
+    const [client] = await db
+      .select()
+      .from(oauthClientTable)
+      .where(eq(oauthClientTable.clientId, payload.client_id));
+
+    if (!client) {
+      throw error(400, "Client not found");
+    }
+
     const code = nanoid();
     await db.insert(authCodeTable).values({
       code,
-      clientId: payload.client_id,
+      clientId: client.id,
       userId: locals.auth.user.id,
       redirectUri: payload.redirect_uri,
       scope: payload.scope?.join(" "),

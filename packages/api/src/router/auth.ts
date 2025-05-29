@@ -14,6 +14,8 @@ export const authRouter = os.auth.router({
   logout: os.auth.logout
     .use(authorizedMiddleware)
     .handler(async ({ context }) => {
-      await invalidateSession(context.session.id);
+      if (context.session) {
+        await invalidateSession(context.session.id);
+      }
     }),
 });

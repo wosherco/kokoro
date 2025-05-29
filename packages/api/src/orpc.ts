@@ -31,7 +31,7 @@ export const createContext = async (headers: Headers) => {
 };
 
 export const authorizedMiddleware = os.middleware(({ context, next }) => {
-  if (!context.user || !context.session) {
+  if (!context.user) {
     throw new ORPCError("UNAUTHORIZED");
   }
 
