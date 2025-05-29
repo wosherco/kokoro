@@ -10,7 +10,7 @@ import {
   SelectTrigger,
 } from "@/components/ui/select";
 import { OAUTH_SCOPES } from "@kokoro/validators/db";
-import { CopyIcon } from "lucide-svelte";
+import { CopyIcon } from "@lucide/svelte";
 import { toast } from "svelte-sonner";
 
 let { clientId } = $props<{ clientId: string }>();

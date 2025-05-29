@@ -7,7 +7,7 @@ import {
   EyeOffIcon,
   MoreVerticalIcon,
   RefreshCw,
-} from "lucide-svelte";
+} from "@lucide/svelte";
 import type { ComponentType } from "svelte";
 
 interface Props {

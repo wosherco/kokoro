@@ -7,7 +7,7 @@ import CardContent from "@/components/ui/card/card-content.svelte";
 import CardFooter from "@/components/ui/card/card-footer.svelte";
 import CardHeader from "@/components/ui/card/card-header.svelte";
 import CardTitle from "@/components/ui/card/card-title.svelte";
-import { Check, Shield, User } from "lucide-svelte";
+import { Check, Shield, User } from "@lucide/svelte";
 import type { PageData } from "./$types";
 
 const { data }: { data: PageData } = $props();

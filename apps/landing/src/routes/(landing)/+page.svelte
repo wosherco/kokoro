@@ -11,7 +11,7 @@ import {
   Lock,
   Server,
   Smartphone,
-} from "lucide-svelte";
+} from "@lucide/svelte";
 import SvelteSeo from "svelte-seo";
 </script>
 
@@ -117,7 +117,9 @@ import SvelteSeo from "svelte-seo";
       <div class="mt-6">
         <Button href={PUBLIC_ACCOUNT_URL} class="group">
           Try it today
-          <ArrowRight class="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+          <ArrowRight
+            class="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform"
+          />
         </Button>
       </div>
     </div>
@@ -652,9 +654,14 @@ import SvelteSeo from "svelte-seo";
         life.
       </p>
       <div class="mt-6">
-        <Button href="https://docs.kokoro.ws/introduction/getting-started" class="group">
+        <Button
+          href="https://docs.kokoro.ws/introduction/getting-started"
+          class="group"
+        >
           See how it works
-          <ArrowRight class="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+          <ArrowRight
+            class="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform"
+          />
         </Button>
       </div>
     </div>

@@ -8,7 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "$lib/components/ui/card";
-import { Bell, CalendarDays } from "lucide-svelte";
+import { Bell, CalendarDays } from "@lucide/svelte";
 import { toast } from "svelte-sonner";
 </script>
 
@@ -63,7 +63,7 @@ import { toast } from "svelte-sonner";
             return async ({ result }) => {
               if (result.type === "success") {
                 toast.success(
-                  "Calendar watchers refresh triggered successfully",
+                  "Calendar watchers refresh triggered successfully"
                 );
               } else {
                 toast.error("Failed to refresh calendar watchers");

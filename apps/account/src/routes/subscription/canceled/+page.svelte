@@ -7,7 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "$lib/components/ui/card";
-import { XCircle } from "lucide-svelte";
+import { XCircle } from "@lucide/svelte";
 import SvelteSeo from "svelte-seo";
 </script>
 

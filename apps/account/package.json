@@ -49,7 +49,7 @@
     "@biomejs/biome": "catalog:",
     "formsnap": "2.0.0-next.1",
     "globals": "^15.0.0",
-    "lucide-svelte": "catalog:",
+    "@lucide/svelte": "catalog:",
     "mode-watcher": "^0.4.1",
     "svelte": "catalog:",
     "svelte-check": "catalog:",

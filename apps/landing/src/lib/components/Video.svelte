@@ -1,7 +1,7 @@
 <script lang="ts">
 import { Button } from "$lib/components/ui/button";
 import { cn } from "$lib/utils";
-import { Maximize2, Undo2 } from "lucide-svelte";
+import { Maximize2, Undo2 } from "@lucide/svelte";
 
 interface VideoProps {
   mp4Src: string;
@@ -52,7 +52,7 @@ function toggleFullscreen() {
     id={mp4Src}
     class={cn(
       `w-full aspect-video rounded-lg shadow-lg border bg-muted`,
-      className,
+      className
     )}
     autoplay
     muted

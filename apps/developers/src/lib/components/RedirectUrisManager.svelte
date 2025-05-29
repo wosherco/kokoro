@@ -3,7 +3,7 @@ import { orpc } from "$lib/orpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { PlusIcon, Trash2Icon } from "lucide-svelte";
+import { PlusIcon, Trash2Icon } from "@lucide/svelte";
 import { toast } from "svelte-sonner";
 
 interface Props {

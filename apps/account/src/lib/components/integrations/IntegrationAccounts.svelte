@@ -1,6 +1,6 @@
 <script lang="ts">
 import { INTEGRATIONS_DATA } from "@/integrations";
-import { AlertTriangle, ChevronRight } from "lucide-svelte";
+import { AlertTriangle, ChevronRight } from "@lucide/svelte";
 
 import type { IntegrationType } from "@kokoro/validators/db";
 import { RELAXED_MAPPED_INTEGRATION_SOURCES } from "@kokoro/validators/db";

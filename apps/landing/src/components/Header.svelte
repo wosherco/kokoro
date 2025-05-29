@@ -1,11 +1,11 @@
 <script lang="ts">
-import { page } from "$app/stores";
+import { page } from "$app/state";
 import { PUBLIC_ACCOUNT_URL, PUBLIC_DEVELOPERS_URL } from "$env/static/public";
 import { clickOutside } from "$lib/actions/click-outside";
 import { Button } from "$lib/components/ui/button";
 import * as m from "$lib/paraglide/messages.js";
 import { cn } from "$lib/utils";
-import { Github, Menu, X } from "lucide-svelte";
+import { Github, Menu, X } from "@lucide/svelte";
 import { fade, slide } from "svelte/transition";
 
 let isMenuOpen = $state(false);
@@ -54,14 +54,14 @@ function closeMenu() {
           <a
             href="/app"
             class="text-sm font-medium transition-colors hover:text-primary"
-            class:text-primary={$page.url.pathname.startsWith("/app")}
+            class:text-primary={page.url.pathname.startsWith("/app")}
           >
             App
           </a>
           <a
             href="/ai"
             class="text-sm font-medium transition-colors hover:text-primary"
-            class:text-primary={$page.url.pathname.startsWith("/ai")}
+            class:text-primary={page.url.pathname.startsWith("/ai")}
           >
             AI
           </a>
@@ -74,7 +74,7 @@ function closeMenu() {
           <a
             href="/contact"
             class="text-sm font-medium transition-colors hover:text-primary"
-            class:text-primary={$page.url.pathname.startsWith("/contact")}
+            class:text-primary={page.url.pathname.startsWith("/contact")}
           >
             {m.nav_contact()}
           </a>
@@ -119,7 +119,7 @@ function closeMenu() {
             <a
               href="/"
               class="text-sm font-medium transition-colors hover:text-primary py-3"
-              class:text-primary={$page.url.pathname === "/"}
+              class:text-primary={page.url.pathname === "/"}
               onclick={closeMenu}
             >
               Kokoro
@@ -127,7 +127,7 @@ function closeMenu() {
             <a
               href="/app"
               class="text-sm font-medium transition-colors hover:text-primary py-3"
-              class:text-primary={$page.url.pathname.startsWith("/app")}
+              class:text-primary={page.url.pathname.startsWith("/app")}
               onclick={closeMenu}
             >
               App
@@ -135,7 +135,7 @@ function closeMenu() {
             <a
               href="/ai"
               class="text-sm font-medium transition-colors hover:text-primary py-3"
-              class:text-primary={$page.url.pathname.startsWith("/ai")}
+              class:text-primary={page.url.pathname.startsWith("/ai")}
               onclick={closeMenu}
             >
               AI
@@ -143,7 +143,7 @@ function closeMenu() {
             <a
               href="/blog"
               class="text-sm font-medium transition-colors hover:text-primary py-3"
-              class:text-primary={$page.url.pathname.startsWith("/blog")}
+              class:text-primary={page.url.pathname.startsWith("/blog")}
               onclick={closeMenu}
             >
               {m.nav_blog()}
@@ -151,7 +151,7 @@ function closeMenu() {
             <a
               href="/contact"
               class="text-sm font-medium transition-colors hover:text-primary py-3"
-              class:text-primary={$page.url.pathname.startsWith("/contact")}
+              class:text-primary={page.url.pathname.startsWith("/contact")}
               onclick={closeMenu}
             >
               {m.nav_contact()}

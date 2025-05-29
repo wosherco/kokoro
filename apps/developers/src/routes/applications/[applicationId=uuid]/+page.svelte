@@ -13,7 +13,7 @@ import {
   ExternalLinkIcon,
   EyeIcon,
   EyeOffIcon,
-} from "lucide-svelte";
+} from "@lucide/svelte";
 import SvelteSeo from "svelte-seo";
 import { toast } from "svelte-sonner";
 import type { PageData } from "./$types";
