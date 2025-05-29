@@ -102,13 +102,15 @@ export const v1IntegrationsRouter = os.v1.integrations.router({
             return acc;
           }
 
+          const values = { ...first };
+
           // biome-ignore lint/performance/noDelete: performance bottleneck to be worried in the future
-          delete (first as unknown as { calendar: unknown }).calendar;
+          delete (values as unknown as { calendar: unknown }).calendar;
           // biome-ignore lint/performance/noDelete: performance bottleneck to be worried in the future
-          delete (first as unknown as { tasklist: unknown }).tasklist;
+          delete (values as unknown as { tasklist: unknown }).tasklist;
 
           acc.push({
-            ...(first as Omit<
+            ...(values as Omit<
               (typeof dbIntegrations)[number],
               "calendar" | "tasklist"
             >),

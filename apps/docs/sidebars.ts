@@ -46,7 +46,14 @@ const sidebars: SidebarsConfig = {
       items: ["integrations/linear", "integrations/google-people"],
     },
   ],
-  apiSidebar: ["api/index"],
+  apiSidebar: [
+    "api/index",
+    {
+      type: "link",
+      label: "API Reference",
+      href: "https://api.kokoro.ws/v1/docs",
+    },
+  ],
 };
 
 export default sidebars;

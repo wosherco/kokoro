@@ -27,31 +27,38 @@ const v1TokenRoute = createRoute({
       "content-type": z.literal("application/x-www-form-urlencoded"),
       authorization: z.string().optional(),
     }),
-    query: z
-      .object({
-        grant_type: z.enum(["authorization_code", "refresh_token"]),
-        code: z.string().optional(),
-        redirect_uri: z.string().optional(),
-        code_verifier: z.string().optional(),
-        refresh_token: z.string().optional(),
-        scope: z.string().optional(),
-        client_id: z.string().optional(),
-        client_secret: z.string().optional(),
-      })
-      .refine(
-        (d) => {
-          if (d.grant_type === "authorization_code") {
-            return !!(d.code && d.redirect_uri);
-          }
-          if (d.grant_type === "refresh_token") {
-            return !!d.refresh_token;
-          }
-          return false;
+    body: {
+      content: {
+        "application/x-www-form-urlencoded": {
+          schema: z
+            .object({
+              grant_type: z.enum(["authorization_code", "refresh_token"]),
+              code: z.string().optional(),
+              redirect_uri: z.string().optional(),
+              code_verifier: z.string().optional(),
+              refresh_token: z.string().optional(),
+              scope: z.string().optional(),
+              client_id: z.string().optional(),
+              client_secret: z.string().optional(),
+            })
+            .refine(
+              (d) => {
+                if (d.grant_type === "authorization_code") {
+                  return !!(d.code && d.redirect_uri);
+                }
+                if (d.grant_type === "refresh_token") {
+                  return !!d.refresh_token;
+                }
+                return false;
+              },
+              {
+                message:
+                  "Missing required parameters for the selected grant_type",
+              },
+            ),
         },
-        {
-          message: "Missing required parameters for the selected grant_type",
-        },
-      ),
+      },
+    },
   },
   responses: {
     200: {
@@ -78,6 +85,7 @@ v1OauthRouter.openapi(v1TokenRoute, async (c) => {
   let clientId: string | undefined;
   let clientSecret: string | undefined;
   const headerAuthorization = c.req.header("authorization");
+  const body = c.req.valid("form");
 
   if (headerAuthorization?.startsWith("Basic ")) {
     const [id, secret] = Buffer.from(headerAuthorization.slice(6), "base64")
@@ -86,8 +94,8 @@ v1OauthRouter.openapi(v1TokenRoute, async (c) => {
     clientId = id;
     clientSecret = secret;
   } else {
-    clientId = c.req.query("client_id");
-    clientSecret = c.req.query("client_secret");
+    clientId = body.client_id;
+    clientSecret = body.client_secret;
   }
 
   if (!clientId) {
@@ -99,24 +107,34 @@ v1OauthRouter.openapi(v1TokenRoute, async (c) => {
     .from(oauthClientTable)
     .where(eq(oauthClientTable.clientId, clientId));
 
-  if (
-    !client ||
-    (client.clientSecret && client.clientSecret !== clientSecret)
-  ) {
+  if (!client || (clientSecret && client.clientSecret !== clientSecret)) {
     return c.json({ error: "invalid_client" }, 401);
   }
 
-  const grant_type = c.req.query("grant_type");
+  const grant_type = body.grant_type;
 
   // --- Handle each grant ---
   if (grant_type === "authorization_code") {
-    const code = c.req.query("code");
-    const redirect_uri = c.req.query("redirect_uri");
-    const code_verifier = c.req.query("code_verifier");
-    const scope = c.req.query("scope");
+    const code = body.code;
+    const redirect_uri = body.redirect_uri;
+    const code_verifier = body.code_verifier;
+    const scope = body.scope;
 
-    if (!code || !redirect_uri || !code_verifier) {
+    if (!code || !redirect_uri) {
       return c.json({ error: "invalid_request" }, 400);
+    }
+
+    const isPublicClient = !clientSecret;
+
+    // PKCE validation: Required for public clients, optional for confidential clients
+    if (isPublicClient && !code_verifier) {
+      return c.json(
+        {
+          error: "invalid_request",
+          error_description: "code_verifier is required for public clients",
+        },
+        400,
+      );
     }
 
     // 4a. Verify auth code
@@ -128,24 +146,41 @@ v1OauthRouter.openapi(v1TokenRoute, async (c) => {
     if (
       !authCode ||
       authCode.expiresAt < new Date() ||
-      authCode.redirectUri !== redirect_uri ||
-      (authCode.codeChallenge &&
+      authCode.redirectUri !== redirect_uri
+    ) {
+      return c.json({ error: "invalid_grant" }, 403);
+    }
+
+    // PKCE verification: If auth code has PKCE challenge, we must verify it
+    if (authCode.codeChallenge) {
+      if (!code_verifier) {
+        return c.json(
+          {
+            error: "invalid_grant",
+            error_description: "code_verifier required for PKCE",
+          },
+          403,
+        );
+      }
+
+      if (
         !verifyPKCE(
           {
             codeChallenge: authCode.codeChallenge,
             codeChallengeMethod: authCode.codeChallengeMethod,
           },
           code_verifier,
-        ))
-    ) {
-      return c.json({ error: "invalid_grant" }, 403);
+        )
+      ) {
+        return c.json({ error: "invalid_grant" }, 403);
+      }
     }
 
     // 5a. Issue tokens
     const atExpiresIn = 3600;
     const accessToken = await createAccessToken(
       { sub: authCode.userId, aud: clientId },
-      { expiresIn: atExpiresIn },
+      { expiresIn: `${atExpiresIn}s` },
     );
     const refreshToken = crypto.randomBytes(32).toString("hex");
 
@@ -175,8 +210,8 @@ v1OauthRouter.openapi(v1TokenRoute, async (c) => {
   }
 
   if (grant_type === "refresh_token") {
-    const refresh_token = c.req.query("refresh_token");
-    const scope = c.req.query("scope");
+    const refresh_token = body.refresh_token;
+    const scope = body.scope;
 
     if (!refresh_token) {
       return c.json({ error: "invalid_request" }, 400);
@@ -196,7 +231,7 @@ v1OauthRouter.openapi(v1TokenRoute, async (c) => {
     const atExpiresIn = 3600;
     const newAccessToken = await createAccessToken(
       { sub: existing.userId, aud: clientId },
-      { expiresIn: atExpiresIn },
+      { expiresIn: `${atExpiresIn}s` },
     );
     const newRefreshToken = crypto.randomBytes(32).toString("hex");
 
