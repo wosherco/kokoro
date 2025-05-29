@@ -88,3 +88,51 @@ jobs:
           SENTRY_ORG: ${{ secrets.INFISICAL_SENTRY__SENTRY_ORG }}
           SENTRY_PROJECT: developers-sveltekit
         run: pnpm build
+
+  upload-sourcemaps-server:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.ref == 'refs/heads/main' }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup
+        uses: ./tooling/github/setup
+
+      - name: Build sourcemaps for server
+        run: pnpm -F server build:sourcemaps
+
+      - name: Create Sentry release
+        uses: getsentry/action-release@v3
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.INFISICAL_SENTRY__SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.INFISICAL_SENTRY__SENTRY_ORG }}
+          SENTRY_PROJECT: server-bun
+        with:
+          environment: production
+          sourcemaps: "apps/server/dist"
+
+  upload-sourcemaps-consumer:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.ref == 'refs/heads/main' }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup
+        uses: ./tooling/github/setup
+
+      - name: Build sourcemaps for consumer
+        run: pnpm -F consumer build:sourcemaps
+
+      - name: Create Sentry release
+        uses: getsentry/action-release@v3
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.INFISICAL_SENTRY__SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.INFISICAL_SENTRY__SENTRY_ORG }}
+          SENTRY_PROJECT: consumer-bun
+        with:
+          environment: production
+          sourcemaps: "apps/consumer/dist"

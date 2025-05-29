@@ -9,7 +9,7 @@ import { appRouter, createContext } from "@kokoro/api";
 import { env } from "./env";
 import { stripeWebhook } from "./routes/stripeWebhook";
 import { watchGoogleCalendar } from "./routes/watch/googleCalendar";
-import { linearWebhook } from "./routes/webhooks/linear.ts";
+import { linearWebhook } from "./routes/webhooks/linear";
 
 import { isDev } from "@kokoro/consts";
 import { OAUTH_SCOPES, OAUTH_SCOPES_MAP } from "@kokoro/validators/db";
@@ -18,7 +18,7 @@ import { OpenAPIReferencePlugin } from "@orpc/openapi/plugins";
 import { RPCHandler } from "@orpc/server/fetch";
 import { ZodSmartCoercionPlugin, ZodToJsonSchemaConverter } from "@orpc/zod";
 import { captureException, logger } from "@sentry/bun";
-import { v1OauthRouter } from "./routes/v1/index.ts";
+import { v1OauthRouter } from "./routes/v1";
 
 const app = new Hono();
 
@@ -42,6 +42,27 @@ app.use("*", async (c, next) => {
     });
 
     captureException(error, {
+      tags: {
+        requestId,
+      },
+    });
+
+    logger.error("Request failed", {
+      requestId,
+    });
+
+    return c.newResponse(
+      `Internal Server Error. Request id: ${requestId}`,
+      500,
+    );
+  }
+
+  if (c.error) {
+    logger.error("Request failed", {
+      requestId,
+    });
+
+    captureException(c.error, {
       tags: {
         requestId,
       },
