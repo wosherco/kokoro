@@ -16,8 +16,11 @@ export const contactsSync = (): Consumer =>
         .where(
           and(
             eq(contactListTable.id, message.contactListId),
-            eq(contactListTable.platformAccountId, message.integrationAccountId)
-          )
+            eq(
+              contactListTable.platformAccountId,
+              message.integrationAccountId,
+            ),
+          ),
         );
 
       if (contactLists.length === 0) {
@@ -30,7 +33,7 @@ export const contactsSync = (): Consumer =>
         // Since no specific contact was requested, we'll sync all contacts
         await contactSource.syncContacts(
           message.integrationAccountId,
-          contactList.id
+          contactList.id,
         );
 
         return;
@@ -38,7 +41,7 @@ export const contactsSync = (): Consumer =>
 
       const platformContact = await contactSource.fetchPlatformContact(
         message.integrationAccountId,
-        message.platformContactId
+        message.platformContactId,
       );
 
       await contactSource.processContact(
@@ -49,7 +52,7 @@ export const contactsSync = (): Consumer =>
           contactListId: contactList.id,
         },
         // biome-ignore lint/suspicious/noExplicitAny: idk, fix this mess. We need to guarantee a single source for types to match.
-        platformContact as any
+        platformContact as any,
       );
 
       return;
@@ -61,13 +64,16 @@ export const contactsSync = (): Consumer =>
       .where(
         and(
           eq(contactListTable.platformAccountId, message.integrationAccountId),
-          eq(contactListTable.source, message.source)
-        )
+          eq(contactListTable.source, message.source),
+        ),
       );
 
     await Promise.all(
       contactLists.map((contactList) =>
-        contactSource.syncContacts(message.integrationAccountId, contactList.id)
-      )
+        contactSource.syncContacts(
+          message.integrationAccountId,
+          contactList.id,
+        ),
+      ),
     );
   });

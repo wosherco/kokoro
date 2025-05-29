@@ -68,7 +68,7 @@ type QueuedMessage = z.infer<typeof queuedMessageSchema>;
 
 export async function publish<Q extends Queue>(
   queue: Q,
-  message: QueueMessageMap[Q]
+  message: QueueMessageMap[Q],
 ) {
   const payload = {
     retries: 0,
@@ -80,7 +80,7 @@ export async function publish<Q extends Queue>(
 
 async function internalPublish<Q extends Queue>(
   queue: Q,
-  message: QueuedMessage
+  message: QueuedMessage,
 ) {
   const publisher = getPublisher(queue);
   await publisher.send(queue, JSON.stringify(message));
@@ -89,7 +89,7 @@ async function internalPublish<Q extends Queue>(
 // TODO: Add tracers
 export function consume<Q extends Queue>(
   queue: Q,
-  handler: (message: QueueMessageMap[Q]) => Promise<void>
+  handler: (message: QueueMessageMap[Q]) => Promise<void>,
 ): Consumer {
   const connection = getConnection();
 
@@ -123,7 +123,7 @@ export function consume<Q extends Queue>(
 
       try {
         content = QueueSchemaMap[queue].parse(
-          payload.data
+          payload.data,
         ) as QueueMessageMap[Q];
       } catch (error) {
         console.error({ error }, "Failed to parse message body");
@@ -161,7 +161,7 @@ export function consume<Q extends Queue>(
       }
 
       console.info("Message handled!");
-    }
+    },
   );
 
   // When stopping the server, we need to close the consumer

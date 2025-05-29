@@ -21,8 +21,8 @@ export const googleCalendarChannelsRefresh = (): Consumer =>
         .where(
           lte(
             externalGoogleCalendarListWatchersTable.expiryDate,
-            new Date(Date.now() + 2 * 24 * 60 * 60 * 1000)
-          )
+            new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
+          ),
         )
         .then((channels) =>
           Promise.all(
@@ -32,9 +32,9 @@ export const googleCalendarChannelsRefresh = (): Consumer =>
                 userId: channel.userId,
                 shouldUnwatch: true,
                 rewatch: true,
-              })
-            )
-          )
+              }),
+            ),
+          ),
         );
 
     // Getting the channels of calendarEvents that are about to expire in <2 days
@@ -44,8 +44,8 @@ export const googleCalendarChannelsRefresh = (): Consumer =>
       .where(
         lte(
           externalGoogleCalendarEventsWatchersTable.expiryDate,
-          new Date(Date.now() + 2 * 24 * 60 * 60 * 1000)
-        )
+          new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
+        ),
       )
       .execute()
       .then((channels) =>
@@ -56,9 +56,9 @@ export const googleCalendarChannelsRefresh = (): Consumer =>
               userId: channel.userId,
               shouldUnwatch: true,
               rewatch: true,
-            })
-          )
-        )
+            }),
+          ),
+        ),
       );
 
     await Promise.all([

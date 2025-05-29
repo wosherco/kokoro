@@ -26,16 +26,16 @@ export const googleContactsScheduledSync = (): Consumer =>
           env.PUBLIC_STRIPE_ENABLED
             ? and(
                 isNotNull(userTable.subscribedUntil),
-                gt(userTable.subscribedUntil, new Date())
+                gt(userTable.subscribedUntil, new Date()),
               )
             : undefined,
-          eq(integrationsAccountsTable.integrationType, GOOGLE_PEOPLE)
-        )
+          eq(integrationsAccountsTable.integrationType, GOOGLE_PEOPLE),
+        ),
       );
 
     console.info(
       "[googleContactsScheduledSync] Publishing syncs",
-      accounts.length
+      accounts.length,
     );
 
     const promises: Promise<void>[] = [];

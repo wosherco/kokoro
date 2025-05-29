@@ -17,8 +17,8 @@ import { OpenAPIHandler } from "@orpc/openapi/fetch";
 import { OpenAPIReferencePlugin } from "@orpc/openapi/plugins";
 import { RPCHandler } from "@orpc/server/fetch";
 import { ZodSmartCoercionPlugin, ZodToJsonSchemaConverter } from "@orpc/zod";
+import { captureException, logger } from "@sentry/bun";
 import { v1OauthRouter } from "./routes/v1/index.ts";
-import { logger, captureException } from "@sentry/bun";
 
 const app = new Hono();
 
@@ -49,7 +49,7 @@ app.use("*", async (c, next) => {
 
     return c.newResponse(
       `Internal Server Error. Request id: ${requestId}`,
-      500
+      500,
     );
   }
 
@@ -69,7 +69,7 @@ app.use(
       env.PUBLIC_DEVELOPERS_URL,
     ],
     credentials: true,
-  })
+  }),
 );
 
 app.get("/health", (c) => c.json({ status: "ok" }));

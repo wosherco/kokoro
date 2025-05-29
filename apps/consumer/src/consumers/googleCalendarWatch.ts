@@ -42,6 +42,6 @@ export const googleCalendarWatch = (): Consumer =>
         }
 
         await watchCalendarList(googleAccount);
-      }
-    )
+      },
+    ),
   );

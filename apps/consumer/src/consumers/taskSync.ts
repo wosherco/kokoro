@@ -15,7 +15,7 @@ export const taskSync = (): Consumer =>
       // Since no specific task was requested, we'll sync all tasks
       await taskSource.syncTasks(
         message.integrationAccountId,
-        message.tasklistId
+        message.tasklistId,
       );
 
       return;
@@ -27,8 +27,8 @@ export const taskSync = (): Consumer =>
       .where(
         and(
           eq(tasklistsTable.id, message.tasklistId),
-          eq(tasklistsTable.integrationAccountId, message.integrationAccountId)
-        )
+          eq(tasklistsTable.integrationAccountId, message.integrationAccountId),
+        ),
       );
 
     if (tasklists.length === 0) {
@@ -39,7 +39,7 @@ export const taskSync = (): Consumer =>
 
     const task = await taskSource.fetchPlatformTask(
       message.integrationAccountId,
-      platformTaskId
+      platformTaskId,
     );
 
     await taskSource.processItem(
@@ -51,6 +51,6 @@ export const taskSync = (): Consumer =>
         tasklistId: tasklist.id,
       },
       task,
-      db
+      db,
     );
   });

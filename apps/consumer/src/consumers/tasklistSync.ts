@@ -27,7 +27,7 @@ export const tasklistSync = (): Consumer =>
         userId = account.userId;
         platformAccountId = account.platformAccountId;
         return fetchLinearTasklist(account, tasklistId);
-      }
+      },
     );
 
     if (userId && platformAccountId) {
@@ -38,7 +38,7 @@ export const tasklistSync = (): Consumer =>
           userId,
         },
         tasklist,
-        db
+        db,
       );
     }
   });

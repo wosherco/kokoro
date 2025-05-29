@@ -32,11 +32,11 @@ export const googleCalendarScheduledSync = (): Consumer =>
         .from(integrationsAccountsTable)
         .innerJoin(
           calendarTable,
-          eq(calendarTable.integrationAccountId, integrationsAccountsTable.id)
+          eq(calendarTable.integrationAccountId, integrationsAccountsTable.id),
         )
         .innerJoin(
           userTable,
-          eq(userTable.id, integrationsAccountsTable.userId)
+          eq(userTable.id, integrationsAccountsTable.userId),
         )
         .where(
           and(
@@ -46,16 +46,16 @@ export const googleCalendarScheduledSync = (): Consumer =>
             message.bypassTimeLimit === false
               ? gte(
                   calendarTable.lastSynced,
-                  new Date(Date.now() - lastTimeInterval)
+                  new Date(Date.now() - lastTimeInterval),
                 )
               : sql`true`,
             env.PUBLIC_STRIPE_ENABLED
               ? and(
                   isNotNull(userTable.subscribedUntil),
-                  gt(userTable.subscribedUntil, new Date())
+                  gt(userTable.subscribedUntil, new Date()),
                 )
-              : undefined
-          )
+              : undefined,
+          ),
         )
         .execute(),
       // For calendars, to sync events
@@ -75,23 +75,23 @@ export const googleCalendarScheduledSync = (): Consumer =>
             message.bypassTimeLimit === false
               ? gte(
                   calendarTable.lastSynced,
-                  new Date(Date.now() - lastTimeInterval)
+                  new Date(Date.now() - lastTimeInterval),
                 )
               : sql`true`,
             env.PUBLIC_STRIPE_ENABLED
               ? and(
                   isNotNull(userTable.subscribedUntil),
-                  gt(userTable.subscribedUntil, new Date())
+                  gt(userTable.subscribedUntil, new Date()),
                 )
-              : undefined
-          )
+              : undefined,
+          ),
         )
         .execute(),
     ]);
 
     console.info(
       "[googleCalendarScheduledSync] Publishing calendars list syncs",
-      calendarAccounts.length
+      calendarAccounts.length,
     );
 
     await Promise.all(
@@ -99,13 +99,13 @@ export const googleCalendarScheduledSync = (): Consumer =>
         publish(CALENDARS_SYNC_QUEUE, {
           integrationAccountId: account.integrationAccountId,
           source: GOOGLE_CALENDAR,
-        })
-      )
+        }),
+      ),
     );
 
     console.info(
       "[googleCalendarScheduledSync] Publishing events syncs",
-      eventsAccounts.length
+      eventsAccounts.length,
     );
 
     await Promise.all(
@@ -114,7 +114,7 @@ export const googleCalendarScheduledSync = (): Consumer =>
           integrationAccountId: account.integrationAccountId,
           source: GOOGLE_CALENDAR,
           calendarId: account.calendarId,
-        })
-      )
+        }),
+      ),
     );
   });

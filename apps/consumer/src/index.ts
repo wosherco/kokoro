@@ -10,8 +10,8 @@ import {
   publish,
 } from "@kokoro/queues";
 
-import { CONSUMERS } from "./consumers";
 import { logger } from "@sentry/bun";
+import { CONSUMERS } from "./consumers";
 
 type CronFunction = () => void | Promise<void>;
 
@@ -36,7 +36,7 @@ logger.info("Starting cron...");
 const instancedCronTasks = Object.entries(cronTasks).map(
   ([cronPattern, job]) => {
     return new CronJob(cronPattern, job).start();
-  }
+  },
 );
 
 logger.info("Cron started");
