@@ -2,7 +2,6 @@ import "./instrumentation.ts";
 
 import { CronJob } from "cron";
 import { Hono } from "hono";
-import { pinoLogger } from "hono-pino";
 
 import {
   GOOGLE_CALENDAR_CHANNELS_REFRESH_QUEUE,
@@ -12,7 +11,7 @@ import {
 } from "@kokoro/queues";
 
 import { CONSUMERS } from "./consumers";
-import { logger } from "./logger.ts";
+import { logger } from "@sentry/bun";
 
 type CronFunction = () => void | Promise<void>;
 
@@ -26,13 +25,6 @@ const cronTasks: CronSchedule = {
   "15,45 * * * *": () => publish(GOOGLE_CONTACTS_SCHEDULED_SYNC_QUEUE, {}),
 };
 
-app.use(
-  "*",
-  pinoLogger({
-    pino: logger,
-  }),
-);
-
 logger.info("Starting consumers...");
 
 const instancedConsumers = CONSUMERS.map((consumer) => consumer());
@@ -44,7 +36,7 @@ logger.info("Starting cron...");
 const instancedCronTasks = Object.entries(cronTasks).map(
   ([cronPattern, job]) => {
     return new CronJob(cronPattern, job).start();
-  },
+  }
 );
 
 logger.info("Cron started");

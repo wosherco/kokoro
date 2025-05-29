@@ -1,10 +1,7 @@
-import crypto from "node:crypto";
 import * as Sentry from "@sentry/bun";
 import type { Consumer, Publisher } from "rabbitmq-client";
 import { Connection } from "rabbitmq-client";
 import { z } from "zod";
-
-import type { Logger } from "@kokoro/logger";
 
 import { env } from "../env";
 import type { Queue, QueueMessageMap } from "./queues";
@@ -71,7 +68,7 @@ type QueuedMessage = z.infer<typeof queuedMessageSchema>;
 
 export async function publish<Q extends Queue>(
   queue: Q,
-  message: QueueMessageMap[Q],
+  message: QueueMessageMap[Q]
 ) {
   const payload = {
     retries: 0,
@@ -83,7 +80,7 @@ export async function publish<Q extends Queue>(
 
 async function internalPublish<Q extends Queue>(
   queue: Q,
-  message: QueuedMessage,
+  message: QueuedMessage
 ) {
   const publisher = getPublisher(queue);
   await publisher.send(queue, JSON.stringify(message));
@@ -92,18 +89,8 @@ async function internalPublish<Q extends Queue>(
 // TODO: Add tracers
 export function consume<Q extends Queue>(
   queue: Q,
-  handler: (message: QueueMessageMap[Q]) => Promise<void>,
-  parentLogger: Logger,
+  handler: (message: QueueMessageMap[Q]) => Promise<void>
 ): Consumer {
-  const queueLogger = parentLogger.child({
-    queue,
-  });
-
-  const createLogger = (id: string) =>
-    queueLogger.child({
-      id,
-    });
-
   const connection = getConnection();
 
   const consumer = connection.createConsumer(
@@ -113,16 +100,13 @@ export function consume<Q extends Queue>(
       requeue: false,
     },
     async (msg) => {
-      const id = crypto.randomUUID();
-      const logger = createLogger(id);
-
-      logger.info({ msg }, "Received message");
+      console.info({ msg }, "Received message");
       let payload: QueuedMessage;
 
       try {
         payload = queuedMessageSchema.parse(JSON.parse(String(msg.body)));
       } catch (error) {
-        logger.error({ error }, "Failed to parse message body");
+        console.error({ error }, "Failed to parse message body");
 
         Sentry.captureException(error, {
           tags: {
@@ -133,16 +117,16 @@ export function consume<Q extends Queue>(
         return;
       }
 
-      logger.info({ payload }, "Parsed message body");
+      console.info({ payload }, "Parsed message body");
 
       let content: QueueMessageMap[Q];
 
       try {
         content = QueueSchemaMap[queue].parse(
-          payload.data,
+          payload.data
         ) as QueueMessageMap[Q];
       } catch (error) {
-        logger.error({ error }, "Failed to parse message body");
+        console.error({ error }, "Failed to parse message body");
 
         Sentry.captureException(error, {
           tags: {
@@ -157,7 +141,7 @@ export function consume<Q extends Queue>(
         await handler(content);
       } catch (error) {
         console.error(error);
-        logger.error({ error }, "Failed to handle message");
+        console.error({ error }, "Failed to handle message");
         const shouldRepublish = payload.retries < 3;
 
         Sentry.captureException(error, {
@@ -168,7 +152,7 @@ export function consume<Q extends Queue>(
         });
 
         if (shouldRepublish) {
-          logger.info({ content }, "Republishing message");
+          console.info({ content }, "Republishing message");
           await internalPublish(queue, {
             retries: payload.retries + 1,
             data: content,
@@ -176,8 +160,8 @@ export function consume<Q extends Queue>(
         }
       }
 
-      logger.info("Message handled!");
-    },
+      console.info("Message handled!");
+    }
   );
 
   // When stopping the server, we need to close the consumer

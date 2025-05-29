@@ -25,11 +25,9 @@
     "@types/bun": "latest",
     "dotenv-cli": "7.4.2",
     "@biomejs/biome": "catalog:",
-    "typescript": "catalog:",
-    "hono-pino": "catalog:"
+    "typescript": "catalog:"
   },
   "dependencies": {
-    "@kokoro/logger": "workspace:*",
     "@kokoro/api": "workspace:*",
     "@kokoro/auth": "workspace:*",
     "@kokoro/stripe": "workspace:*",
@@ -39,7 +37,7 @@
     "@kokoro/linear": "workspace:*",
     "@kokoro/queues": "workspace:*",
     "@kokoro/validators": "workspace:*",
-    "@sentry/bun": "^8.50.0",
+    "@sentry/bun": "catalog:",
     "@t3-oss/env-core": "catalog:",
     "cron": "^3.5.0",
     "hono": "catalog:",

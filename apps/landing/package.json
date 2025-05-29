@@ -60,9 +60,8 @@
     "zod": "^3.23.8"
   },
   "dependencies": {
-    "@kokoro/logger": "workspace:*",
     "@kokoro/validators": "workspace:*",
-    "@sentry/sveltekit": "^8.50.0",
+    "@sentry/sveltekit": "catalog:",
     "@kokoro/api": "workspace:*",
     "@inlang/paraglide-js": "^2.0.13",
     "@tailwindcss/typography": "^0.5.15",
@@ -71,5 +70,7 @@
     "@orpc/contract": "catalog:",
     "@orpc/client": "catalog:"
   },
-  "files": ["build"]
+  "files": [
+    "build"
+  ]
 }

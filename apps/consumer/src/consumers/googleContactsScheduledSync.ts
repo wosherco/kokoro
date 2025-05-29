@@ -11,53 +11,45 @@ import {
 import { GOOGLE_PEOPLE } from "@kokoro/validators/db";
 
 import { env } from "../env";
-import { logger } from "../logger";
 
 export const googleContactsScheduledSync = (): Consumer =>
-  consume(
-    GOOGLE_CONTACTS_SCHEDULED_SYNC_QUEUE,
-    async () => {
-      const accounts = await db
-        .select({
-          id: integrationsAccountsTable.id,
-          googleAccountId: integrationsAccountsTable.platformAccountId,
-        })
-        .from(integrationsAccountsTable)
-        .innerJoin(
-          userTable,
-          eq(userTable.id, integrationsAccountsTable.userId),
+  consume(GOOGLE_CONTACTS_SCHEDULED_SYNC_QUEUE, async () => {
+    const accounts = await db
+      .select({
+        id: integrationsAccountsTable.id,
+        googleAccountId: integrationsAccountsTable.platformAccountId,
+      })
+      .from(integrationsAccountsTable)
+      .innerJoin(userTable, eq(userTable.id, integrationsAccountsTable.userId))
+      .where(
+        and(
+          env.PUBLIC_STRIPE_ENABLED
+            ? and(
+                isNotNull(userTable.subscribedUntil),
+                gt(userTable.subscribedUntil, new Date())
+              )
+            : undefined,
+          eq(integrationsAccountsTable.integrationType, GOOGLE_PEOPLE)
         )
-        .where(
-          and(
-            env.PUBLIC_STRIPE_ENABLED
-              ? and(
-                  isNotNull(userTable.subscribedUntil),
-                  gt(userTable.subscribedUntil, new Date()),
-                )
-              : undefined,
-            eq(integrationsAccountsTable.integrationType, GOOGLE_PEOPLE),
-          ),
-        );
-
-      logger.info(
-        "[googleContactsScheduledSync] Publishing syncs",
-        accounts.length,
       );
 
-      const promises: Promise<void>[] = [];
+    console.info(
+      "[googleContactsScheduledSync] Publishing syncs",
+      accounts.length
+    );
 
-      for (const account of accounts) {
-        const publishPromise = publish(CONTACTS_SYNC_QUEUE, {
-          integrationAccountId: account.id,
-          source: GOOGLE_PEOPLE,
-        });
+    const promises: Promise<void>[] = [];
 
-        void publishPromise;
+    for (const account of accounts) {
+      const publishPromise = publish(CONTACTS_SYNC_QUEUE, {
+        integrationAccountId: account.id,
+        source: GOOGLE_PEOPLE,
+      });
 
-        promises.push(publishPromise);
-      }
+      void publishPromise;
 
-      await Promise.all(promises);
-    },
-    logger,
-  );
+      promises.push(publishPromise);
+    }
+
+    await Promise.all(promises);
+  });
