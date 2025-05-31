@@ -11,6 +11,10 @@
     "./poldash": {
       "types": "./dist/src/poldash/index.d.ts",
       "default": "./src/poldash/index.ts"
+    },
+    "./utils": {
+      "types": "./dist/src/utils/index.d.ts",
+      "default": "./src/utils/index.ts"
     }
   },
   "license": "MIT",

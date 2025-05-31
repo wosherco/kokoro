@@ -1,9 +1,8 @@
-import { TZDateMini } from "@date-fns/tz";
-
 import { getMemories, queryMemories } from "@kokoro/brain";
 
 import { ORPCError } from "@orpc/server";
 import { os, authorizedMiddleware } from "../../orpc";
+import { handleDateOrDatetime } from "@kokoro/common/utils";
 
 export const v1MemoriesRouter = os.v1.memories.router({
   queryMemories: os.v1.memories.queryMemories
@@ -12,8 +11,12 @@ export const v1MemoriesRouter = os.v1.memories.router({
       try {
         const memories = await queryMemories(context.user.id, {
           textQuery: input.textQuery,
-          dateFrom: input.dateFrom ? new TZDateMini(input.dateFrom) : undefined,
-          dateTo: input.dateTo ? new TZDateMini(input.dateTo) : undefined,
+          dateFrom: input.dateFrom
+            ? handleDateOrDatetime(input.dateFrom, true)
+            : undefined,
+          dateTo: input.dateTo
+            ? handleDateOrDatetime(input.dateTo, false)
+            : undefined,
           integrationAccountIds: input.integrationAccountIds,
           calendarIds: input.calendarIds,
           tasklistIds: input.tasklistIds,
