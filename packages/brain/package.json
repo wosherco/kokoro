@@ -57,6 +57,7 @@
     "@biomejs/biome": "catalog:",
     "typescript": "catalog:",
     "@testcontainers/postgresql": "catalog:",
+    "nanoid": "catalog:",
     "testcontainers": "catalog:"
   }
 }

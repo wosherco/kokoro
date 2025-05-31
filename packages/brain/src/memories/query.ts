@@ -46,6 +46,7 @@ import {
   type TaskState,
 } from "@kokoro/validators/db";
 
+import { addDays, min } from "date-fns";
 import { getEmbedding } from "../embeddings";
 
 function createMemoryEventsSubquery(
@@ -275,7 +276,7 @@ function processMemoryEvents(
   startDate: Date,
   endDate?: Date,
 ) {
-  for (const memory of memories) {
+  for (const memory of [...memories]) {
     if (!memory.event?.rrule) {
       continue;
     }
@@ -345,7 +346,7 @@ export async function getMemories(
     Object.values(groupedMemories).map(processMemoryTasks),
   );
 
-  return processMemoryEvents(processedMemories, new Date(), undefined);
+  return processedMemories;
 }
 
 export async function queryMemories(
@@ -681,9 +682,10 @@ export async function queryMemories(
   );
 
   // Process recurrent events
+  //! TODO: WE'RE NOT CHECKING FOR INSTANCES!!!!!!
   return processMemoryEvents(
     processedMemories,
     startDate ?? new Date(),
-    endDate,
+    endDate ? min([endDate, addDays(startDate ?? new Date(), 90)]) : undefined,
   );
 }
