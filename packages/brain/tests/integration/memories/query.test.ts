@@ -8,32 +8,9 @@ import {
   tasklistsTable,
   userTable,
 } from "@kokoro/db/schema";
+import { dateToRRULEString } from "@kokoro/rrule";
 import { GOOGLE_CALENDAR, LINEAR_INTEGRATION } from "@kokoro/validators/db";
 import type { StartedPostgreSqlContainer } from "@testcontainers/postgresql";
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import { getMemories, queryMemories } from "../../../src/memories/query";
-import {
-  useEmbeddingServiceContainer,
-  useDatabaseContainer,
-} from "../__utils__/containers";
-import {
-  TEST_EMBEDDING_DENTIST_APPOINTMENT_DESCRIPTION,
-  TEST_EMBEDDING_DENTIST_APPOINTMENT_TEXT,
-  TEST_EMBEDDING_FIX_LANDING_TYPO_DESCRIPTION,
-  TEST_EMBEDDING_FIX_LANDING_TYPO_TEXT,
-  TEST_EMBEDDINGS,
-} from "../__utils__/embeddings";
-import {
-  type AwaitedReturnType,
-  createCalendar,
-  createGoogleCalendarIntegration,
-  createLinearIntegration,
-  createTasklist,
-  createTestUser,
-  useTestMemory,
-} from "../__utils__/dbUtils";
-import { nanoid } from "nanoid";
-import type { StartedTestContainer } from "testcontainers";
 import {
   add,
   addDays,
@@ -50,12 +27,34 @@ import {
   sub,
   subDays,
 } from "date-fns";
-import { dateToRRULEString } from "@kokoro/rrule";
+import { nanoid } from "nanoid";
+import type { StartedTestContainer } from "testcontainers";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { getMemories, queryMemories } from "../../../src/memories/query";
+import {
+  useDatabaseContainer,
+  useEmbeddingServiceContainer,
+} from "../__utils__/containers";
+import {
+  type AwaitedReturnType,
+  createCalendar,
+  createGoogleCalendarIntegration,
+  createLinearIntegration,
+  createTasklist,
+  createTestUser,
+  useTestMemory,
+} from "../__utils__/dbUtils";
+import {
+  TEST_EMBEDDINGS,
+  TEST_EMBEDDING_DENTIST_APPOINTMENT_DESCRIPTION,
+  TEST_EMBEDDING_DENTIST_APPOINTMENT_TEXT,
+  TEST_EMBEDDING_FIX_LANDING_TYPO_DESCRIPTION,
+  TEST_EMBEDDING_FIX_LANDING_TYPO_TEXT,
+} from "../__utils__/embeddings";
 
 vi.mock("@kokoro/db/env", async () => {
-  const originalEnvModule = await vi.importActual<
-    typeof import("@kokoro/db/env")
-  >("@kokoro/db/env");
+  const originalEnvModule =
+    await vi.importActual<typeof import("@kokoro/db/env")>("@kokoro/db/env");
 
   return {
     // Preserve other exports from @kokoro/db/env (if any)
@@ -98,12 +97,12 @@ describe("querying memories", () => {
     calendar = await createCalendar(
       user.id,
       googleCalendarIntegration.id,
-      googleCalendarIntegration.platformAccountId
+      googleCalendarIntegration.platformAccountId,
     );
     tasklist = await createTasklist(
       user.id,
       linearIntegration.id,
-      linearIntegration.platformAccountId
+      linearIntegration.platformAccountId,
     );
   }, 120000);
 
@@ -168,7 +167,7 @@ describe("querying memories", () => {
         expect.arrayContaining([
           expect.objectContaining({ id: dentistMemory().memory.id }),
           expect.objectContaining({ id: typoMemory().memory.id }),
-        ])
+        ]),
       );
     });
   });
@@ -347,7 +346,7 @@ describe("querying memories", () => {
         expect(memories).toEqual(
           expect.arrayContaining([
             expect.objectContaining({ id: tomorrowMemoryEvent().memory.id }),
-          ])
+          ]),
         );
       });
 
@@ -363,7 +362,7 @@ describe("querying memories", () => {
         expect(memories).not.toEqual(
           expect.arrayContaining([
             expect.objectContaining({ id: tomorrowMemoryEvent().memory.id }),
-          ])
+          ]),
         );
       });
 
@@ -376,7 +375,7 @@ describe("querying memories", () => {
         expect(memories).toEqual(
           expect.arrayContaining([
             expect.objectContaining({ id: tomorrowMemoryEvent().memory.id }),
-          ])
+          ]),
         );
       });
 
@@ -389,7 +388,7 @@ describe("querying memories", () => {
         expect(memories).toEqual(
           expect.arrayContaining([
             expect.objectContaining({ id: dayAgoMemoryEvent().memory.id }),
-          ])
+          ]),
         );
       });
 
@@ -405,7 +404,7 @@ describe("querying memories", () => {
         expect(memories).not.toEqual(
           expect.arrayContaining([
             expect.objectContaining({ id: dayAgoMemoryEvent().memory.id }),
-          ])
+          ]),
         );
       });
 
@@ -418,7 +417,7 @@ describe("querying memories", () => {
         expect(memories).toEqual(
           expect.arrayContaining([
             expect.objectContaining({ id: dayAgoMemoryEvent().memory.id }),
-          ])
+          ]),
         );
       });
     });
@@ -443,7 +442,7 @@ describe("querying memories", () => {
             startDate: setHours(startOfToday(), 9),
             endDate: setHours(startOfToday(), 10),
             rrule: `RRULE:FREQ=DAILY;INTERVAL=1;UNTIL=${dateToRRULEString(
-              addDays(endOfToday(), 10)
+              addDays(endOfToday(), 10),
             ).replace("Z", "")}`,
             recurringEnd: addDays(endOfToday(), 10),
           },
@@ -469,7 +468,7 @@ describe("querying memories", () => {
             startDate: setHours(startOfToday(), 14),
             endDate: setHours(startOfToday(), 15),
             rrule: `RRULE:FREQ=WEEKLY;INTERVAL=1;UNTIL=${dateToRRULEString(
-              addDays(endOfToday(), 21)
+              addDays(endOfToday(), 21),
             ).replace("Z", "")}`,
             recurringEnd: addDays(endOfToday(), 21),
           },
@@ -530,7 +529,7 @@ describe("querying memories", () => {
         });
 
         const dailyRecurringMatches = memories.filter(
-          (m) => m.id === dailyRecurringMemory().memory.id
+          (m) => m.id === dailyRecurringMemory().memory.id,
         );
         expect(dailyRecurringMatches.length).toEqual(6); // 5 days + today
         expect(dailyRecurringMatches).toEqual([
@@ -550,7 +549,7 @@ describe("querying memories", () => {
         });
 
         const weeklyRecurringMatches = memories.filter(
-          (m) => m.id === weeklyRecurringMemory().memory.id
+          (m) => m.id === weeklyRecurringMemory().memory.id,
         );
 
         expect(weeklyRecurringMatches.length).toEqual(3);
@@ -564,7 +563,7 @@ describe("querying memories", () => {
         });
 
         const dailyRecurringMatches = memories.filter(
-          (m) => m.id === dailyRecurringMemory().memory.id
+          (m) => m.id === dailyRecurringMemory().memory.id,
         );
 
         // Should not extend beyond the recurring end date (10 days)
@@ -579,7 +578,7 @@ describe("querying memories", () => {
         });
 
         const endedRecurringMatches = memories.filter(
-          (m) => m.id === endedRecurringMemory().memory.id
+          (m) => m.id === endedRecurringMemory().memory.id,
         );
 
         // Should not find any instances as the recurring period ended 2 days ago
@@ -594,7 +593,7 @@ describe("querying memories", () => {
         });
 
         const endedRecurringMatches = memories.filter(
-          (m) => m.id === endedRecurringMemory().memory.id
+          (m) => m.id === endedRecurringMemory().memory.id,
         );
 
         // Should find past occurrences within the recurring period
@@ -608,7 +607,7 @@ describe("querying memories", () => {
         });
 
         const longRecurringMatches = memories.filter(
-          (m) => m.id === longRecurringMemory().memory.id
+          (m) => m.id === longRecurringMemory().memory.id,
         );
 
         // Should be limited to ~30 occurrences despite 45-day query range
@@ -624,7 +623,7 @@ describe("querying memories", () => {
         });
 
         const longRecurringMatches = memories.filter(
-          (m) => m.id === longRecurringMemory().memory.id
+          (m) => m.id === longRecurringMemory().memory.id,
         );
 
         // Should be limited to ~30 occurrences despite 45-day query range
@@ -640,7 +639,7 @@ describe("querying memories", () => {
         });
 
         const longRecurringMatches = memories.filter(
-          (m) => m.id === longRecurringMemory().memory.id
+          (m) => m.id === longRecurringMemory().memory.id,
         );
 
         // Should be limited to ~30 occurrences despite 45-day query range
@@ -657,7 +656,7 @@ describe("querying memories", () => {
         });
 
         const endedRecurringMatches = memories.filter(
-          (m) => m.id === endedRecurringMemory().memory.id
+          (m) => m.id === endedRecurringMemory().memory.id,
         );
 
         // Should find occurrences that fall within the query range
@@ -673,7 +672,7 @@ describe("querying memories", () => {
         });
 
         const dailyMatches = memories.filter(
-          (m) => m.id === dailyRecurringMemory().memory.id
+          (m) => m.id === dailyRecurringMemory().memory.id,
         );
 
         // Verify ascending order by checking that each occurrence
@@ -685,9 +684,9 @@ describe("querying memories", () => {
             dailyMatches[i]?.event?.startDate
           ) {
             expect(
-              dailyMatches[i]?.event?.startDate.getTime()
+              dailyMatches[i]?.event?.startDate.getTime(),
             ).toBeGreaterThanOrEqual(
-              dailyMatches[i - 1]?.event?.startDate.getTime() ?? -1
+              dailyMatches[i - 1]?.event?.startDate.getTime() ?? -1,
             );
           }
         }
@@ -754,7 +753,7 @@ describe("querying memories", () => {
                 minutes: 30,
                 seconds: 0,
                 milliseconds: 0,
-              }
+              },
             ),
             endDate: set(
               // biome-ignore lint/style/noNonNullAssertion: This should not be null at this point
@@ -764,7 +763,7 @@ describe("querying memories", () => {
                 minutes: 30,
                 seconds: 0,
                 milliseconds: 0,
-              }
+              },
             ),
             // Reference to parent recurring event
             recurringEventPlatformId: parentRecurringMemory().event?.id,
@@ -772,7 +771,7 @@ describe("querying memories", () => {
             startOriginal: addDays(
               // biome-ignore lint/style/noNonNullAssertion: This should not be null at this point
               parentRecurringMemory().event?.startDate!,
-              1
+              1,
             ),
           },
         },
@@ -804,7 +803,7 @@ describe("querying memories", () => {
                 minutes: 0,
                 seconds: 0,
                 milliseconds: 0,
-              }
+              },
             ),
             endDate: set(
               // biome-ignore lint/style/noNonNullAssertion: This should not be null at this point
@@ -814,7 +813,7 @@ describe("querying memories", () => {
                 minutes: 0,
                 seconds: 0,
                 milliseconds: 0,
-              }
+              },
             ),
             // Reference to parent recurring event
             recurringEventPlatformId: parentRecurringMemory().event?.id,
@@ -822,7 +821,7 @@ describe("querying memories", () => {
             startOriginal: addDays(
               // biome-ignore lint/style/noNonNullAssertion: This should not be null at this point
               parentRecurringMemory().event?.startDate!,
-              2
+              2,
             ),
           },
         },
@@ -854,7 +853,7 @@ describe("querying memories", () => {
                 minutes: 0,
                 seconds: 0,
                 milliseconds: 0,
-              }
+              },
             ),
             endDate: set(
               // biome-ignore lint/style/noNonNullAssertion: This should not be null at this point
@@ -864,7 +863,7 @@ describe("querying memories", () => {
                 minutes: 0,
                 seconds: 0,
                 milliseconds: 0,
-              }
+              },
             ),
             // Reference to parent recurring event
             recurringEventPlatformId: parentRecurringMemory().event?.id,
@@ -872,7 +871,7 @@ describe("querying memories", () => {
             startOriginal: addDays(
               // biome-ignore lint/style/noNonNullAssertion: This should not be null at this point
               parentRecurringMemory().event?.startDate!,
-              3
+              3,
             ),
           },
         },
@@ -889,13 +888,13 @@ describe("querying memories", () => {
 
         // Find specific instances
         const rescheduledInstance = memories.find(
-          (m) => m.id === rescheduledInstanceMemory().memory.id
+          (m) => m.id === rescheduledInstanceMemory().memory.id,
         );
         const cancelledInstance = memories.find(
-          (m) => m.id === cancelledInstanceMemory().memory.id
+          (m) => m.id === cancelledInstanceMemory().memory.id,
         );
         const updatedInstance = memories.find(
-          (m) => m.id === updatedInstanceMemory().memory.id
+          (m) => m.id === updatedInstanceMemory().memory.id,
         );
 
         // Should have the actual instances, not virtual ones for those dates
@@ -919,14 +918,14 @@ describe("querying memories", () => {
         });
 
         const cancelledInstance = memories.find(
-          (m) => m.id === cancelledInstanceMemory().memory.id
+          (m) => m.id === cancelledInstanceMemory().memory.id,
         );
 
         expect(cancelledInstance).toBeUndefined();
 
         // But should still have other instances
         const rescheduledInstance = memories.find(
-          (m) => m.id === rescheduledInstanceMemory().memory.id
+          (m) => m.id === rescheduledInstanceMemory().memory.id,
         );
         expect(rescheduledInstance).toBeDefined();
       });
@@ -950,7 +949,7 @@ describe("querying memories", () => {
 
         // Find virtual instances (parent recurring memory ID)
         const virtualInstances = memories.filter(
-          (m) => m.id === parentRecurringMemory().memory.id
+          (m) => m.id === parentRecurringMemory().memory.id,
         );
 
         // Should have virtual instances for today, 4 days from now, and 5 days from now
@@ -958,10 +957,10 @@ describe("querying memories", () => {
         expect(virtualInstances.length).toEqual(3);
 
         // Check that virtual instances have the correct original times
-        virtualInstances.forEach((instance) => {
+        for (const instance of virtualInstances) {
           expect(instance.event?.startDate?.getHours()).toBe(10);
           expect(instance.event?.endDate?.getHours()).toBe(11);
-        });
+        }
       });
 
       it("should handle rescheduled instances with different times", async () => {
@@ -981,7 +980,7 @@ describe("querying memories", () => {
         });
 
         const tomorrowInstance = memories.find(
-          (m) => m.id === rescheduledInstanceMemory().memory.id
+          (m) => m.id === rescheduledInstanceMemory().memory.id,
         );
 
         expect(tomorrowInstance).toBeDefined();
@@ -990,7 +989,7 @@ describe("querying memories", () => {
         expect(tomorrowInstance?.event?.startOriginal?.getHours()).toBe(10);
         expect(tomorrowInstance?.event?.startOriginal?.getMinutes()).toBe(0);
         expect(tomorrowInstance?.event?.recurringEventPlatformId).toBe(
-          parentRecurringMemory().event.id
+          parentRecurringMemory().event.id,
         );
       });
 
@@ -1016,7 +1015,7 @@ describe("querying memories", () => {
             m.id === parentRecurringMemory().memory.id ||
             m.id === rescheduledInstanceMemory().memory.id ||
             m.id === cancelledInstanceMemory().memory.id ||
-            m.id === updatedInstanceMemory().memory.id
+            m.id === updatedInstanceMemory().memory.id,
         );
 
         // Should be sorted by start date
@@ -1025,7 +1024,7 @@ describe("querying memories", () => {
           const curr = recurringMatches[i];
           if (prev?.event?.startDate && curr?.event?.startDate) {
             expect(curr.event.startDate.getTime()).toBeGreaterThanOrEqual(
-              prev.event.startDate.getTime()
+              prev.event.startDate.getTime(),
             );
           }
         }
@@ -1034,9 +1033,8 @@ describe("querying memories", () => {
       it("should handle instances that extend beyond parent recurring end date", async () => {
         const extendedInstanceMemory = useTestMemory(() => [
           user.id,
-          TEST_EMBEDDING_DENTIST_APPOINTMENT_TEXT + " (Extended)",
-          TEST_EMBEDDING_DENTIST_APPOINTMENT_DESCRIPTION +
-            " - extended beyond series",
+          TEST_EMBEDDING_DENTIST_APPOINTMENT_TEXT,
+          TEST_EMBEDDING_DENTIST_APPOINTMENT_DESCRIPTION,
           {
             event: {
               platformAccountId: calendar.platformAccountId,
@@ -1091,22 +1089,21 @@ describe("querying memories", () => {
         });
 
         const extendedInstance = memories.find(
-          (m) => m.id === extendedInstanceMemory().memory.id
+          (m) => m.id === extendedInstanceMemory().memory.id,
         );
 
         // Should find the extended instance even though it's beyond the parent's end date
         expect(extendedInstance).toBeDefined();
         expect(extendedInstance?.event?.recurringEventPlatformId).toBe(
-          parentRecurringMemory().event.id
+          parentRecurringMemory().event.id,
         );
       });
 
       it("should handle instances created for past occurrences", async () => {
         const pastInstanceMemory = useTestMemory(() => [
           user.id,
-          TEST_EMBEDDING_DENTIST_APPOINTMENT_TEXT + " (Completed)",
-          TEST_EMBEDDING_DENTIST_APPOINTMENT_DESCRIPTION +
-            " - completed appointment",
+          TEST_EMBEDDING_DENTIST_APPOINTMENT_TEXT,
+          TEST_EMBEDDING_DENTIST_APPOINTMENT_DESCRIPTION,
           {
             event: {
               platformAccountId: calendar.platformAccountId,
@@ -1161,7 +1158,7 @@ describe("querying memories", () => {
         });
 
         const pastInstance = memories.find(
-          (m) => m.id === pastInstanceMemory().memory.id
+          (m) => m.id === pastInstanceMemory().memory.id,
         );
 
         expect(pastInstance).toBeDefined();

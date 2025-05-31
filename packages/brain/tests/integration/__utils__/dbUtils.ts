@@ -1,4 +1,5 @@
-import { eq, type InferInsertModel } from "@kokoro/db";
+import { type InferInsertModel, eq } from "@kokoro/db";
+import { db } from "@kokoro/db/client";
 import {
   calendarTable,
   integrationsAccountsTable,
@@ -8,11 +9,10 @@ import {
   tasklistsTable,
   userTable,
 } from "@kokoro/db/schema";
-import { db } from "@kokoro/db/client";
 import { GOOGLE_CALENDAR, LINEAR_INTEGRATION } from "@kokoro/validators/db";
 import { nanoid } from "nanoid";
-import { type TEST_EMBEDDING_TEXTS, TEST_EMBEDDINGS } from "./embeddings";
 import { afterAll, beforeAll } from "vitest";
+import { TEST_EMBEDDINGS, type TEST_EMBEDDING_TEXTS } from "./embeddings";
 
 // biome-ignore lint/suspicious/noExplicitAny: needed for inference
 export type AwaitedReturnType<T extends (...args: any) => any> = Awaited<
@@ -31,7 +31,7 @@ export async function createTestUser(user: InferInsertModel<typeof userTable>) {
 
 export async function createGoogleCalendarIntegration(
   userId: string,
-  overrideValues?: Partial<InferInsertModel<typeof integrationsAccountsTable>>
+  overrideValues?: Partial<InferInsertModel<typeof integrationsAccountsTable>>,
 ) {
   const [createdIntegration] = await db
     .insert(integrationsAccountsTable)
@@ -63,7 +63,7 @@ export async function createCalendar(
   userId: string,
   integrationAccountId: string,
   platformAccountId: string,
-  overrideValues?: Partial<InferInsertModel<typeof calendarTable>>
+  overrideValues?: Partial<InferInsertModel<typeof calendarTable>>,
 ) {
   const [createdCalendar] = await db
     .insert(calendarTable)
@@ -92,7 +92,7 @@ export async function createCalendar(
 
 export async function createLinearIntegration(
   userId: string,
-  overrideValues?: Partial<InferInsertModel<typeof integrationsAccountsTable>>
+  overrideValues?: Partial<InferInsertModel<typeof integrationsAccountsTable>>,
 ) {
   const [createdIntegration] = await db
     .insert(integrationsAccountsTable)
@@ -123,7 +123,7 @@ export async function createTasklist(
   userId: string,
   integrationAccountId: string,
   platformAccountId: string,
-  overrideValues?: Partial<InferInsertModel<typeof tasklistsTable>>
+  overrideValues?: Partial<InferInsertModel<typeof tasklistsTable>>,
 ) {
   const [createdTasklist] = await db
     .insert(tasklistsTable)
@@ -158,7 +158,7 @@ export async function createMemory(
       InferInsertModel<typeof memoryTaskTable>,
       "memoryId" | "userId"
     >;
-  }
+  },
 ) {
   const { event, task } = parameters;
 

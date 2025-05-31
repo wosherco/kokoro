@@ -15,7 +15,7 @@ export function useDatabaseContainer() {
 
   beforeAll(async () => {
     postgresContainer = await new PostgreSqlContainer(
-      "timescale/timescaledb-ha:pg16-all"
+      "timescale/timescaledb-ha:pg16-all",
     )
       .withDatabase("postgres")
       .withUsername("postgres")
@@ -38,7 +38,7 @@ export function useEmbeddingServiceContainer() {
 
   beforeAll(async () => {
     embeddingServiceContainer = await new GenericContainer(
-      "ghcr.io/wosherco/all-minilm-l6-v2-restapi-service"
+      "ghcr.io/wosherco/all-minilm-l6-v2-restapi-service",
     )
       .withExposedPorts({ container: 3000, host: 3000 })
       .withWaitStrategy(Wait.forHttp("/health", 3000))
