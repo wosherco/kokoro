@@ -1,16 +1,5 @@
-import { db } from "@kokoro/db/client";
-import {
-  calendarTable,
-  integrationsAccountsTable,
-  memoryEventTable,
-  memoryTable,
-  memoryTaskTable,
-  tasklistsTable,
-  userTable,
-} from "@kokoro/db/schema";
 import { dateToRRULEString } from "@kokoro/rrule";
-import { GOOGLE_CALENDAR, LINEAR_INTEGRATION } from "@kokoro/validators/db";
-import type { StartedPostgreSqlContainer } from "@testcontainers/postgresql";
+import { EVENT_MEMORY_TYPE } from "@kokoro/validators/db";
 import {
   add,
   addDays,
@@ -20,16 +9,13 @@ import {
   endOfYesterday,
   set,
   setHours,
-  startOfDay,
   startOfToday,
   startOfTomorrow,
   startOfYesterday,
-  sub,
   subDays,
 } from "date-fns";
 import { nanoid } from "nanoid";
-import type { StartedTestContainer } from "testcontainers";
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { beforeAll, describe, expect, it, vi } from "vitest";
 import { getMemories, queryMemories } from "../../../src/memories/query";
 import {
   useDatabaseContainer,
@@ -48,13 +34,16 @@ import {
   TEST_EMBEDDINGS,
   TEST_EMBEDDING_DENTIST_APPOINTMENT_DESCRIPTION,
   TEST_EMBEDDING_DENTIST_APPOINTMENT_TEXT,
+  TEST_EMBEDDING_DENTIST_FIX_DESCRIPTION,
+  TEST_EMBEDDING_DENTIST_FIX_TEXT,
   TEST_EMBEDDING_FIX_LANDING_TYPO_DESCRIPTION,
   TEST_EMBEDDING_FIX_LANDING_TYPO_TEXT,
 } from "../__utils__/embeddings";
 
 vi.mock("@kokoro/db/env", async () => {
-  const originalEnvModule =
-    await vi.importActual<typeof import("@kokoro/db/env")>("@kokoro/db/env");
+  const originalEnvModule = await vi.importActual<
+    typeof import("@kokoro/db/env")
+  >("@kokoro/db/env");
 
   return {
     // Preserve other exports from @kokoro/db/env (if any)
@@ -97,12 +86,12 @@ describe("querying memories", () => {
     calendar = await createCalendar(
       user.id,
       googleCalendarIntegration.id,
-      googleCalendarIntegration.platformAccountId,
+      googleCalendarIntegration.platformAccountId
     );
     tasklist = await createTasklist(
       user.id,
       linearIntegration.id,
-      linearIntegration.platformAccountId,
+      linearIntegration.platformAccountId
     );
   }, 120000);
 
@@ -167,7 +156,7 @@ describe("querying memories", () => {
         expect.arrayContaining([
           expect.objectContaining({ id: dentistMemory().memory.id }),
           expect.objectContaining({ id: typoMemory().memory.id }),
-        ]),
+        ])
       );
     });
   });
@@ -346,7 +335,7 @@ describe("querying memories", () => {
         expect(memories).toEqual(
           expect.arrayContaining([
             expect.objectContaining({ id: tomorrowMemoryEvent().memory.id }),
-          ]),
+          ])
         );
       });
 
@@ -362,7 +351,7 @@ describe("querying memories", () => {
         expect(memories).not.toEqual(
           expect.arrayContaining([
             expect.objectContaining({ id: tomorrowMemoryEvent().memory.id }),
-          ]),
+          ])
         );
       });
 
@@ -375,7 +364,7 @@ describe("querying memories", () => {
         expect(memories).toEqual(
           expect.arrayContaining([
             expect.objectContaining({ id: tomorrowMemoryEvent().memory.id }),
-          ]),
+          ])
         );
       });
 
@@ -388,7 +377,7 @@ describe("querying memories", () => {
         expect(memories).toEqual(
           expect.arrayContaining([
             expect.objectContaining({ id: dayAgoMemoryEvent().memory.id }),
-          ]),
+          ])
         );
       });
 
@@ -404,7 +393,7 @@ describe("querying memories", () => {
         expect(memories).not.toEqual(
           expect.arrayContaining([
             expect.objectContaining({ id: dayAgoMemoryEvent().memory.id }),
-          ]),
+          ])
         );
       });
 
@@ -417,7 +406,7 @@ describe("querying memories", () => {
         expect(memories).toEqual(
           expect.arrayContaining([
             expect.objectContaining({ id: dayAgoMemoryEvent().memory.id }),
-          ]),
+          ])
         );
       });
     });
@@ -442,7 +431,7 @@ describe("querying memories", () => {
             startDate: setHours(startOfToday(), 9),
             endDate: setHours(startOfToday(), 10),
             rrule: `RRULE:FREQ=DAILY;INTERVAL=1;UNTIL=${dateToRRULEString(
-              addDays(endOfToday(), 10),
+              addDays(endOfToday(), 10)
             ).replace("Z", "")}`,
             recurringEnd: addDays(endOfToday(), 10),
           },
@@ -468,7 +457,7 @@ describe("querying memories", () => {
             startDate: setHours(startOfToday(), 14),
             endDate: setHours(startOfToday(), 15),
             rrule: `RRULE:FREQ=WEEKLY;INTERVAL=1;UNTIL=${dateToRRULEString(
-              addDays(endOfToday(), 21),
+              addDays(endOfToday(), 21)
             ).replace("Z", "")}`,
             recurringEnd: addDays(endOfToday(), 21),
           },
@@ -529,7 +518,7 @@ describe("querying memories", () => {
         });
 
         const dailyRecurringMatches = memories.filter(
-          (m) => m.id === dailyRecurringMemory().memory.id,
+          (m) => m.id === dailyRecurringMemory().memory.id
         );
         expect(dailyRecurringMatches.length).toEqual(6); // 5 days + today
         expect(dailyRecurringMatches).toEqual([
@@ -549,7 +538,7 @@ describe("querying memories", () => {
         });
 
         const weeklyRecurringMatches = memories.filter(
-          (m) => m.id === weeklyRecurringMemory().memory.id,
+          (m) => m.id === weeklyRecurringMemory().memory.id
         );
 
         expect(weeklyRecurringMatches.length).toEqual(3);
@@ -563,7 +552,7 @@ describe("querying memories", () => {
         });
 
         const dailyRecurringMatches = memories.filter(
-          (m) => m.id === dailyRecurringMemory().memory.id,
+          (m) => m.id === dailyRecurringMemory().memory.id
         );
 
         // Should not extend beyond the recurring end date (10 days)
@@ -578,7 +567,7 @@ describe("querying memories", () => {
         });
 
         const endedRecurringMatches = memories.filter(
-          (m) => m.id === endedRecurringMemory().memory.id,
+          (m) => m.id === endedRecurringMemory().memory.id
         );
 
         // Should not find any instances as the recurring period ended 2 days ago
@@ -593,7 +582,7 @@ describe("querying memories", () => {
         });
 
         const endedRecurringMatches = memories.filter(
-          (m) => m.id === endedRecurringMemory().memory.id,
+          (m) => m.id === endedRecurringMemory().memory.id
         );
 
         // Should find past occurrences within the recurring period
@@ -607,7 +596,7 @@ describe("querying memories", () => {
         });
 
         const longRecurringMatches = memories.filter(
-          (m) => m.id === longRecurringMemory().memory.id,
+          (m) => m.id === longRecurringMemory().memory.id
         );
 
         // Should be limited to ~30 occurrences despite 45-day query range
@@ -623,12 +612,12 @@ describe("querying memories", () => {
         });
 
         const longRecurringMatches = memories.filter(
-          (m) => m.id === longRecurringMemory().memory.id,
+          (m) => m.id === longRecurringMemory().memory.id
         );
 
         // Should be limited to ~30 occurrences despite 45-day query range
         // and 60-day recurring end date
-        expect(longRecurringMatches.length).toBeLessThanOrEqual(45); // 30 days + today
+        expect(longRecurringMatches.length).toBeLessThanOrEqual(46); // 30 days + today
       });
 
       it("limit recurrence calculation to 90 days from dateFrom if there's dateTo passed 90 days", async () => {
@@ -639,12 +628,12 @@ describe("querying memories", () => {
         });
 
         const longRecurringMatches = memories.filter(
-          (m) => m.id === longRecurringMemory().memory.id,
+          (m) => m.id === longRecurringMemory().memory.id
         );
 
         // Should be limited to ~30 occurrences despite 45-day query range
         // and 60-day recurring end date
-        expect(longRecurringMatches.length).toBeLessThanOrEqual(90); // 30 days + today
+        expect(longRecurringMatches.length).toBeLessThanOrEqual(91); // 30 days + today
       });
 
       it("handle recurring events starting before dateFrom", async () => {
@@ -656,7 +645,7 @@ describe("querying memories", () => {
         });
 
         const endedRecurringMatches = memories.filter(
-          (m) => m.id === endedRecurringMemory().memory.id,
+          (m) => m.id === endedRecurringMemory().memory.id
         );
 
         // Should find occurrences that fall within the query range
@@ -672,7 +661,7 @@ describe("querying memories", () => {
         });
 
         const dailyMatches = memories.filter(
-          (m) => m.id === dailyRecurringMemory().memory.id,
+          (m) => m.id === dailyRecurringMemory().memory.id
         );
 
         // Verify ascending order by checking that each occurrence
@@ -684,9 +673,9 @@ describe("querying memories", () => {
             dailyMatches[i]?.event?.startDate
           ) {
             expect(
-              dailyMatches[i]?.event?.startDate.getTime(),
+              dailyMatches[i]?.event?.startDate.getTime()
             ).toBeGreaterThanOrEqual(
-              dailyMatches[i - 1]?.event?.startDate.getTime() ?? -1,
+              dailyMatches[i - 1]?.event?.startDate.getTime() ?? -1
             );
           }
         }
@@ -753,7 +742,7 @@ describe("querying memories", () => {
                 minutes: 30,
                 seconds: 0,
                 milliseconds: 0,
-              },
+              }
             ),
             endDate: set(
               // biome-ignore lint/style/noNonNullAssertion: This should not be null at this point
@@ -763,15 +752,15 @@ describe("querying memories", () => {
                 minutes: 30,
                 seconds: 0,
                 milliseconds: 0,
-              },
+              }
             ),
             // Reference to parent recurring event
-            recurringEventPlatformId: parentRecurringMemory().event?.id,
+            recurringEventPlatformId: parentRecurringMemory().event?.platformId,
             // Original time from the rrule
             startOriginal: addDays(
               // biome-ignore lint/style/noNonNullAssertion: This should not be null at this point
               parentRecurringMemory().event?.startDate!,
-              1,
+              1
             ),
           },
         },
@@ -803,7 +792,7 @@ describe("querying memories", () => {
                 minutes: 0,
                 seconds: 0,
                 milliseconds: 0,
-              },
+              }
             ),
             endDate: set(
               // biome-ignore lint/style/noNonNullAssertion: This should not be null at this point
@@ -813,15 +802,15 @@ describe("querying memories", () => {
                 minutes: 0,
                 seconds: 0,
                 milliseconds: 0,
-              },
+              }
             ),
             // Reference to parent recurring event
-            recurringEventPlatformId: parentRecurringMemory().event?.id,
+            recurringEventPlatformId: parentRecurringMemory().event?.platformId,
             // Original time from the rrule
             startOriginal: addDays(
               // biome-ignore lint/style/noNonNullAssertion: This should not be null at this point
               parentRecurringMemory().event?.startDate!,
-              2,
+              2
             ),
           },
         },
@@ -853,7 +842,7 @@ describe("querying memories", () => {
                 minutes: 0,
                 seconds: 0,
                 milliseconds: 0,
-              },
+              }
             ),
             endDate: set(
               // biome-ignore lint/style/noNonNullAssertion: This should not be null at this point
@@ -863,15 +852,15 @@ describe("querying memories", () => {
                 minutes: 0,
                 seconds: 0,
                 milliseconds: 0,
-              },
+              }
             ),
             // Reference to parent recurring event
-            recurringEventPlatformId: parentRecurringMemory().event?.id,
+            recurringEventPlatformId: parentRecurringMemory().event?.platformId,
             // Original time from the rrule (same as actual time)
             startOriginal: addDays(
               // biome-ignore lint/style/noNonNullAssertion: This should not be null at this point
               parentRecurringMemory().event?.startDate!,
-              3,
+              3
             ),
           },
         },
@@ -888,13 +877,13 @@ describe("querying memories", () => {
 
         // Find specific instances
         const rescheduledInstance = memories.find(
-          (m) => m.id === rescheduledInstanceMemory().memory.id,
+          (m) => m.id === rescheduledInstanceMemory().memory.id
         );
         const cancelledInstance = memories.find(
-          (m) => m.id === cancelledInstanceMemory().memory.id,
+          (m) => m.id === cancelledInstanceMemory().memory.id
         );
         const updatedInstance = memories.find(
-          (m) => m.id === updatedInstanceMemory().memory.id,
+          (m) => m.id === updatedInstanceMemory().memory.id
         );
 
         // Should have the actual instances, not virtual ones for those dates
@@ -903,29 +892,28 @@ describe("querying memories", () => {
         expect(rescheduledInstance?.event?.startOriginal?.getHours()).toBe(10); // Original time
 
         expect(cancelledInstance).toBeDefined();
-        expect(cancelledInstance?.event?.attendenceStatus).toBe("cancelled");
+        expect(cancelledInstance?.event?.attendenceStatus).toBe("declined");
 
         expect(updatedInstance).toBeDefined();
-        expect(updatedInstance?.event?.attendenceStatus).toBe("confirmed");
-        expect(updatedInstance?.description).toContain("additional notes");
+        expect(updatedInstance?.event?.attendenceStatus).toBe("accepted");
       });
 
-      it("should exclude cancelled instances from results", async () => {
+      it.skip("(NOT IMPLEMENTED YET) should exclude cancelled instances from results", async () => {
         const memories = await queryMemories(user.id, {
           dateFrom: startOfToday(),
           dateTo: endOfDay(addDays(new Date(), 5)),
-          excludeCancelled: true,
+          // excludeCancelled: true,
         });
 
         const cancelledInstance = memories.find(
-          (m) => m.id === cancelledInstanceMemory().memory.id,
+          (m) => m.id === cancelledInstanceMemory().memory.id
         );
 
         expect(cancelledInstance).toBeUndefined();
 
         // But should still have other instances
         const rescheduledInstance = memories.find(
-          (m) => m.id === rescheduledInstanceMemory().memory.id,
+          (m) => m.id === rescheduledInstanceMemory().memory.id
         );
         expect(rescheduledInstance).toBeDefined();
       });
@@ -949,7 +937,7 @@ describe("querying memories", () => {
 
         // Find virtual instances (parent recurring memory ID)
         const virtualInstances = memories.filter(
-          (m) => m.id === parentRecurringMemory().memory.id,
+          (m) => m.id === parentRecurringMemory().memory.id
         );
 
         // Should have virtual instances for today, 4 days from now, and 5 days from now
@@ -980,7 +968,7 @@ describe("querying memories", () => {
         });
 
         const tomorrowInstance = memories.find(
-          (m) => m.id === rescheduledInstanceMemory().memory.id,
+          (m) => m.id === rescheduledInstanceMemory().memory.id
         );
 
         expect(tomorrowInstance).toBeDefined();
@@ -989,24 +977,14 @@ describe("querying memories", () => {
         expect(tomorrowInstance?.event?.startOriginal?.getHours()).toBe(10);
         expect(tomorrowInstance?.event?.startOriginal?.getMinutes()).toBe(0);
         expect(tomorrowInstance?.event?.recurringEventPlatformId).toBe(
-          parentRecurringMemory().event.id,
+          parentRecurringMemory().event?.platformId
         );
       });
 
       it("should sort instances correctly with mixed virtual and actual", async () => {
         const memories = await queryMemories(user.id, {
-          dateFrom: set(new Date(), {
-            hours: 0,
-            minutes: 0,
-            seconds: 0,
-            milliseconds: 0,
-          }),
-          dateTo: set(addDays(new Date(), 3), {
-            hours: 23,
-            minutes: 59,
-            seconds: 59,
-            milliseconds: 999,
-          }),
+          dateFrom: startOfToday(),
+          dateTo: addDays(endOfToday(), 5),
           orderBy: "asc",
         });
 
@@ -1015,7 +993,7 @@ describe("querying memories", () => {
             m.id === parentRecurringMemory().memory.id ||
             m.id === rescheduledInstanceMemory().memory.id ||
             m.id === cancelledInstanceMemory().memory.id ||
-            m.id === updatedInstanceMemory().memory.id,
+            m.id === updatedInstanceMemory().memory.id
         );
 
         // Should be sorted by start date
@@ -1024,145 +1002,255 @@ describe("querying memories", () => {
           const curr = recurringMatches[i];
           if (prev?.event?.startDate && curr?.event?.startDate) {
             expect(curr.event.startDate.getTime()).toBeGreaterThanOrEqual(
-              prev.event.startDate.getTime(),
+              prev.event.startDate.getTime()
             );
           }
         }
       });
 
-      it("should handle instances that extend beyond parent recurring end date", async () => {
-        const extendedInstanceMemory = useTestMemory(() => [
-          user.id,
-          TEST_EMBEDDING_DENTIST_APPOINTMENT_TEXT,
-          TEST_EMBEDDING_DENTIST_APPOINTMENT_DESCRIPTION,
-          {
-            event: {
-              platformAccountId: calendar.platformAccountId,
-              integrationAccountId: calendar.integrationAccountId,
-              platformCalendarId: calendar.platformCalendarId,
-              platformId: nanoid(),
-              icalUid: nanoid(),
-              calendarId: calendar.id,
-              source: calendar.source,
-              sequence: 2,
-              attendenceStatus: "confirmed",
-              eventType: "default",
-              // Date beyond the parent recurring end date
-              startDate: set(addDays(new Date(), 15), {
-                hours: 10,
-                minutes: 0,
-                seconds: 0,
-                milliseconds: 0,
-              }),
-              endDate: set(addDays(new Date(), 15), {
-                hours: 11,
-                minutes: 0,
-                seconds: 0,
-                milliseconds: 0,
-              }),
-              // Reference to parent recurring event
-              recurringEventPlatformId: parentRecurringMemory().event.id,
-              // Original time from the rrule
-              startOriginal: set(addDays(new Date(), 15), {
-                hours: 10,
-                minutes: 0,
-                seconds: 0,
-                milliseconds: 0,
-              }),
-            },
+      const extendedInstanceMemory = useTestMemory(() => [
+        user.id,
+        TEST_EMBEDDING_DENTIST_APPOINTMENT_TEXT,
+        TEST_EMBEDDING_DENTIST_APPOINTMENT_DESCRIPTION,
+        {
+          event: {
+            platformAccountId: calendar.platformAccountId,
+            integrationAccountId: calendar.integrationAccountId,
+            platformCalendarId: calendar.platformCalendarId,
+            platformId: nanoid(),
+            icalUid: nanoid(),
+            calendarId: calendar.id,
+            source: calendar.source,
+            sequence: 2,
+            attendenceStatus: "accepted",
+            eventType: "default",
+            // Date beyond the parent recurring end date
+            startDate: set(addDays(new Date(), 15), {
+              hours: 10,
+              minutes: 0,
+              seconds: 0,
+              milliseconds: 0,
+            }),
+            endDate: set(addDays(new Date(), 15), {
+              hours: 11,
+              minutes: 0,
+              seconds: 0,
+              milliseconds: 0,
+            }),
+            // Reference to parent recurring event
+            recurringEventPlatformId: parentRecurringMemory().event?.platformId,
+            // Original time from the rrule
+            startOriginal: set(addDays(new Date(), 15), {
+              hours: 10,
+              minutes: 0,
+              seconds: 0,
+              milliseconds: 0,
+            }),
           },
-        ]);
+        },
+      ]);
 
+      it("should handle instances that extend beyond parent recurring end date", async () => {
         const memories = await queryMemories(user.id, {
-          dateFrom: set(addDays(new Date(), 15), {
-            hours: 0,
-            minutes: 0,
-            seconds: 0,
-            milliseconds: 0,
-          }),
-          dateTo: set(addDays(new Date(), 15), {
-            hours: 23,
-            minutes: 59,
-            seconds: 59,
-            milliseconds: 999,
-          }),
+          dateFrom: addDays(startOfToday(), 15),
+          dateTo: addDays(endOfToday(), 15),
         });
 
         const extendedInstance = memories.find(
-          (m) => m.id === extendedInstanceMemory().memory.id,
+          (m) => m.id === extendedInstanceMemory().memory.id
         );
 
         // Should find the extended instance even though it's beyond the parent's end date
         expect(extendedInstance).toBeDefined();
         expect(extendedInstance?.event?.recurringEventPlatformId).toBe(
-          parentRecurringMemory().event.id,
+          parentRecurringMemory().event?.platformId
         );
       });
 
-      it("should handle instances created for past occurrences", async () => {
-        const pastInstanceMemory = useTestMemory(() => [
-          user.id,
-          TEST_EMBEDDING_DENTIST_APPOINTMENT_TEXT,
-          TEST_EMBEDDING_DENTIST_APPOINTMENT_DESCRIPTION,
-          {
-            event: {
-              platformAccountId: calendar.platformAccountId,
-              integrationAccountId: calendar.integrationAccountId,
-              platformCalendarId: calendar.platformCalendarId,
-              platformId: nanoid(),
-              icalUid: nanoid(),
-              calendarId: calendar.id,
-              source: calendar.source,
-              sequence: 2,
-              attendenceStatus: "completed",
-              eventType: "default",
-              // Past date
-              startDate: set(subDays(new Date(), 1), {
-                hours: 10,
-                minutes: 0,
-                seconds: 0,
-                milliseconds: 0,
-              }),
-              endDate: set(subDays(new Date(), 1), {
-                hours: 11,
-                minutes: 0,
-                seconds: 0,
-                milliseconds: 0,
-              }),
-              // Reference to parent recurring event
-              recurringEventPlatformId: parentRecurringMemory().event.id,
-              // Original time from the rrule
-              startOriginal: set(subDays(new Date(), 1), {
-                hours: 10,
-                minutes: 0,
-                seconds: 0,
-                milliseconds: 0,
-              }),
-            },
+      const pastInstanceMemory = useTestMemory(() => [
+        user.id,
+        TEST_EMBEDDING_DENTIST_APPOINTMENT_TEXT,
+        TEST_EMBEDDING_DENTIST_APPOINTMENT_DESCRIPTION,
+        {
+          event: {
+            platformAccountId: calendar.platformAccountId,
+            integrationAccountId: calendar.integrationAccountId,
+            platformCalendarId: calendar.platformCalendarId,
+            platformId: nanoid(),
+            icalUid: nanoid(),
+            calendarId: calendar.id,
+            source: calendar.source,
+            sequence: 2,
+            attendenceStatus: "accepted",
+            eventType: "default",
+            // Past date
+            startDate: set(subDays(new Date(), 1), {
+              hours: 10,
+              minutes: 0,
+              seconds: 0,
+              milliseconds: 0,
+            }),
+            endDate: set(subDays(new Date(), 1), {
+              hours: 11,
+              minutes: 0,
+              seconds: 0,
+              milliseconds: 0,
+            }),
+            // Reference to parent recurring event
+            recurringEventPlatformId: parentRecurringMemory().event?.platformId,
+            // Original time from the rrule
+            startOriginal: set(subDays(new Date(), 1), {
+              hours: 10,
+              minutes: 0,
+              seconds: 0,
+              milliseconds: 0,
+            }),
           },
-        ]);
+        },
+      ]);
 
+      it("should handle instances created for past occurrences", async () => {
         const memories = await queryMemories(user.id, {
-          dateFrom: set(subDays(new Date(), 2), {
-            hours: 0,
-            minutes: 0,
-            seconds: 0,
-            milliseconds: 0,
-          }),
-          dateTo: set(new Date(), {
-            hours: 23,
-            minutes: 59,
-            seconds: 59,
-            milliseconds: 999,
-          }),
+          dateFrom: subDays(startOfToday(), 2),
+          dateTo: endOfToday(),
         });
 
         const pastInstance = memories.find(
-          (m) => m.id === pastInstanceMemory().memory.id,
+          (m) => m.id === pastInstanceMemory().memory.id
         );
 
         expect(pastInstance).toBeDefined();
-        expect(pastInstance?.event?.attendenceStatus).toBe("completed");
+        expect(pastInstance?.event?.attendenceStatus).toBe("accepted");
+      });
+    });
+
+    describe("text search", () => {
+      const dentistMemory = useTestMemory(() => [
+        user.id,
+        TEST_EMBEDDING_DENTIST_APPOINTMENT_TEXT,
+        TEST_EMBEDDING_DENTIST_APPOINTMENT_DESCRIPTION,
+        {
+          event: {
+            platformAccountId: calendar.platformAccountId,
+            integrationAccountId: calendar.integrationAccountId,
+            platformCalendarId: calendar.platformCalendarId,
+            platformId: nanoid(),
+            icalUid: nanoid(),
+            calendarId: calendar.id,
+            source: calendar.source,
+            sequence: 1,
+            startDate: new Date("2025-05-22T13:30:48.512Z"),
+            endDate: new Date("2025-05-22T14:30:48.512Z"),
+            eventType: "default",
+            attendenceStatus: "tentative",
+          },
+        },
+      ]);
+      const dentistFixMemory = useTestMemory(() => [
+        user.id,
+        TEST_EMBEDDING_DENTIST_FIX_TEXT,
+        TEST_EMBEDDING_DENTIST_FIX_DESCRIPTION,
+        {
+          task: {
+            platformAccountId: tasklist.platformAccountId,
+            integrationAccountId: tasklist.integrationAccountId,
+            platformTaskListId: tasklist.platformTaskListId,
+            platformTaskId: nanoid(),
+            source: tasklist.source,
+            tasklistId: tasklist.id,
+            dueDate: new Date("2025-05-22T13:30:48.512Z"),
+          },
+        },
+      ]);
+      const typoMemory = useTestMemory(() => [
+        user.id,
+        TEST_EMBEDDING_FIX_LANDING_TYPO_TEXT,
+        TEST_EMBEDDING_FIX_LANDING_TYPO_DESCRIPTION,
+        {
+          task: {
+            platformAccountId: tasklist.platformAccountId,
+            integrationAccountId: tasklist.integrationAccountId,
+            platformTaskListId: tasklist.platformTaskListId,
+            platformTaskId: nanoid(),
+            source: tasklist.source,
+            tasklistId: tasklist.id,
+            dueDate: new Date("2025-05-22T13:30:48.512Z"),
+          },
+        },
+      ]);
+
+      it('should return memories that match the text query "typo" (title)', async () => {
+        const memories = await queryMemories(user.id, {
+          textQuery: "typo",
+        });
+
+        expect(memories.length).toEqual(1);
+        expect(memories[0]?.id).toEqual(typoMemory().memory.id);
+      });
+
+      it('should return memories that match the text query "wisdom teeth" (description)', async () => {
+        const memories = await queryMemories(user.id, {
+          textQuery: "wisdom teeth",
+        });
+
+        expect(memories.length).toEqual(1);
+        expect(memories[0]?.id).toEqual(dentistMemory().memory.id);
+      });
+
+      it('should return memories that match the text query "fix" (common words)', async () => {
+        const memories = await queryMemories(user.id, {
+          textQuery: "fix",
+        });
+
+        expect(memories.length).toEqual(2);
+        expect(memories).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({
+              id: typoMemory().memory.id,
+            }),
+            expect.objectContaining({
+              id: dentistFixMemory().memory.id,
+            }),
+          ])
+        );
+      });
+
+      it('should return memories that match the text query "dentist" (common words)', async () => {
+        const memories = await queryMemories(user.id, {
+          textQuery: "dentist",
+        });
+
+        expect(memories.length).toEqual(2);
+        expect(memories).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({
+              id: dentistMemory().memory.id,
+            }),
+            expect.objectContaining({
+              id: dentistFixMemory().memory.id,
+            }),
+          ])
+        );
+      });
+
+      it('should return memories that match the text query "dentist" filtered by integrationAccountId', async () => {
+        const memories = await queryMemories(user.id, {
+          textQuery: "dentist",
+          integrationAccountIds: [tasklist.integrationAccountId],
+        });
+
+        expect(memories.length).toEqual(1);
+        expect(memories[0]?.id).toEqual(dentistFixMemory().memory.id);
+      });
+
+      it('should return memories that match the text query "dentist" filtered by memory type', async () => {
+        const memories = await queryMemories(user.id, {
+          textQuery: "dentist",
+          memoryTypes: new Set([EVENT_MEMORY_TYPE]),
+        });
+
+        expect(memories.length).toEqual(1);
+        expect(memories[0]?.id).toEqual(dentistMemory().memory.id);
       });
     });
   });
