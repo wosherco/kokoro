@@ -1,5 +1,5 @@
 import { filterNull, groupBy, lookup } from "@kokoro/common/poldash";
-import type { PgColumn, SQLWrapper, SubqueryWithSelection } from "@kokoro/db";
+import type { SQLWrapper, SubqueryWithSelection } from "@kokoro/db";
 import {
   and,
   asc,
@@ -38,6 +38,7 @@ import { processRrule } from "@kokoro/rrule";
 import {
   type CalendarSource,
   EVENT_MEMORY_TYPE,
+  type IntegrationSource,
   type MemorySortBy,
   type MemoryType,
   type OrderBy,
@@ -46,7 +47,7 @@ import {
   type TaskState,
 } from "@kokoro/validators/db";
 
-import { add, addDays, addMilliseconds, isSameDay, min } from "date-fns";
+import { addDays, addMilliseconds, min } from "date-fns";
 import { getEmbedding } from "../embeddings";
 
 function createMemoryEventsSubquery(
@@ -55,7 +56,7 @@ function createMemoryEventsSubquery(
     dateFrom?: Date;
     dateTo?: Date;
   },
-  db: TransactableDBType = dbClient,
+  db: TransactableDBType = dbClient
 ) {
   const { dateFrom: startDate, dateTo: endDate } = options;
 
@@ -101,7 +102,7 @@ function createMemoryEventsSubquery(
       */
       and(
         lte(memoryEventTable.startDate, eventsEndDate),
-        gte(memoryEventTable.endDate, startDate),
+        gte(memoryEventTable.endDate, startDate)
       ),
       and(
         isNotNull(memoryEventTable.rrule),
@@ -109,13 +110,13 @@ function createMemoryEventsSubquery(
           lte(memoryEventTable.startDate, eventsEndDate),
           or(
             isNull(memoryEventTable.recurringEnd),
-            gte(memoryEventTable.recurringEnd, startDate),
+            gte(memoryEventTable.recurringEnd, startDate)
           ),
           sql<boolean>`matching_recurrences(${memoryEventTable.startDate}, ${
             memoryEventTable.rrule
-          }, ${startDate.toISOString()}, ${endDate?.toISOString() ?? null})`,
-        ),
-      ),
+          }, ${startDate.toISOString()}, ${endDate?.toISOString() ?? null})`
+        )
+      )
     );
   }
 
@@ -136,8 +137,8 @@ function createMemoryEventsSubquery(
       and(
         ...baseFilters,
         eventCondition ?? sql`TRUE`,
-        or(isNull(calendarTable.hidden), not(calendarTable.hidden)),
-      ),
+        or(isNull(calendarTable.hidden), not(calendarTable.hidden))
+      )
     )
     .as("memoryEventsSubquery");
 
@@ -153,8 +154,8 @@ const createLatestPrioritySubquery = (db: TransactableDBType) =>
     .where(
       and(
         eq(memoryTaskAttributeTable.memoryTaskId, memoryTaskTable.id),
-        isNotNull(memoryTaskAttributeTable.priority),
-      ),
+        isNotNull(memoryTaskAttributeTable.priority)
+      )
     )
     .orderBy(desc(memoryTaskAttributeTable.createdAt))
     .limit(1)
@@ -167,7 +168,7 @@ function createMemoryTasksSubquery(
     dateTo?: Date;
     taskStates?: Set<TaskState>;
   },
-  db: TransactableDBType = dbClient,
+  db: TransactableDBType = dbClient
 ) {
   const { dateFrom: startDate, dateTo: endDate, taskStates } = options;
 
@@ -177,9 +178,9 @@ function createMemoryTasksSubquery(
     dueDateCondition = or(
       and(
         gte(memoryTaskTable.dueDate, startDate),
-        endDate ? lte(memoryTaskTable.dueDate, endDate) : undefined,
+        endDate ? lte(memoryTaskTable.dueDate, endDate) : undefined
       ),
-      isNull(memoryTaskTable.dueDate),
+      isNull(memoryTaskTable.dueDate)
     );
   }
 
@@ -191,8 +192,8 @@ function createMemoryTasksSubquery(
     .where(
       and(
         eq(memoryTaskAttributeTable.memoryTaskId, memoryTaskTable.id),
-        isNotNull(memoryTaskAttributeTable.state),
-      ),
+        isNotNull(memoryTaskAttributeTable.state)
+      )
     )
     .orderBy(desc(memoryTaskAttributeTable.createdAt))
     .limit(1)
@@ -215,7 +216,7 @@ function createMemoryTasksSubquery(
     .innerJoin(memoryTaskTable, eq(memoryTable.id, memoryTaskTable.memoryId))
     .innerJoin(
       tasklistsTable,
-      eq(memoryTaskTable.tasklistId, tasklistsTable.id),
+      eq(memoryTaskTable.tasklistId, tasklistsTable.id)
     )
     .leftJoinLateral(latestStateSubquery, sql`true`)
     .where(
@@ -224,8 +225,8 @@ function createMemoryTasksSubquery(
         dueDateCondition,
         taskStates
           ? inArray(latestStateSubquery.state, Array.from(taskStates))
-          : undefined,
-      ),
+          : undefined
+      )
     )
     .as("memoryTasksSubquery");
 
@@ -251,9 +252,9 @@ export interface QueriedMemory {
  * Process memory tasks to include task attributes
  */
 function processMemoryTasks<
-  T extends { taskAttributes: MemoryTaskAttribute | null },
+  T extends { taskAttributes: MemoryTaskAttribute | null }
 >(
-  memory: T[],
+  memory: T[]
 ):
   | (Omit<T, "taskAttributes"> & { taskAttributes: MemoryTaskAttribute[] })
   | null {
@@ -277,7 +278,7 @@ function processMemoryTasks<
 function processMemoryEvents(
   memories: QueriedMemory[],
   startDate: Date,
-  endDate?: Date,
+  endDate?: Date
 ) {
   const processedMemories: QueriedMemory[] = [];
 
@@ -295,10 +296,10 @@ function processMemoryEvents(
         (m) =>
           m.event?.startOriginal &&
           m.event.recurringEventPlatformId === memoryEvent.platformId &&
-          m.event.calendarId === memoryEvent.calendarId,
+          m.event.calendarId === memoryEvent.calendarId
       ),
       // biome-ignore lint/style/noNonNullAssertion: Only events with a startOriginal are processed
-      (m) => m.event?.startOriginal!,
+      (m) => m.event?.startOriginal!
     );
 
     const diff =
@@ -308,7 +309,7 @@ function processMemoryEvents(
       memory.event.rrule,
       memory.event.startDate,
       startDate,
-      endDate ?? new Date(startDate.getTime() + 30 * 24 * 60 * 60 * 1000),
+      endDate ?? new Date(startDate.getTime() + 30 * 24 * 60 * 60 * 1000)
     );
 
     for (const virtualMemoryDate of otherDates) {
@@ -334,7 +335,7 @@ function processMemoryEvents(
 export async function getMemories(
   userId: string,
   ids: string[],
-  db: TransactableDBType = dbClient,
+  db: TransactableDBType = dbClient
 ): Promise<QueriedMemory[]> {
   const rows = await db
     .select({
@@ -358,14 +359,14 @@ export async function getMemories(
     .leftJoin(tasklistsTable, eq(memoryTaskTable.tasklistId, tasklistsTable.id))
     .leftJoin(
       memoryTaskAttributeTable,
-      eq(memoryTaskTable.id, memoryTaskAttributeTable.memoryTaskId),
+      eq(memoryTaskTable.id, memoryTaskAttributeTable.memoryTaskId)
     )
     .where(and(inArray(memoryTable.id, ids), eq(memoryTable.userId, userId)));
 
   const groupedMemories = groupBy(rows, "id");
 
   const processedMemories = filterNull(
-    Object.values(groupedMemories).map(processMemoryTasks),
+    Object.values(groupedMemories).map(processMemoryTasks)
   );
 
   return processedMemories;
@@ -383,17 +384,14 @@ export async function queryMemories(
 
     // Filter by memory type
     memoryTypes?: Set<MemoryType>;
+    integrationTypes?: Set<IntegrationSource>;
 
     // Filter by integration
     integrationAccountIds?: string[];
     calendarIds?: string[];
     tasklistIds?: string[];
 
-    // Filter by calendar
-    calendarSources?: Set<CalendarSource>;
-
     // Filter by task
-    taskSources?: Set<TaskSource>;
     taskStates?: Set<TaskState>;
 
     // Sort by
@@ -413,7 +411,7 @@ export async function queryMemories(
      */
     source?: MemorySource | Set<MemorySource>;
   },
-  db: TransactableDBType = dbClient,
+  db: TransactableDBType = dbClient
 ): Promise<QueriedMemory[]> {
   const {
     textQuery,
@@ -422,8 +420,7 @@ export async function queryMemories(
     integrationAccountIds,
     calendarIds,
     tasklistIds,
-    calendarSources,
-    taskSources,
+    integrationTypes,
     taskStates,
     sortBy = "relevantDate",
     orderBy = "desc",
@@ -440,7 +437,7 @@ export async function queryMemories(
       memoryTable.source,
       options.source instanceof Set
         ? Array.from(options.source)
-        : [options.source],
+        : [options.source]
     );
   }
 
@@ -450,7 +447,7 @@ export async function queryMemories(
     textEmbedding
       ? or(
           sql<boolean>`${memoryTable.content} <> ''`,
-          sql<boolean>`${memoryTable.description} <> ''`,
+          sql<boolean>`${memoryTable.description} <> ''`
         )
       : undefined,
   ];
@@ -461,13 +458,16 @@ export async function queryMemories(
     ? createMemoryEventsSubquery(
         [
           ...baseFilters,
-          calendarSources
-            ? inArray(memoryEventTable.source, Array.from(calendarSources))
+          integrationTypes
+            ? inArray(
+                memoryEventTable.source,
+                Array.from(integrationTypes) as CalendarSource[]
+              )
             : undefined,
           integrationAccountIds
             ? inArray(
                 memoryEventTable.integrationAccountId,
-                integrationAccountIds,
+                integrationAccountIds
               )
             : undefined,
           calendarIds
@@ -478,7 +478,7 @@ export async function queryMemories(
           dateFrom: startDate,
           dateTo: endDate,
         },
-        db,
+        db
       )
     : undefined;
 
@@ -486,13 +486,16 @@ export async function queryMemories(
     ? createMemoryTasksSubquery(
         [
           ...baseFilters,
-          taskSources
-            ? inArray(memoryTaskTable.source, Array.from(taskSources))
+          integrationTypes
+            ? inArray(
+                memoryTaskTable.source,
+                Array.from(integrationTypes) as TaskSource[]
+              )
             : undefined,
           integrationAccountIds
             ? inArray(
                 memoryTaskTable.integrationAccountId,
-                integrationAccountIds,
+                integrationAccountIds
               )
             : undefined,
           tasklistIds
@@ -504,7 +507,7 @@ export async function queryMemories(
           dateTo: endDate,
           taskStates,
         },
-        db,
+        db
       )
     : undefined;
 
@@ -518,9 +521,9 @@ export async function queryMemories(
       memoryEventsSubquery !== undefined && memoryTasksSubquery !== undefined
         ? union(
             db.select().from(memoryEventsSubquery),
-            db.select().from(memoryTasksSubquery),
+            db.select().from(memoryTasksSubquery)
           ).as("memoriesSubquery")
-        : (memoryEventsSubquery ?? memoryTasksSubquery)
+        : memoryEventsSubquery ?? memoryTasksSubquery
     )!;
 
   let resultsSubquery: SubqueryWithSelection<
@@ -548,11 +551,11 @@ export async function queryMemories(
     )`.as("descriptionRank"),
         contentDistance: sql<number>`${cosineDistance(
           memoriesSubquery.contentEmbedding,
-          textEmbedding,
+          textEmbedding
         )}`.as("contentDistance"),
         descriptionDistance: sql<number>`${cosineDistance(
           memoriesSubquery.descriptionEmbedding,
-          textEmbedding,
+          textEmbedding
         )}`.as("descriptionDistance"),
       })
       .from(memoriesSubquery)
@@ -560,13 +563,13 @@ export async function queryMemories(
         and(
           or(
             sql<boolean>`to_tsvector('english', coalesce(${memoriesSubquery.content}, '')) @@ websearch_to_tsquery('english', ${textQuery})`,
-            sql<boolean>`to_tsvector('english', coalesce(${memoriesSubquery.description}, '')) @@ websearch_to_tsquery('english', ${textQuery})`,
+            sql<boolean>`to_tsvector('english', coalesce(${memoriesSubquery.description}, '')) @@ websearch_to_tsquery('english', ${textQuery})`
           ),
           or(
             isNotNull(memoriesSubquery.contentEmbedding),
-            isNotNull(memoriesSubquery.descriptionEmbedding),
-          ),
-        ),
+            isNotNull(memoriesSubquery.descriptionEmbedding)
+          )
+        )
       )
       .as("searchResultsSubquery");
 
@@ -583,11 +586,11 @@ export async function queryMemories(
         descriptionDistance: searchResultsSubquery.descriptionDistance,
         fullTextRank:
           sql<number>`(coalesce(${searchResultsSubquery.contentRank}, 0) + coalesce(${searchResultsSubquery.descriptionRank}, 0)) / 2`.as(
-            "fullTextRank",
+            "fullTextRank"
           ),
         semanticDistance:
           sql<number>`(coalesce(${searchResultsSubquery.contentDistance}, 0) + coalesce(${searchResultsSubquery.descriptionDistance}, 0)) / 2`.as(
-            "semanticDistance",
+            "semanticDistance"
           ),
       })
       .from(searchResultsSubquery)
@@ -602,12 +605,12 @@ export async function queryMemories(
         id: rankedResultsSubquery.id,
         fullTextRankIx:
           sql<number>`row_number() over (order by ${rankedResultsSubquery.fullTextRank} desc)`.as(
-            "fullTextRankIx",
+            "fullTextRankIx"
           ),
         semanticDistance: rankedResultsSubquery.semanticDistance,
         semanticRankIx:
           sql<number>`row_number() over (order by ${rankedResultsSubquery.semanticDistance} asc)`.as(
-            "semanticRankIx",
+            "semanticRankIx"
           ),
       })
       .from(rankedResultsSubquery)
@@ -622,8 +625,8 @@ export async function queryMemories(
         desc(
           sql<number>`
           coalesce(1.0 / (${RRF_K} + ${finalRankingSubquery.fullTextRankIx}), 0.0) * ${FULL_TEXT_RANK_WEIGHT} +
-          coalesce(1.0 / (${RRF_K} + ${finalRankingSubquery.semanticRankIx}), 0.0) * ${FULL_TEXT_DISTANCE_WEIGHT}`,
-        ),
+          coalesce(1.0 / (${RRF_K} + ${finalRankingSubquery.semanticRankIx}), 0.0) * ${FULL_TEXT_DISTANCE_WEIGHT}`
+        )
       )
       .limit(30)
       .as("resultsSubquery");
@@ -635,11 +638,11 @@ export async function queryMemories(
       .from(memoriesSubquery)
       .leftJoin(
         memoryEventTable,
-        eq(memoriesSubquery.id, memoryEventTable.memoryId),
+        eq(memoriesSubquery.id, memoryEventTable.memoryId)
       )
       .leftJoin(
         memoryTaskTable,
-        eq(memoriesSubquery.id, memoryTaskTable.memoryId),
+        eq(memoriesSubquery.id, memoryTaskTable.memoryId)
       )
       .leftJoinLateral(latestPrioritySubquery, sql`true`)
       .orderBy(() => {
@@ -691,7 +694,7 @@ export async function queryMemories(
     .leftJoin(tasklistsTable, eq(memoryTaskTable.tasklistId, tasklistsTable.id))
     .leftJoin(
       memoryTaskAttributeTable,
-      eq(memoryTaskTable.id, memoryTaskAttributeTable.memoryTaskId),
+      eq(memoryTaskTable.id, memoryTaskAttributeTable.memoryTaskId)
     );
 
   const groupedMemories = groupBy(rows, "id");
@@ -700,10 +703,10 @@ export async function queryMemories(
   const processedMemories = processMemoryEvents(
     filterNull(
       // Process tasks with attributes
-      Object.values(groupedMemories).map(processMemoryTasks),
+      Object.values(groupedMemories).map(processMemoryTasks)
     ),
     startDate ?? new Date(),
-    endDate ? min([endDate, addDays(startDate ?? new Date(), 90)]) : undefined,
+    endDate ? min([endDate, addDays(startDate ?? new Date(), 90)]) : undefined
   );
 
   return processedMemories.sort((a, b) => {

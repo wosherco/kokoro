@@ -118,7 +118,7 @@ const queriedMemorySchema = z.object({
 
       createdAt: z.date(),
       updatedAt: z.date(),
-    }),
+    })
   ),
   isVirtual: z.boolean(),
 });
@@ -141,12 +141,14 @@ export const v1MemoriesRouter = oc.prefix("/memory").router({
           .datetime({
             offset: true,
           })
+          .or(z.date())
           .optional(),
         dateTo: z
           .string()
           .datetime({
             offset: true,
           })
+          .or(z.date())
           .optional(),
 
         // Filter by integration
@@ -154,17 +156,13 @@ export const v1MemoriesRouter = oc.prefix("/memory").router({
         calendarIds: z.array(z.string().uuid()).optional(),
         tasklistIds: z.array(z.string().uuid()).optional(),
 
-        // Filter by calendar source
-        //calendarSources: z.array(z.enum(CALENDAR_SOURCES)).optional(),
-
         // Filter by tasks
-        //taskSources: z.array(z.enum(TASK_SOURCES)).optional(),
         taskStates: z.array(z.enum(TASK_STATES)).optional(),
 
         // Sort by
         sortBy: z.enum(MEMORY_SORT_BY).optional(),
         orderBy: z.enum(ORDER_BY).default("desc").optional(),
-      }),
+      })
     )
     .output(z.array(queriedMemorySchema)),
 
@@ -177,7 +175,7 @@ export const v1MemoriesRouter = oc.prefix("/memory").router({
     .input(
       z.object({
         memoryIds: z.array(z.string().uuid()).max(25),
-      }),
+      })
     )
     .output(z.array(queriedMemorySchema)),
 });
