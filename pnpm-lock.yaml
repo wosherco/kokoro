@@ -1037,6 +1037,9 @@ importers:
       dotenv-cli:
         specifier: 'catalog:'
         version: 7.4.2
+      nanoid:
+        specifier: 'catalog:'
+        version: 5.1.5
       testcontainers:
         specifier: 'catalog:'
         version: 10.27.0

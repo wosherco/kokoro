@@ -1,7 +1,6 @@
 import { getEmbedding } from "@kokoro/brain";
-import type { StartedTestContainer } from "testcontainers";
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import { createEmbeddingServiceContainer } from "./__utils__/containers";
+import { describe, expect, it, vi } from "vitest";
+import { useEmbeddingServiceContainer } from "./__utils__/containers";
 
 vi.mock("../../env", () => ({
   env: {
@@ -84,15 +83,7 @@ const helloWorldEmbedding = [
 ];
 
 describe("getEmbedding", () => {
-  let embeddingServiceContainer: StartedTestContainer | undefined;
-
-  beforeAll(async () => {
-    embeddingServiceContainer = await createEmbeddingServiceContainer();
-  }, 30000);
-
-  afterAll(async () => {
-    await embeddingServiceContainer?.stop();
-  });
+  useEmbeddingServiceContainer();
 
   it("should return an embedding", async () => {
     const embedding = await getEmbedding("Hello, world!");
