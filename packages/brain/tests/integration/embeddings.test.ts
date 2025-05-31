@@ -1,7 +1,7 @@
 import { getEmbedding } from "@kokoro/brain";
 import type { StartedTestContainer } from "testcontainers";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import { createEmbeddingServiceContainer } from "./containers";
+import { createEmbeddingServiceContainer } from "./__utils__/containers";
 
 vi.mock("../../env", () => ({
   env: {

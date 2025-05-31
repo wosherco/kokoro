@@ -12,7 +12,7 @@ import { GOOGLE_CALENDAR, LINEAR_INTEGRATION } from "@kokoro/validators/db";
 import type { StartedPostgreSqlContainer } from "@testcontainers/postgresql";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { getMemories } from "../../../src/memories/query";
-import { createDatabaseContainer } from "../containers";
+import { createDatabaseContainer } from "../__utils__/containers";
 import {
   TEST_EMBEDDING_FIX_LANDING_TYPO_DESCRIPTION,
   TEST_EMBEDDING_FIX_LANDING_TYPO_TEXT,

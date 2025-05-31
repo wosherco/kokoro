@@ -2,7 +2,7 @@ import type { AnyColumn } from "drizzle-orm";
 import { sql } from "drizzle-orm";
 
 export { sql, getTableColumns, getViewSelectedFields } from "drizzle-orm";
-export type { AnyColumn } from "drizzle-orm";
+export type { AnyColumn, InferInsertModel } from "drizzle-orm";
 export { alias, union, unionAll } from "drizzle-orm/pg-core";
 export * from "drizzle-orm/sql";
 export type { SubqueryWithSelection, PgColumn } from "drizzle-orm/pg-core";
