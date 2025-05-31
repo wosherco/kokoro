@@ -1,4 +1,4 @@
-import { filterNull, groupBy } from "@kokoro/common/poldash";
+import { filterNull, groupBy, lookup } from "@kokoro/common/poldash";
 import type { PgColumn, SQLWrapper, SubqueryWithSelection } from "@kokoro/db";
 import {
   and,
@@ -46,6 +46,7 @@ import {
   type TaskState,
 } from "@kokoro/validators/db";
 
+import { add, addDays, addMilliseconds, isSameDay, min } from "date-fns";
 import { getEmbedding } from "../embeddings";
 
 function createMemoryEventsSubquery(
@@ -129,8 +130,8 @@ function createMemoryEventsSubquery(
       lastUpdate: memoryTable.lastUpdate,
     })
     .from(memoryTable)
-    .leftJoin(memoryEventTable, eq(memoryTable.id, memoryEventTable.memoryId))
-    .leftJoin(calendarTable, eq(memoryEventTable.calendarId, calendarTable.id))
+    .innerJoin(memoryEventTable, eq(memoryTable.id, memoryEventTable.memoryId))
+    .innerJoin(calendarTable, eq(memoryEventTable.calendarId, calendarTable.id))
     .where(
       and(
         ...baseFilters,
@@ -211,8 +212,11 @@ function createMemoryTasksSubquery(
       lastUpdate: memoryTable.lastUpdate,
     })
     .from(memoryTable)
-    .leftJoin(memoryTaskTable, eq(memoryTable.id, memoryTaskTable.memoryId))
-    .leftJoin(tasklistsTable, eq(memoryTaskTable.tasklistId, tasklistsTable.id))
+    .innerJoin(memoryTaskTable, eq(memoryTable.id, memoryTaskTable.memoryId))
+    .innerJoin(
+      tasklistsTable,
+      eq(memoryTaskTable.tasklistId, tasklistsTable.id),
+    )
     .leftJoinLateral(latestStateSubquery, sql`true`)
     .where(
       and(
@@ -275,12 +279,27 @@ function processMemoryEvents(
   startDate: Date,
   endDate?: Date,
 ) {
+  const processedMemories: QueriedMemory[] = [];
+
   for (const memory of memories) {
+    processedMemories.push(memory);
+
     if (!memory.event?.rrule) {
       continue;
     }
 
     const memoryEvent = memory.event;
+
+    const instancesLookup = lookup(
+      memories.filter(
+        (m) =>
+          m.event?.startOriginal &&
+          m.event.recurringEventPlatformId === memoryEvent.platformId &&
+          m.event.calendarId === memoryEvent.calendarId,
+      ),
+      // biome-ignore lint/style/noNonNullAssertion: Only events with a startOriginal are processed
+      (m) => m.event?.startOriginal!,
+    );
 
     const diff =
       memoryEvent.endDate.getTime() - memoryEvent.startDate.getTime();
@@ -292,20 +311,24 @@ function processMemoryEvents(
       endDate ?? new Date(startDate.getTime() + 30 * 24 * 60 * 60 * 1000),
     );
 
-    memories.push(
-      ...otherDates.map((date) => ({
+    for (const virtualMemoryDate of otherDates) {
+      if (instancesLookup(virtualMemoryDate)) {
+        continue;
+      }
+
+      processedMemories.push({
         ...memory,
         event: {
           ...memoryEvent,
-          startDate: date,
-          endDate: new Date(date.getTime() + diff),
+          startDate: virtualMemoryDate,
+          endDate: addMilliseconds(virtualMemoryDate, diff),
         },
         isVirtual: true,
-      })),
-    );
+      });
+    }
   }
 
-  return memories;
+  return processedMemories;
 }
 
 export async function getMemories(
@@ -345,7 +368,7 @@ export async function getMemories(
     Object.values(groupedMemories).map(processMemoryTasks),
   );
 
-  return processMemoryEvents(processedMemories, new Date(), undefined);
+  return processedMemories;
 }
 
 export async function queryMemories(
@@ -425,19 +448,18 @@ export async function queryMemories(
     eq(memoryTable.userId, userId),
     sourceCondition,
     textEmbedding
-      ? sql<boolean>`${memoryTable.content} <> '' or ${memoryTable.description} <> ''`
+      ? or(
+          sql<boolean>`${memoryTable.content} <> ''`,
+          sql<boolean>`${memoryTable.description} <> ''`,
+        )
       : undefined,
   ];
-
   const shouldIncludeMemoryType = (type: MemoryType) =>
-    options.memoryTypes && options.memoryTypes.size > 0
-      ? options.memoryTypes.has(type)
-      : true;
+    options.memoryTypes?.has(type) ?? true;
 
   const memoryEventsSubquery = shouldIncludeMemoryType(EVENT_MEMORY_TYPE)
     ? createMemoryEventsSubquery(
         [
-          isNotNull(memoryEventTable.id),
           ...baseFilters,
           calendarSources
             ? inArray(memoryEventTable.source, Array.from(calendarSources))
@@ -463,7 +485,6 @@ export async function queryMemories(
   const memoryTasksSubquery = shouldIncludeMemoryType(TASK_MEMORY_TYPE)
     ? createMemoryTasksSubquery(
         [
-          isNotNull(memoryTaskTable.id),
           ...baseFilters,
           taskSources
             ? inArray(memoryTaskTable.source, Array.from(taskSources))
@@ -494,7 +515,7 @@ export async function queryMemories(
   const memoriesSubquery =
     // biome-ignore lint/style/noNonNullAssertion: this is wrong
     (
-      memoryEventsSubquery && memoryTasksSubquery
+      memoryEventsSubquery !== undefined && memoryTasksSubquery !== undefined
         ? union(
             db.select().from(memoryEventsSubquery),
             db.select().from(memoryTasksSubquery),
@@ -675,15 +696,49 @@ export async function queryMemories(
 
   const groupedMemories = groupBy(rows, "id");
 
-  // Process tasks with attributes
-  const processedMemories = filterNull(
-    Object.values(groupedMemories).map(processMemoryTasks),
+  // Process recurrent events
+  const processedMemories = processMemoryEvents(
+    filterNull(
+      // Process tasks with attributes
+      Object.values(groupedMemories).map(processMemoryTasks),
+    ),
+    startDate ?? new Date(),
+    endDate ? min([endDate, addDays(startDate ?? new Date(), 90)]) : undefined,
   );
 
-  // Process recurrent events
-  return processMemoryEvents(
-    processedMemories,
-    startDate ?? new Date(),
-    endDate,
-  );
+  return processedMemories.sort((a, b) => {
+    switch (sortBy) {
+      case "createdAt": {
+        return orderBy === "asc"
+          ? a.createdAt.getTime() - b.createdAt.getTime()
+          : b.createdAt.getTime() - a.createdAt.getTime();
+      }
+      case "updatedAt": {
+        return orderBy === "asc"
+          ? a.lastUpdate.getTime() - b.lastUpdate.getTime()
+          : b.lastUpdate.getTime() - a.lastUpdate.getTime();
+      }
+      // We need to figure out how to handle this for events
+      // case "priority": {
+      //   return orderBy === "asc"
+      //     ? a.taskAttributes.priority - b.taskAttributes.priority
+      //     : b.taskAttributes.priority - a.taskAttributes.priority;
+      // }
+      case "relevantDate": {
+        const aRelevantDate = a.event?.startDate ?? a.task?.dueDate;
+        const bRelevantDate = b.event?.startDate ?? b.task?.dueDate;
+
+        if (aRelevantDate && bRelevantDate) {
+          return orderBy === "asc"
+            ? aRelevantDate.getTime() - bRelevantDate.getTime()
+            : bRelevantDate.getTime() - aRelevantDate.getTime();
+        }
+
+        return 0;
+      }
+      default: {
+        return 0;
+      }
+    }
+  });
 }

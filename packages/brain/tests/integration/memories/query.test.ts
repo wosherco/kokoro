@@ -1,20 +1,44 @@
-import { db } from "@kokoro/db/client";
+import { dateToRRULEString } from "@kokoro/rrule";
+import { EVENT_MEMORY_TYPE } from "@kokoro/validators/db";
 import {
-  calendarTable,
-  integrationsAccountsTable,
-  memoryEventTable,
-  memoryTable,
-  memoryTaskTable,
-  tasklistsTable,
-  userTable,
-} from "@kokoro/db/schema";
-import { GOOGLE_CALENDAR, LINEAR_INTEGRATION } from "@kokoro/validators/db";
-import type { StartedPostgreSqlContainer } from "@testcontainers/postgresql";
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import { getMemories } from "../../../src/memories/query";
-import { createDatabaseContainer } from "../containers";
-
-const userId = crypto.randomUUID();
+  add,
+  addDays,
+  endOfDay,
+  endOfToday,
+  endOfTomorrow,
+  endOfYesterday,
+  set,
+  setHours,
+  startOfToday,
+  startOfTomorrow,
+  startOfYesterday,
+  subDays,
+} from "date-fns";
+import { nanoid } from "nanoid";
+import { beforeAll, describe, expect, it, vi } from "vitest";
+import { getMemories, queryMemories } from "../../../src/memories/query";
+import {
+  useDatabaseContainer,
+  useEmbeddingServiceContainer,
+} from "../__utils__/containers";
+import {
+  type AwaitedReturnType,
+  createCalendar,
+  createGoogleCalendarIntegration,
+  createLinearIntegration,
+  createTasklist,
+  createTestUser,
+  useTestMemory,
+} from "../__utils__/dbUtils";
+import {
+  TEST_EMBEDDINGS,
+  TEST_EMBEDDING_DENTIST_APPOINTMENT_DESCRIPTION,
+  TEST_EMBEDDING_DENTIST_APPOINTMENT_TEXT,
+  TEST_EMBEDDING_DENTIST_FIX_DESCRIPTION,
+  TEST_EMBEDDING_DENTIST_FIX_TEXT,
+  TEST_EMBEDDING_FIX_LANDING_TYPO_DESCRIPTION,
+  TEST_EMBEDDING_FIX_LANDING_TYPO_TEXT,
+} from "../__utils__/embeddings";
 
 vi.mock("@kokoro/db/env", async () => {
   const originalEnvModule =
@@ -32,474 +56,1201 @@ vi.mock("@kokoro/db/env", async () => {
     },
   };
 });
+vi.mock("../../../env", () => ({
+  env: {
+    EMBEDDING_SERVICE_URL: "http://localhost:3000",
+  },
+}));
 
 describe("querying memories", () => {
-  let databaseContainer: StartedPostgreSqlContainer | undefined;
+  useDatabaseContainer();
+  let user: AwaitedReturnType<typeof createTestUser>;
+  let googleCalendarIntegration: AwaitedReturnType<
+    typeof createGoogleCalendarIntegration
+  >;
+  let linearIntegration: AwaitedReturnType<typeof createLinearIntegration>;
+  let calendar: AwaitedReturnType<typeof createCalendar>;
+  let tasklist: AwaitedReturnType<typeof createTasklist>;
 
   beforeAll(async () => {
-    const postgresContainer = await createDatabaseContainer();
-    databaseContainer = postgresContainer;
-
     // Insert user
-    await db.insert(userTable).values({
-      id: userId,
+    user = await createTestUser({
       email: "test@test.com",
       name: "Test User",
     });
 
     // Insert calendar integration
-    const calendarIntegrationId = crypto.randomUUID();
-    const calendarPlatformAccountId = crypto.randomUUID();
-    await db.insert(integrationsAccountsTable).values({
-      id: calendarIntegrationId,
-      userId,
-      integrationType: GOOGLE_CALENDAR,
-      platformAccountId: calendarPlatformAccountId,
-      email: "test@test.com",
-      platformDisplayName: "Test Integration",
-      platformData: {
-        syncToken: "test",
-        lastSynced: new Date().toISOString(),
-      },
-      accessToken: "test",
-      refreshToken: "test",
-      expiresAt: new Date(),
-    });
-
-    // Insert calendar to calendar integration
-    const calendarId = crypto.randomUUID();
-    const calendarPlatformId = crypto.randomUUID();
-    await db.insert(calendarTable).values({
-      id: calendarId,
-      userId,
-      source: GOOGLE_CALENDAR,
-      integrationAccountId: calendarIntegrationId,
-      summary: "Test Calendar",
-      platformAccountId: calendarPlatformAccountId,
-      platformCalendarId: calendarPlatformId,
-      platformData: {
-        primary: true,
-        accessRole: "owner",
-      },
-      eventsSyncToken: "test",
-    });
-
-    // Insert calendar event memory
-    const eventMemoryId = crypto.randomUUID();
-    const eventMemoryEventId = crypto.randomUUID();
-    const eventPlatformId = crypto.randomUUID();
-    await db.insert(memoryTable).values({
-      id: eventMemoryId,
-      userId,
-      source: "CALENDAR",
-      content: "Dentist appointment",
-      contentEmbedding: [
-        -0.06650842, 0.021423653, -0.034474738, -0.0151417665, -0.16177753,
-        -0.055608753, -0.045113284, 0.025685329, 0.015187136, 0.0050837887,
-        -0.05733368, -0.04168272, -0.059183378, 0.04591207, -0.041174676,
-        0.013384512, 0.025305381, -0.017960662, 0.057088483, 0.009326397,
-        -0.008700406, 0.05269312, -0.024290837, -0.028421594, -0.017362868,
-        0.063244015, -0.00916279, -0.083132766, 0.068817616, 0.06664006,
-        0.0015190602, -0.015059734, 0.082522, -0.055128712, 0.06007443,
-        0.020643344, -0.040282693, 0.028044226, 0.021342613, 0.019352898,
-        -0.047488887, 0.023803493, -0.001628428, 0.0044489386, 0.020414086,
-        -0.016859861, 0.03513812, -0.014985152, 0.0054206494, -0.039700184,
-        0.0075887, -0.048090115, -0.015074614, -0.034309067, -0.079062514,
-        0.06806256, 0.01082802, -0.05672844, -0.002541745, 0.069708765,
-        -0.009207849, -0.011101944, -0.048728302, 0.14034697, -0.08202345,
-        0.09041608, 0.026749687, -0.057147525, 0.03592717, -0.022741763,
-        -0.05492207, -0.004178924, 0.07713298, 0.031179663, 0.058025155,
-        -0.06800423, 0.1133794, 0.0072682067, 0.01743733, 0.023383465,
-        -0.028566342, -0.016833158, 0.022710167, 0.03576176, 0.028492166,
-        -0.029551461, -0.038535055, 0.016481666, -0.037419397, -0.055030853,
-        0.049699374, 0.040195376, -0.050847992, 0.026212713, -0.0013083261,
-        0.05031787, -0.0016957031, 0.06490846, 0.025510162, 0.15593281,
-        -0.00016918269, 0.029626813, -0.074637845, 0.053888462, -0.022255084,
-        -0.03916081, -0.10313272, -0.09071036, -0.007358809, -0.025074255,
-        0.020993894, 0.015620694, 0.05719409, -0.030938873, -0.065029375,
-        0.017125363, 0.0061015473, 0.01894048, 0.0326577, 0.0803597,
-        -0.023499342, -0.0030764989, -0.04791586, -0.05245525, 0.03930853,
-        -0.031555947, 0.06460385, -4.0638394e-33, 0.035124145, -0.046773244,
-        0.0077510453, -0.07221288, 0.043017235, 0.046867985, -0.016470743,
-        0.024973756, -0.019418787, -0.00650337, 0.038285535, -0.001263981,
-        0.017540202, -0.072809644, -0.13825884, 0.08949177, -0.010169569,
-        0.08880399, -0.062787704, 0.061517965, -0.060166094, -0.10108353,
-        -0.05215925, 0.13497294, -0.014423624, 0.055760007, 0.014159353,
-        -0.076351605, 0.08888522, 0.003079666, -0.07226775, 0.012073628,
-        0.039038334, -0.045422614, 0.06557664, 0.051910408, 0.025517048,
-        0.0027389147, -0.028999291, -0.061903976, 0.0368484, 0.059805237,
-        -0.00517939, 0.017411487, 0.056184076, 0.005165714, 0.012729798,
-        0.08397917, 0.06914494, 0.020623408, -0.050018553, -0.04493176,
-        -0.059199646, 0.07778046, -0.051568743, 0.015643045, 0.05588566,
-        -0.0022787359, 0.036383886, 0.020556638, 0.021166658, -0.008048534,
-        -0.006050469, 0.015069496, -0.06926613, -0.08668634, -0.0270773,
-        -0.05292049, 0.049895298, -0.03060543, -0.045167185, 0.058231443,
-        -0.0431665, 0.0017123962, -0.077240966, 0.040789276, 0.107255705,
-        0.06435526, -0.049757436, 0.02461327, 0.041409988, -0.0048758206,
-        0.012749836, -0.014494647, 0.03574436, 0.027704373, -0.058343023,
-        -0.033701077, 0.038920224, 0.010701966, -0.09905276, -0.031293433,
-        0.015166077, 0.015080246, 0.021051403, 2.0544883e-33, 0.04195794,
-        -0.03131931, -0.030169858, 0.03346103, 0.03559248, 0.019971494,
-        -0.039819088, 0.003017345, 0.0020690034, 0.0020701026, 0.0009530109,
-        0.1198358, 0.12322539, -0.061248604, -0.0039493307, 0.057169802,
-        0.04501401, -0.01627484, -0.062366743, 0.063032895, -0.013684839,
-        0.05966662, 0.021347951, -0.07686826, -0.068908244, 0.03387148,
-        0.0062534763, -0.047033846, -0.06006327, -0.016983086, -0.078034654,
-        -0.041458078, -0.08569277, 0.055738147, -0.049449194, 0.12469682,
-        -0.006775708, -0.026154278, -0.076029785, 0.058895633, 0.02154523,
-        -0.013400389, 0.0067387694, 0.07307744, 0.004108105, 0.050962,
-        0.032305524, 0.008798848, -0.029803157, 0.020462278, -0.09869846,
-        0.04431473, -0.040632814, 0.0699267, -0.019732561, 0.013614268,
-        -0.041468523, -0.07003577, -0.00636209, 0.026401408, 0.030152978,
-        -0.023587957, -0.0010919307, -0.0013779972, -0.037867058, -0.03156976,
-        0.023484468, -0.011632199, 0.026860569, 0.08149811, -0.06439101,
-        0.006265359, -0.0075296103, -0.039722193, 0.014398697, 0.0041510435,
-        0.04285075, -0.10078572, -0.06493107, -0.04581927, -0.07757056,
-        0.020471202, 0.020866642, 0.065769315, -0.07338259, -0.031102713,
-        0.08573986, -0.030947424, 0.0010304024, 0.01056255, -0.011331654,
-        0.096751034, 0.0009687871, -0.06447877, 0.07425402, -1.15360725e-8,
-        -0.02426618, -0.0022476027, 0.002391358, -0.026954217, 0.026991528,
-        -0.21754083, -0.06682626, 0.021113763, -0.039678454, 0.053579178,
-        0.068512395, 0.024679178, -0.03209114, -0.022259697, 0.024083484,
-        0.03137541, 0.04291126, -0.027076917, -0.053339556, -0.04628663,
-        -0.11170944, -0.030300187, 0.08516425, 0.009255676, 0.039924778,
-        -0.025034247, -0.016443301, 0.093534306, -0.011773629, 0.045184538,
-        -0.05921621, 0.093439, 0.00091663847, -0.039819214, -0.0023826575,
-        -0.093755655, -0.02673565, -0.0007542382, 0.012594485, -0.005466649,
-        0.0010782934, -0.035111282, 0.0050104344, 0.07568477, -0.08006789,
-        0.021545557, 0.08472442, 0.043376114, 0.052610338, 0.027874364,
-        -0.03296393, -0.010125722, 0.04637041, -0.051404566, -0.013895759,
-        0.075264215, 0.08708815, -0.05664632, 0.0067338166, 0.058727715,
-        -0.054617114, 0.0047619236, -0.02544459, -0.042369813,
-      ],
-      description:
-        "Dentist appointment to get out my wisdom teeth of below right corner",
-      descriptionEmbedding: [
-        -0.025537774, 0.07303564, -0.03781451, 0.046902444, -0.06361533,
-        -0.022621967, -0.0476013, 0.027348675, 0.0105978325, -0.041862786,
-        -0.049149588, 0.019289576, -0.007254376, 0.0059766388, -0.03464064,
-        -0.01623067, 0.017211458, -0.030801218, 0.0632386, 0.008111886,
-        -0.026065933, 0.051234655, -0.028517216, -0.0036414282, -0.059350196,
-        0.05649883, -0.03336149, -0.0622719, 0.05684158, 0.08330109, 0.03646177,
-        -0.048765894, 0.031716082, -0.07553745, 0.08086841, -0.018197427,
-        -0.06196832, 0.017614562, 0.026843574, 0.033972267, -0.021210577,
-        0.036696196, -0.01761513, 0.024875125, 0.051591903, 0.059569065,
-        -0.06302602, -0.029266262, 0.045590263, 0.0020163793, 0.019064026,
-        -0.011468549, -0.075898275, 0.07552792, -0.08385896, 0.050054543,
-        -0.027597206, -0.029749308, 0.025788, 0.07661209, 0.043677367,
-        -0.018047476, -0.009466158, 0.10640495, -0.13344401, 0.08222821,
-        0.049895667, -0.0564191, -0.002537631, -0.060881358, -0.033644233,
-        -0.044660896, 0.09372492, -0.068589196, 0.053432927, -0.07389017,
-        0.11423072, -0.012131794, -0.050095703, 0.009849596, -0.046828557,
-        0.065598026, 0.02020489, 0.026583267, -0.048743904, -0.07505297,
-        -0.009276426, 0.042310134, 0.033618893, -0.010023288, 0.008199261,
-        0.045645837, -0.037843257, 0.051819913, 0.07707932, -0.008830821,
-        0.004209953, -0.02355001, -0.024276627, 0.046102945, 0.011641004,
-        -0.0054305387, -0.063439414, -0.031147353, 0.053015668, 0.014703947,
-        -0.09094534, -0.061884884, 0.0028428333, -0.020234672, 0.05779842,
-        0.048578907, 0.10440368, 0.010425656, -0.0133645525, -0.030040221,
-        0.020487376, 0.085424446, 0.034643993, 0.05457399, -0.032764003,
-        0.014651422, -0.02205763, -0.015542023, 0.04937104, -0.009775407,
-        0.002954061, -1.4760264e-33, 0.03150738, -0.016110474, -0.036693294,
-        -0.05443026, 0.051299687, 0.0002631516, -0.047502823, -0.017003505,
-        -0.008275632, 0.05297916, -0.005150355, -0.06339981, 0.031571057,
-        -0.08437125, -0.09613046, 0.07200384, -0.022642195, 0.08215053,
-        -0.105750084, 0.063063875, -0.04130474, -0.10753769, -0.066730514,
-        0.061742596, -0.035484377, 0.10177019, -0.00006402631, -0.093587175,
-        0.030359797, -0.015446307, -0.04452327, 0.00058530207, 0.11208413,
-        -0.07673444, 0.054136027, 0.032857705, -0.017574405, -0.022528343,
-        0.004007362, -0.039102614, -0.00021497381, 0.06870747, 0.010276962,
-        0.029265337, 0.045896087, -0.013774268, 0.05115661, 0.091303125,
-        0.0720917, -0.11994891, -0.094560996, -0.030692436, -0.02658601,
-        0.029757483, -0.046644527, -0.013884293, 0.0361002, 0.060389083,
-        0.07911731, 0.025650565, -0.014294179, 0.016605496, -0.019878063,
-        -0.06274061, -0.0063439747, -0.13636611, -0.09225409, -0.003398545,
-        -0.0071401116, -0.034853287, 0.0143636465, 0.088626735, -0.006645957,
-        0.013703017, -0.071681865, 0.076763384, 0.0746016, 0.010626829,
-        -0.011658158, -0.003123992, 0.01735002, 0.013422492, 0.0069114305,
-        -0.03247533, 0.102602184, 0.0088448515, -0.053594176, -0.044928707,
-        0.012414807, -0.007541756, -0.115841575, -0.020605553, -0.002400315,
-        -0.055370145, -0.015273382, -2.8869064e-34, 0.0317204, -0.01388305,
-        -0.004616799, -0.020437919, 0.06324841, 0.018513126, -0.033094797,
-        0.107766874, -0.0046338225, 0.026488137, -0.06592708, 0.13014334,
-        0.05914017, -0.068005055, 0.033846807, 0.052268483, 0.054055568,
-        -0.0017268907, -0.10156284, 0.032515153, -0.008796095, 0.04554431,
-        -0.014963379, -0.03390072, -0.06556811, 0.043077562, 0.03664553,
-        0.03486751, -0.06318408, 0.0389153, -0.10971305, -0.067002304,
-        -0.075593725, 0.037598953, -0.038455762, 0.08551509, -0.016898938,
-        -0.08607709, -0.10033082, 0.02357561, 0.0049066558, 0.05577779,
-        -0.019821698, 0.02029254, -0.015352245, 0.06493425, 0.041503645,
-        0.011912942, -0.033474162, 0.02997868, -0.059691157, 0.036651816,
-        -0.027062353, 0.04273829, -0.038019914, -0.047552872, -0.023405397,
-        -0.07091921, -0.0016846019, -0.029378885, 0.037403096, 0.03443288,
-        -0.014602723, 0.0074176495, 0.015190666, 0.03156022, 0.056651417,
-        0.04018617, -0.053776793, -0.007993805, -0.0540613, 0.008982026,
-        0.007882232, -0.09280308, 0.061008338, 0.04903048, 0.093214594,
-        -0.09812733, -0.012027328, -0.05800665, -0.01532158, 0.0040153316,
-        0.031274963, 0.00816279, 0.0061244597, -0.025000641, 0.01931179,
-        -0.03474696, -0.037195012, 0.0024644143, -0.0036569135, 0.098508455,
-        0.055326372, 0.0083581135, 0.08419063, -1.8393768e-8, -0.03321107,
-        -0.0073413667, -0.04081086, 0.033936117, -0.03190821, -0.1492863,
-        -0.09216155, 0.062260028, -0.0582393, -0.033062387, 0.025735818,
-        -0.016873067, -0.015225333, -0.04056059, -0.025053162, 0.039043196,
-        -0.028835304, -0.023355603, -0.011310666, -0.03759174, -0.08154654,
-        -0.07253703, 0.07343322, -0.014258229, 0.009033082, 0.017858872,
-        -0.01857458, 0.09821375, 0.028372427, 0.04364558, -0.046484217,
-        0.065898694, 0.03435411, -0.01258498, 0.028034434, -0.040111765,
-        -0.053334855, 0.03378003, 0.04709668, 0.008145829, -0.013346388,
-        -0.017569067, 0.013013161, 0.114884466, -0.092483334, -0.0004968867,
-        0.06833614, 0.08865072, 0.03423232, 0.024803909, 0.006072312,
-        -0.05542352, 0.064413235, -0.020009153, -0.005184023, 0.02474179,
-        0.04459183, -0.06590908, -0.046554603, 0.046402484, -0.10283576,
-        0.0257154, -0.018993285, -0.03396113,
-      ],
-      createdAt: new Date(),
-      lastUpdate: new Date(),
-    });
-    await db.insert(memoryEventTable).values({
-      id: eventMemoryEventId,
-      userId,
-      memoryId: eventMemoryId,
-      icalUid: "test",
-      integrationAccountId: calendarIntegrationId,
-      platformAccountId: calendarPlatformAccountId,
-      platformCalendarId: calendarPlatformId,
-      platformId: eventPlatformId,
-      calendarId: calendarId,
-      source: GOOGLE_CALENDAR,
-      sequence: 1,
-
-      startDate: new Date("2025-05-22T13:30:48.512Z"),
-      endDate: new Date("2025-05-22T14:30:48.512Z"),
-      eventType: "default",
-      attendenceStatus: "tentative",
-    });
-
-    // Insert task integration
-    const taskIntegrationId = crypto.randomUUID();
-    const taskPlatformAccountId = crypto.randomUUID();
-    await db.insert(integrationsAccountsTable).values({
-      id: taskIntegrationId,
-      userId,
-      integrationType: LINEAR_INTEGRATION,
-      platformAccountId: taskPlatformAccountId,
-      email: "test@test.com",
-      platformDisplayName: "Test Integration",
-      platformData: {
-        workspaceId: "test",
-      },
-      accessToken: "test",
-      refreshToken: "test",
-      expiresAt: new Date(),
-    });
-
-    // Insert tasklist
-    const tasklistId = crypto.randomUUID();
-    const tasklistPlatformId = crypto.randomUUID();
-    await db.insert(tasklistsTable).values({
-      id: tasklistId,
-      userId,
-      integrationAccountId: taskIntegrationId,
-      platformAccountId: taskPlatformAccountId,
-      platformTaskListId: tasklistPlatformId,
-      source: LINEAR_INTEGRATION,
-      name: "Test Tasklist",
-    });
-
-    // Insert calendar event memory
-    const taskMemoryId = crypto.randomUUID();
-    const taskMemoryTaskId = crypto.randomUUID();
-    const taskPlatformId = crypto.randomUUID();
-    await db.insert(memoryTable).values({
-      id: taskMemoryId,
-      userId,
-      source: "TASK",
-      content: "Fix landing typo",
-      contentEmbedding: [
-        0.014081596, -0.0076438505, 0.100369215, 0.0035840098, -0.035407618,
-        -0.027007358, 0.09638466, 0.054197904, 0.010815118, 0.036922105,
-        0.09574947, -0.009349551, 0.0117626125, 0.007277432, -0.082589775,
-        -0.0132420175, -0.044640686, -0.013359535, -0.021341132, -0.03195974,
-        -0.06265278, 0.07766353, -0.019196289, 0.062430438, 0.033564482,
-        -0.004555581, -0.03578284, 0.04851793, 0.0059013856, -0.10099291,
-        -0.04038269, 0.15300216, 0.016883893, -0.0072845537, 0.07512609,
-        0.06218214, -0.008337402, -0.02575556, 0.090802334, -0.06187386,
-        -0.0077757216, -0.13741702, 0.06716757, 0.05463077, 0.06833846,
-        0.0459421, -0.016282385, 0.036451012, 0.053002905, 0.08082118,
-        0.053455237, -0.019612392, 0.043940637, -0.04870983, 0.035008177,
-        0.077008046, -0.036594503, 0.029169746, 0.05212578, -0.0670101,
-        0.086610466, 0.029421898, 0.00073299586, -0.035562187, 0.06363273,
-        -0.020730112, -0.027326358, -0.15167631, -0.016787862, 0.1256172,
-        0.0062505053, 0.02425267, -0.025231699, 0.063084245, -0.031573664,
-        -0.00862026, 0.007596444, 0.015450489, 0.071478054, -0.03152248,
-        0.03220453, -0.030222291, -0.025233025, 0.011897676, 0.08778057,
-        -0.007600455, 0.014631044, -0.011052056, 0.06093367, 0.0016365579,
-        -0.038623344, -0.1467584, 0.12620114, 0.021160219, -0.11308217,
-        -0.008855068, -0.026976412, -0.033691652, -0.063776344, 0.08996768,
-        0.029521793, 0.06605472, -0.026938299, 0.016947003, -0.09097209,
-        -0.011668123, 0.004893852, 0.027658802, 0.0372979, -0.03869259,
-        0.012343622, -0.047753673, 0.010554053, 0.015265739, -0.057955675,
-        -0.0485073, -0.031304616, -0.034722637, -0.029598026, -0.08077789,
-        -0.06656452, -0.037987985, -0.024567585, 0.02588758, -0.011443426,
-        -0.14379619, 0.07398348, -1.2341761e-33, 0.0068186037, 0.093057215,
-        -0.001977382, -0.056346573, 0.086263575, -0.023146769, -0.03885154,
-        -0.01716959, -0.053205255, -0.02533836, -0.008985217, -0.096151784,
-        0.029153332, -0.08615197, 0.002026157, 0.03643684, -0.021946749,
-        -0.014558507, -0.117288165, -0.046047438, 0.058784205, 0.009183253,
-        -0.05992693, -0.03368557, -0.00038530258, -0.00285274, -0.029304907,
-        0.016153974, 0.024731858, 0.0027860196, 0.012865527, 0.027997186,
-        0.043857202, 0.011450561, -0.02194077, -0.09635337, 0.07769343,
-        -0.09300814, -0.07310627, 0.016791346, -0.024448162, 0.05493612,
-        -0.0094388, 0.00450475, 0.07928873, 0.03192516, 0.0725634,
-        -0.0019639588, 0.1065621, -0.03662302, -0.077114746, 0.066667415,
-        0.042722583, 0.014416943, -0.0056561744, 0.004421776, -0.0041534193,
-        0.016106388, 0.0022175915, -0.024597967, 0.006722019, -0.05776299,
-        0.045579564, 0.015619712, -0.01584587, -0.044793867, 0.00987396,
-        0.056166973, 0.049947545, -0.025321903, -0.04165794, -0.03400742,
-        0.06313919, 0.07998686, -0.07677151, -0.06720677, 0.0010384137,
-        -0.013673341, -0.025382837, 0.0047440147, 0.016559668, -0.014435351,
-        -0.018282836, 0.0039005154, 0.029441655, -0.023109388, 0.0027777846,
-        -0.053808253, 0.008470365, 0.05528024, -0.09824801, -0.013657707,
-        -0.01681219, -0.025265899, -0.029192328, 8.867313e-34, -0.09373115,
-        0.025348758, -0.036492195, 0.068025395, -0.08730028, -0.07073628,
-        0.097367525, 0.011017252, -0.015263154, -0.00048137654, -0.026369186,
-        0.07714665, -0.08420968, -0.0529158, -0.022945037, -0.026723702,
-        0.011844362, 0.016398275, -0.02719835, 0.07342239, 0.0014371607,
-        -0.08356543, -0.028317105, 0.05988076, 0.026556516, 0.077455305,
-        0.048228685, 0.104706764, -0.114066385, 0.049247917, 0.02486824,
-        0.07509122, 0.02703, 0.027855495, 0.0042757997, -0.03685394, 0.05538601,
-        -0.042911105, -0.07061133, -0.018659823, 0.06592985, -0.017538613,
-        0.0056174267, 0.023955945, 0.0643111, -0.030377744, -0.0077620884,
-        0.024605446, 0.0652246, -0.01364404, 0.07004796, -0.053786203,
-        -0.054135974, 0.020538552, 0.06657719, 0.024896447, 0.008090401,
-        -0.003273643, -0.0858068, -0.0007207646, -0.0069962484, 0.011656962,
-        0.021874456, 0.005696078, 0.056875136, -0.036445074, -0.047870472,
-        0.1546913, -0.018319448, 0.011983089, -0.055113766, 0.002567917,
-        0.032564916, -0.049774434, -0.011020117, -0.07962164, 0.017193561,
-        0.07896285, 0.052215993, -0.025416357, -0.024429563, -0.051447928,
-        -0.022793261, 0.048180748, -0.011961406, 0.032023493, -0.043458413,
-        0.06920133, -0.030797062, 0.0059550977, 0.009249785, -0.0028734151,
-        0.043292444, 0.014658947, -0.075694926, -1.3436842e-8, -0.025864433,
-        0.056228213, -0.03955667, -0.02977963, 0.035017308, -0.01319707,
-        -0.027021809, -0.051385466, -0.0111190025, -0.082911566, -0.06313675,
-        -0.022870822, 0.006694336, 0.013479649, 0.0301069, -0.018310891,
-        -0.08210939, 0.08497004, -0.11376628, -0.043383088, 0.0036612581,
-        0.055862594, -0.049048617, -0.07407369, 0.010276359, 0.057081025,
-        -0.02082975, 0.039076775, 0.0008076036, -0.05446241, 0.01877356,
-        0.014265003, 0.03755665, -0.0033272416, 0.07079923, -0.015604827,
-        0.12644584, 0.064539604, 0.049624197, 0.04241922, -0.039199714,
-        0.010547717, 0.017565027, 0.009530851, -0.065294996, 0.03587568,
-        0.008480653, 0.0022886577, 0.023766907, -0.084915414, 0.07470798,
-        -0.006908829, 0.021596074, 0.0625816, 0.081908084, -0.027456718,
-        -0.000554317, -0.044680033, 0.0019948948, 0.03433823, 0.028110601,
-        0.015188256, -0.02078335, -0.0030789522,
-      ],
-      description:
-        "There's a typo on the landing page, in the pricing section. I need to fix it.",
-      descriptionEmbedding: [
-        0.004168338, 0.007838455, 0.030411266, -0.0057475236, 0.013155538,
-        0.004054634, -0.0021283613, 0.023786874, -0.021623494, 0.04574299,
-        0.063582174, 0.03407635, -0.038952872, -0.008361301, -0.0591096,
-        -0.05597924, -0.043549027, -0.061962847, 0.014415433, 0.01689076,
-        -0.04928342, 0.049041845, -0.026919166, 0.07111314, 0.07753267,
-        -0.015839905, -0.03347123, 0.030100472, -0.033226296, -0.056283,
-        -0.08183786, 0.097232476, 0.03320975, 0.0020769134, 0.1262737,
-        -0.006711475, -0.00859035, -0.030564666, 0.028795337, -0.03482683,
-        0.055365197, -0.08899186, -0.04648085, 0.067045994, 0.020068143,
-        -0.0044650477, -0.020936714, 0.047033172, 0.08984917, 0.08768553,
-        0.05846058, 0.00025430392, 0.016987726, -0.013226699, -0.03395789,
-        0.07863159, -0.011953119, 0.013385446, 0.055238444, -0.045687843,
-        0.08084118, -0.008035894, -0.003481088, 0.054841414, 0.04209815,
-        0.0051642717, -0.024232328, -0.1271339, -0.048012633, 0.02337184,
-        0.013249668, -0.0041667204, 0.0060384856, 0.075461105, -0.01498041,
-        -0.03544347, 0.06016035, -0.042043887, 0.08139883, -0.019785311,
-        -0.012651057, -0.034100365, -0.040297702, -0.016174031, 0.12850995,
-        -0.03214422, 0.057640895, -0.022668034, 0.07855611, -0.019906953,
-        0.007240244, -0.07888546, 0.052012842, 0.031277318, -0.1384892,
-        0.004651145, -0.04333766, -0.025813654, -0.012650832, 0.040006302,
-        0.04485584, -0.012812417, 0.040022403, 0.05186385, -0.13016054,
-        -0.052640803, -0.019983778, 0.11824574, 0.0074868114, -0.02545459,
-        -0.01185676, -0.052338716, -0.021628771, 0.035981983, -0.10513793,
-        -0.036191933, 0.0021085048, -0.06823613, 0.07560963, -0.07722854,
-        -0.046363235, -0.044697747, -0.03526706, -0.04102545, -0.057653103,
-        -0.12840094, 0.03750518, -8.426755e-33, -0.060194053, 0.09576755,
-        -0.03004173, -0.11774086, 0.012911633, -0.00888346, -0.006143768,
-        0.028800528, -0.06676566, 0.017893782, 0.009696336, -0.06978807,
-        0.0031670916, 0.016168542, 0.014248391, -0.03390457, -0.03990531,
-        0.03774238, 0.01701437, -0.02600807, 0.031386904, -0.032437023,
-        -0.052353393, -0.058207378, -0.02953902, 0.08021315, -0.031151637,
-        0.04098999, 0.06927386, 0.02205284, 0.015031926, 0.010725644,
-        0.07569546, -0.0058454783, -0.021861354, -0.046275806, 0.031665873,
-        -0.06292779, -0.05793373, -0.018439833, -0.08249411, 0.048969775,
-        -0.031400274, -0.030594673, 0.01535067, 0.048053402, 0.079593904,
-        -0.025853466, 0.08375, -0.011878343, -0.1509968, 0.023187859,
-        0.036111373, 0.034675404, -0.01651458, -0.061969377, 0.00038274366,
-        0.020087613, 0.0051158546, -0.037881818, 0.0016948776, -0.056752264,
-        0.0005829483, -0.029737158, -0.025260365, 0.02311572, 0.02629723,
-        0.06631893, 0.018214293, -0.05299691, -0.014653235, -0.005407234,
-        0.1004422, 0.042314395, -0.06652636, -0.029245013, -0.014787293,
-        0.008177445, -0.011327946, 0.06254156, -0.022848444, -0.040835354,
-        0.016964432, 0.027754245, -0.009698048, -0.029798921, 0.002139138,
-        0.033029277, 0.010511332, 0.05564907, -0.051048405, 0.03280553,
-        -0.06246931, 0.009263818, 0.0050546527, 6.049411e-33, -0.06923547,
-        -0.008064325, -0.02639857, 0.07555528, -0.071111195, -0.021639217,
-        0.050836973, 0.080716774, 0.028028267, 0.011727041, -0.06080875,
-        0.10380342, -0.10829555, -0.006462592, -0.031233665, -0.042174436,
-        -0.054813657, -0.015871475, 0.045278948, -0.0030590761, -0.053980473,
-        0.0627181, -0.009034477, 0.031583246, 0.037015762, 0.07182544,
-        0.045217935, 0.08032578, -0.033625185, 0.06263682, 0.017353235,
-        0.00936482, -0.04714843, 0.04750489, 0.039350744, 0.005291794,
-        0.07042244, -0.054838948, -0.0061170547, -0.008701293, 0.024865724,
-        -0.041928846, 0.0049645416, -0.016920514, 0.09965343, -0.054785475,
-        0.09479622, -0.06424745, 0.039199416, 0.006381178, 0.031064564,
-        -0.013566784, -0.004805495, 0.024564577, -0.03028024, 0.051131926,
-        -0.0014152731, 0.060871515, -0.022167236, -0.06512895, 0.027855655,
-        0.0933376, -0.010954986, 0.0122992825, 0.062615216, -0.024407445,
-        0.021487523, 0.09863813, 0.0021744003, 0.013309617, -0.117442854,
-        -0.029986968, 0.078352705, -0.08371744, -0.026446832, -0.05203288,
-        0.04880662, 0.06534952, 0.10514807, -0.021860788, 0.043533895,
-        0.0026038457, -0.010533821, 0.03762056, 0.0050724936, -0.063851394,
-        -0.04809077, 0.046817366, -0.07706242, 0.0580573, -0.0842882,
-        -0.016234683, 0.020263705, 0.08970746, -0.11584182, -2.421312e-8,
-        0.028813992, 0.07169855, 0.020348808, -0.009822321, 0.05324827,
-        -0.050599527, 0.04655522, -0.015860595, -0.009140471, 0.0023604175,
-        -0.005000735, -0.05008215, 0.007001454, 0.01970465, -0.020229515,
-        -0.053941894, -0.14948615, 0.1271414, -0.05904263, -0.07683505,
-        -0.014239797, 0.080912896, -0.015745264, -0.09217547, -0.005513258,
-        0.08014517, -0.0149887465, 0.07337872, -0.0035079753, -0.07178951,
-        -0.0712315, 0.045286957, 0.08887129, -0.0013413692, 0.0729847,
-        -0.03172374, 0.0100021325, 0.091714375, 0.025582548, -0.020849375,
-        -0.040513836, 0.006796446, -0.031541474, 0.032088883, 0.022737944,
-        0.084705345, -0.103543244, 0.005474491, 0.01945428, -0.051019456,
-        0.036019433, 0.006981134, 0.028347014, 0.04265807, 0.011075065,
-        -0.05369783, 0.015914394, -0.06678812, 0.010810194, 0.034211125,
-        0.039853636, -0.058180265, -0.018776339, 0.031496476,
-      ],
-      createdAt: new Date(),
-      lastUpdate: new Date(),
-    });
-    await db.insert(memoryTaskTable).values({
-      id: taskMemoryTaskId,
-      userId,
-      memoryId: taskMemoryId,
-      tasklistId: tasklistId,
-      integrationAccountId: taskIntegrationId,
-      platformAccountId: taskPlatformAccountId,
-      platformTaskListId: tasklistPlatformId,
-      platformTaskId: taskPlatformId,
-      source: LINEAR_INTEGRATION,
-      dueDate: new Date("2025-05-22T13:30:48.512Z"),
-    });
-  }, 90000);
-
-  afterAll(async () => {
-    await databaseContainer?.stop();
-  });
+    googleCalendarIntegration = await createGoogleCalendarIntegration(user.id);
+    linearIntegration = await createLinearIntegration(user.id);
+    calendar = await createCalendar(
+      user.id,
+      googleCalendarIntegration.id,
+      googleCalendarIntegration.platformAccountId,
+    );
+    tasklist = await createTasklist(
+      user.id,
+      linearIntegration.id,
+      linearIntegration.platformAccountId,
+    );
+  }, 120000);
 
   describe("getMemories", () => {
+    const dentistMemory = useTestMemory(() => [
+      user.id,
+      TEST_EMBEDDING_DENTIST_APPOINTMENT_TEXT,
+      TEST_EMBEDDING_DENTIST_APPOINTMENT_DESCRIPTION,
+      {
+        event: {
+          platformAccountId: calendar.platformAccountId,
+          integrationAccountId: calendar.integrationAccountId,
+          platformCalendarId: calendar.platformCalendarId,
+          platformId: nanoid(),
+          icalUid: nanoid(),
+          calendarId: calendar.id,
+          source: calendar.source,
+          sequence: 1,
+          startDate: new Date("2025-05-22T13:30:48.512Z"),
+          endDate: new Date("2025-05-22T14:30:48.512Z"),
+          eventType: "default",
+          attendenceStatus: "tentative",
+        },
+      },
+    ]);
+    const typoMemory = useTestMemory(() => [
+      user.id,
+      TEST_EMBEDDING_FIX_LANDING_TYPO_TEXT,
+      TEST_EMBEDDING_FIX_LANDING_TYPO_DESCRIPTION,
+      {
+        task: {
+          platformAccountId: tasklist.platformAccountId,
+          integrationAccountId: tasklist.integrationAccountId,
+          platformTaskListId: tasklist.platformTaskListId,
+          platformTaskId: nanoid(),
+          source: tasklist.source,
+          tasklistId: tasklist.id,
+          dueDate: new Date("2025-05-22T13:30:48.512Z"),
+        },
+      },
+    ]);
+
     it("get empty memories", async () => {
-      const memories = await getMemories(userId, []);
+      const memories = await getMemories(user.id, []);
       expect(memories.length).toBe(0);
+    });
+
+    it("get single memory", async () => {
+      const memories = await getMemories(user.id, [dentistMemory().memory.id]);
+      expect(memories.length).toBe(1);
+      expect(memories[0]?.id).toBe(dentistMemory().memory.id);
+    });
+
+    it("get multiple memories", async () => {
+      const memories = await getMemories(user.id, [
+        dentistMemory().memory.id,
+        typoMemory().memory.id,
+      ]);
+
+      expect(memories.length).toBe(2);
+      expect(memories).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ id: dentistMemory().memory.id }),
+          expect.objectContaining({ id: typoMemory().memory.id }),
+        ]),
+      );
+    });
+  });
+
+  describe("queryMemories", () => {
+    useEmbeddingServiceContainer();
+
+    describe("by date", () => {
+      const dayAgoMemoryEvent = useTestMemory(() => [
+        user.id,
+        TEST_EMBEDDING_FIX_LANDING_TYPO_TEXT,
+        TEST_EMBEDDING_FIX_LANDING_TYPO_DESCRIPTION,
+        {
+          event: {
+            platformAccountId: calendar.platformAccountId,
+            integrationAccountId: calendar.integrationAccountId,
+            platformCalendarId: calendar.platformCalendarId,
+            platformId: nanoid(),
+            icalUid: nanoid(),
+            calendarId: calendar.id,
+            source: calendar.source,
+            sequence: 1,
+            attendenceStatus: "tentative",
+            eventType: "default",
+            startDate: setHours(startOfYesterday(), 10),
+            endDate: setHours(startOfYesterday(), 11),
+          },
+        },
+      ]);
+
+      const currentDayMemoryEvent = useTestMemory(() => [
+        user.id,
+        TEST_EMBEDDING_DENTIST_APPOINTMENT_TEXT,
+        TEST_EMBEDDING_DENTIST_APPOINTMENT_DESCRIPTION,
+        {
+          event: {
+            platformAccountId: calendar.platformAccountId,
+            integrationAccountId: calendar.integrationAccountId,
+            platformCalendarId: calendar.platformCalendarId,
+            platformId: nanoid(),
+            icalUid: nanoid(),
+            calendarId: calendar.id,
+            source: calendar.source,
+            sequence: 1,
+            attendenceStatus: "tentative",
+            eventType: "default",
+            startDate: setHours(startOfToday(), 10),
+            endDate: setHours(startOfToday(), 11),
+          },
+        },
+      ]);
+
+      const tomorrowMemoryEvent = useTestMemory(() => [
+        user.id,
+        TEST_EMBEDDING_DENTIST_APPOINTMENT_TEXT,
+        TEST_EMBEDDING_DENTIST_APPOINTMENT_DESCRIPTION,
+        {
+          event: {
+            platformAccountId: calendar.platformAccountId,
+            integrationAccountId: calendar.integrationAccountId,
+            platformCalendarId: calendar.platformCalendarId,
+            platformId: nanoid(),
+            icalUid: nanoid(),
+            calendarId: calendar.id,
+            source: calendar.source,
+            sequence: 1,
+            attendenceStatus: "tentative",
+            eventType: "default",
+            startDate: setHours(startOfTomorrow(), 10),
+            endDate: setHours(startOfTomorrow(), 11),
+          },
+        },
+      ]);
+
+      it("get memories by date sorted descending", async () => {
+        const memories = await queryMemories(user.id, {
+          dateFrom: subDays(new Date(), 2),
+          dateTo: addDays(new Date(), 2),
+          orderBy: "desc",
+        });
+
+        expect(memories.length).toBe(3);
+        expect(memories).toEqual([
+          expect.objectContaining({ id: tomorrowMemoryEvent().memory.id }),
+          expect.objectContaining({ id: currentDayMemoryEvent().memory.id }),
+          expect.objectContaining({ id: dayAgoMemoryEvent().memory.id }),
+        ]);
+      });
+
+      it("get memories by date sorted ascending", async () => {
+        const memories = await queryMemories(user.id, {
+          dateFrom: subDays(new Date(), 2),
+          dateTo: addDays(new Date(), 2),
+          orderBy: "asc",
+        });
+
+        expect(memories.length).toBe(3);
+        expect(memories).toEqual([
+          expect.objectContaining({ id: dayAgoMemoryEvent().memory.id }),
+          expect.objectContaining({ id: currentDayMemoryEvent().memory.id }),
+          expect.objectContaining({ id: tomorrowMemoryEvent().memory.id }),
+        ]);
+      });
+
+      it("get yesterday's memories", async () => {
+        const memories = await queryMemories(user.id, {
+          dateFrom: startOfYesterday(),
+          dateTo: endOfYesterday(),
+        });
+
+        expect(memories.length).toBe(1);
+        expect(memories).toEqual([
+          expect.objectContaining({ id: dayAgoMemoryEvent().memory.id }),
+        ]);
+      });
+
+      it("get today's memories", async () => {
+        const memories = await queryMemories(user.id, {
+          dateFrom: startOfToday(),
+          dateTo: endOfToday(),
+        });
+
+        expect(memories.length).toBe(1);
+        expect(memories).toEqual([
+          expect.objectContaining({ id: currentDayMemoryEvent().memory.id }),
+        ]);
+      });
+
+      it("get tomorrow's memories", async () => {
+        const memories = await queryMemories(user.id, {
+          dateFrom: startOfTomorrow(),
+          dateTo: endOfTomorrow(),
+        });
+
+        expect(memories.length).toBe(1);
+        expect(memories).toEqual([
+          expect.objectContaining({ id: tomorrowMemoryEvent().memory.id }),
+        ]);
+      });
+
+      it("get yesterday's and today's memories", async () => {
+        const memories = await queryMemories(user.id, {
+          dateFrom: startOfYesterday(),
+          dateTo: endOfToday(),
+        });
+
+        expect(memories.length).toBe(2);
+        expect(memories).toEqual([
+          expect.objectContaining({ id: currentDayMemoryEvent().memory.id }),
+          expect.objectContaining({ id: dayAgoMemoryEvent().memory.id }),
+        ]);
+      });
+
+      it("get today's and tomorrow's memories", async () => {
+        const memories = await queryMemories(user.id, {
+          dateFrom: startOfToday(),
+          dateTo: endOfTomorrow(),
+        });
+
+        expect(memories.length).toBe(2);
+        expect(memories).toEqual([
+          expect.objectContaining({ id: tomorrowMemoryEvent().memory.id }),
+          expect.objectContaining({ id: currentDayMemoryEvent().memory.id }),
+        ]);
+      });
+
+      it("get memories leaving out tomorrow's end date", async () => {
+        const memories = await queryMemories(user.id, {
+          dateFrom: new Date(),
+          dateTo: set(startOfTomorrow(), {
+            hours: 10,
+            minutes: 30,
+          }),
+        });
+
+        expect(memories).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({ id: tomorrowMemoryEvent().memory.id }),
+          ]),
+        );
+      });
+
+      it("get memories leaving out tomorrow's start and end date", async () => {
+        const memories = await queryMemories(user.id, {
+          dateFrom: new Date(),
+          dateTo: set(startOfTomorrow(), {
+            hours: 9,
+            minutes: 30,
+          }),
+        });
+
+        expect(memories).not.toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({ id: tomorrowMemoryEvent().memory.id }),
+          ]),
+        );
+      });
+
+      it("get memories until tomorrow's exact start date", async () => {
+        const memories = await queryMemories(user.id, {
+          dateFrom: new Date(),
+          dateTo: tomorrowMemoryEvent().event?.startDate,
+        });
+
+        expect(memories).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({ id: tomorrowMemoryEvent().memory.id }),
+          ]),
+        );
+      });
+
+      it("get memories leaving out yesterday's start date", async () => {
+        const memories = await queryMemories(user.id, {
+          dateFrom: setHours(startOfYesterday(), 10),
+          dateTo: new Date(),
+        });
+
+        expect(memories).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({ id: dayAgoMemoryEvent().memory.id }),
+          ]),
+        );
+      });
+
+      it("get memories leaving out yesterday's start and end date", async () => {
+        const memories = await queryMemories(user.id, {
+          dateFrom: set(startOfYesterday(), {
+            hours: 11,
+            minutes: 30,
+          }),
+          dateTo: new Date(),
+        });
+
+        expect(memories).not.toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({ id: dayAgoMemoryEvent().memory.id }),
+          ]),
+        );
+      });
+
+      it("get memories from yesterday's exact end date", async () => {
+        const memories = await queryMemories(user.id, {
+          dateFrom: dayAgoMemoryEvent().event?.endDate,
+          dateTo: new Date(),
+        });
+
+        expect(memories).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({ id: dayAgoMemoryEvent().memory.id }),
+          ]),
+        );
+      });
+    });
+
+    describe("recurring events", () => {
+      const dailyRecurringMemory = useTestMemory(() => [
+        user.id,
+        TEST_EMBEDDING_DENTIST_APPOINTMENT_TEXT,
+        TEST_EMBEDDING_DENTIST_APPOINTMENT_DESCRIPTION,
+        {
+          event: {
+            platformAccountId: calendar.platformAccountId,
+            integrationAccountId: calendar.integrationAccountId,
+            platformCalendarId: calendar.platformCalendarId,
+            platformId: nanoid(),
+            icalUid: nanoid(),
+            calendarId: calendar.id,
+            source: calendar.source,
+            sequence: 1,
+            attendenceStatus: "tentative",
+            eventType: "default",
+            startDate: setHours(startOfToday(), 9),
+            endDate: setHours(startOfToday(), 10),
+            rrule: `RRULE:FREQ=DAILY;INTERVAL=1;UNTIL=${dateToRRULEString(
+              addDays(endOfToday(), 10),
+            ).replace("Z", "")}`,
+            recurringEnd: addDays(endOfToday(), 10),
+          },
+        },
+      ]);
+
+      const weeklyRecurringMemory = useTestMemory(() => [
+        user.id,
+        TEST_EMBEDDING_FIX_LANDING_TYPO_TEXT,
+        TEST_EMBEDDING_FIX_LANDING_TYPO_DESCRIPTION,
+        {
+          event: {
+            platformAccountId: calendar.platformAccountId,
+            integrationAccountId: calendar.integrationAccountId,
+            platformCalendarId: calendar.platformCalendarId,
+            platformId: nanoid(),
+            icalUid: nanoid(),
+            calendarId: calendar.id,
+            source: calendar.source,
+            sequence: 1,
+            attendenceStatus: "tentative",
+            eventType: "default",
+            startDate: setHours(startOfToday(), 14),
+            endDate: setHours(startOfToday(), 15),
+            rrule: `RRULE:FREQ=WEEKLY;INTERVAL=1;UNTIL=${dateToRRULEString(
+              addDays(endOfToday(), 21),
+            ).replace("Z", "")}`,
+            recurringEnd: addDays(endOfToday(), 21),
+          },
+        },
+      ]);
+
+      const longRecurringMemory = useTestMemory(() => [
+        user.id,
+        TEST_EMBEDDING_DENTIST_APPOINTMENT_TEXT,
+        TEST_EMBEDDING_DENTIST_APPOINTMENT_DESCRIPTION,
+        {
+          event: {
+            platformAccountId: calendar.platformAccountId,
+            integrationAccountId: calendar.integrationAccountId,
+            platformCalendarId: calendar.platformCalendarId,
+            platformId: nanoid(),
+            icalUid: nanoid(),
+            calendarId: calendar.id,
+            source: calendar.source,
+            sequence: 1,
+            attendenceStatus: "tentative",
+            eventType: "default",
+            startDate: setHours(startOfToday(), 16),
+            endDate: setHours(startOfToday(), 17),
+            rrule: "RRULE:FREQ=DAILY;INTERVAL=1",
+          },
+        },
+      ]);
+
+      const endedRecurringMemory = useTestMemory(() => [
+        user.id,
+        TEST_EMBEDDING_FIX_LANDING_TYPO_TEXT,
+        TEST_EMBEDDING_FIX_LANDING_TYPO_DESCRIPTION,
+        {
+          event: {
+            platformAccountId: calendar.platformAccountId,
+            integrationAccountId: calendar.integrationAccountId,
+            platformCalendarId: calendar.platformCalendarId,
+            platformId: nanoid(),
+            icalUid: nanoid(),
+            calendarId: calendar.id,
+            source: calendar.source,
+            sequence: 1,
+            attendenceStatus: "tentative",
+            eventType: "default",
+            startDate: setHours(subDays(startOfToday(), 5), 11),
+            endDate: setHours(subDays(startOfToday(), 5), 12),
+            rrule: "RRULE:FREQ=DAILY;INTERVAL=1",
+            recurringEnd: subDays(endOfToday(), 2),
+          },
+        },
+      ]);
+
+      it("get daily recurring events within date range", async () => {
+        const memories = await queryMemories(user.id, {
+          dateFrom: startOfToday(),
+          dateTo: addDays(endOfToday(), 5),
+        });
+
+        const dailyRecurringMatches = memories.filter(
+          (m) => m.id === dailyRecurringMemory().memory.id,
+        );
+        expect(dailyRecurringMatches.length).toEqual(6); // 5 days + today
+        expect(dailyRecurringMatches).toEqual([
+          expect.objectContaining({ id: dailyRecurringMemory().memory.id }),
+          expect.objectContaining({ id: dailyRecurringMemory().memory.id }),
+          expect.objectContaining({ id: dailyRecurringMemory().memory.id }),
+          expect.objectContaining({ id: dailyRecurringMemory().memory.id }),
+          expect.objectContaining({ id: dailyRecurringMemory().memory.id }),
+          expect.objectContaining({ id: dailyRecurringMemory().memory.id }),
+        ]);
+      });
+
+      it("get weekly recurring events within date range", async () => {
+        const memories = await queryMemories(user.id, {
+          dateFrom: startOfToday(),
+          dateTo: addDays(endOfToday(), 14),
+        });
+
+        const weeklyRecurringMatches = memories.filter(
+          (m) => m.id === weeklyRecurringMemory().memory.id,
+        );
+
+        expect(weeklyRecurringMatches.length).toEqual(3);
+      });
+
+      it("respect recurring end date", async () => {
+        const memories = await queryMemories(user.id, {
+          dateFrom: new Date(),
+          dateTo: addDays(new Date(), 15),
+          orderBy: "asc",
+        });
+
+        const dailyRecurringMatches = memories.filter(
+          (m) => m.id === dailyRecurringMemory().memory.id,
+        );
+
+        // Should not extend beyond the recurring end date (10 days)
+        expect(dailyRecurringMatches.length).toBeLessThanOrEqual(11); // 10 days + today
+      });
+
+      it("exclude ended recurring events", async () => {
+        const memories = await queryMemories(user.id, {
+          dateFrom: new Date(),
+          dateTo: addDays(new Date(), 5),
+          orderBy: "asc",
+        });
+
+        const endedRecurringMatches = memories.filter(
+          (m) => m.id === endedRecurringMemory().memory.id,
+        );
+
+        // Should not find any instances as the recurring period ended 2 days ago
+        expect(endedRecurringMatches.length).toBe(0);
+      });
+
+      it("include past occurrences of ended recurring events", async () => {
+        const memories = await queryMemories(user.id, {
+          dateFrom: subDays(new Date(), 10),
+          dateTo: subDays(new Date(), 1),
+          orderBy: "asc",
+        });
+
+        const endedRecurringMatches = memories.filter(
+          (m) => m.id === endedRecurringMemory().memory.id,
+        );
+
+        // Should find past occurrences within the recurring period
+        expect(endedRecurringMatches.length).toBeGreaterThan(0);
+      });
+
+      it("limit recurrence calculation to 30 days from dateFrom", async () => {
+        const memories = await queryMemories(user.id, {
+          dateFrom: new Date(),
+          orderBy: "asc",
+        });
+
+        const longRecurringMatches = memories.filter(
+          (m) => m.id === longRecurringMemory().memory.id,
+        );
+
+        // Should be limited to ~30 occurrences despite 45-day query range
+        // and 60-day recurring end date
+        expect(longRecurringMatches.length).toBeLessThanOrEqual(31); // 30 days + today
+      });
+
+      it("don't limit recurrence calculation to 30 days from dateFrom if there's dateTo", async () => {
+        const memories = await queryMemories(user.id, {
+          dateFrom: new Date(),
+          dateTo: addDays(new Date(), 45),
+          orderBy: "asc",
+        });
+
+        const longRecurringMatches = memories.filter(
+          (m) => m.id === longRecurringMemory().memory.id,
+        );
+
+        // Should be limited to ~30 occurrences despite 45-day query range
+        // and 60-day recurring end date
+        expect(longRecurringMatches.length).toBeLessThanOrEqual(46); // 30 days + today
+      });
+
+      it("limit recurrence calculation to 90 days from dateFrom if there's dateTo passed 90 days", async () => {
+        const memories = await queryMemories(user.id, {
+          dateFrom: new Date(),
+          dateTo: addDays(new Date(), 120),
+          orderBy: "asc",
+        });
+
+        const longRecurringMatches = memories.filter(
+          (m) => m.id === longRecurringMemory().memory.id,
+        );
+
+        // Should be limited to ~30 occurrences despite 45-day query range
+        // and 60-day recurring end date
+        expect(longRecurringMatches.length).toBeLessThanOrEqual(91); // 30 days + today
+      });
+
+      it("handle recurring events starting before dateFrom", async () => {
+        const startDate = subDays(new Date(), 3);
+        const memories = await queryMemories(user.id, {
+          dateFrom: startDate,
+          dateTo: addDays(startDate, 5),
+          orderBy: "asc",
+        });
+
+        const endedRecurringMatches = memories.filter(
+          (m) => m.id === endedRecurringMemory().memory.id,
+        );
+
+        // Should find occurrences that fall within the query range
+        // even if the original event started before dateFrom
+        expect(endedRecurringMatches.length).toBeGreaterThan(0);
+      });
+
+      it("sort recurring event occurrences correctly", async () => {
+        const memories = await queryMemories(user.id, {
+          dateFrom: new Date(),
+          dateTo: addDays(new Date(), 3),
+          orderBy: "asc",
+        });
+
+        const dailyMatches = memories.filter(
+          (m) => m.id === dailyRecurringMemory().memory.id,
+        );
+
+        // Verify ascending order by checking that each occurrence
+        // is scheduled for the same or later time
+        for (let i = 1; i < dailyMatches.length; i++) {
+          expect(dailyMatches[i]?.event?.startDate).toEqual(expect.any(Date));
+          if (
+            dailyMatches[i - 1]?.event?.startDate &&
+            dailyMatches[i]?.event?.startDate
+          ) {
+            expect(
+              dailyMatches[i]?.event?.startDate.getTime(),
+            ).toBeGreaterThanOrEqual(
+              dailyMatches[i - 1]?.event?.startDate.getTime() ?? -1,
+            );
+          }
+        }
+      });
+    });
+
+    describe("recurring instances", () => {
+      const parentRecurringMemory = useTestMemory(() => [
+        user.id,
+        TEST_EMBEDDING_DENTIST_APPOINTMENT_TEXT,
+        TEST_EMBEDDING_DENTIST_APPOINTMENT_DESCRIPTION,
+        {
+          event: {
+            platformAccountId: calendar.platformAccountId,
+            integrationAccountId: calendar.integrationAccountId,
+            platformCalendarId: calendar.platformCalendarId,
+            platformId: nanoid(),
+            icalUid: nanoid(),
+            calendarId: calendar.id,
+            source: calendar.source,
+            sequence: 1,
+            attendenceStatus: "tentative",
+            eventType: "default",
+            startDate: set(new Date(), {
+              hours: 10,
+              minutes: 0,
+              seconds: 0,
+              milliseconds: 0,
+            }),
+            endDate: set(new Date(), {
+              hours: 11,
+              minutes: 0,
+              seconds: 0,
+              milliseconds: 0,
+            }),
+            rrule: "RRULE:FREQ=DAILY;INTERVAL=1",
+          },
+        },
+      ]);
+
+      // Recurring instance for tomorrow - rescheduled to different time
+      const rescheduledInstanceMemory = useTestMemory(() => [
+        user.id,
+        TEST_EMBEDDING_DENTIST_APPOINTMENT_TEXT,
+        TEST_EMBEDDING_DENTIST_APPOINTMENT_DESCRIPTION,
+        {
+          event: {
+            platformAccountId: calendar.platformAccountId,
+            integrationAccountId: calendar.integrationAccountId,
+            platformCalendarId: calendar.platformCalendarId,
+            platformId: nanoid(),
+            icalUid: nanoid(),
+            calendarId: calendar.id,
+            source: calendar.source,
+            sequence: 2,
+            attendenceStatus: "tentative",
+            eventType: "default",
+            // Actual rescheduled time
+            startDate: set(
+              // biome-ignore lint/style/noNonNullAssertion: This should not be null at this point
+              addDays(parentRecurringMemory().event?.startDate!, 1),
+              {
+                hours: 15,
+                minutes: 30,
+                seconds: 0,
+                milliseconds: 0,
+              },
+            ),
+            endDate: set(
+              // biome-ignore lint/style/noNonNullAssertion: This should not be null at this point
+              addDays(parentRecurringMemory().event?.startDate!, 1),
+              {
+                hours: 16,
+                minutes: 30,
+                seconds: 0,
+                milliseconds: 0,
+              },
+            ),
+            // Reference to parent recurring event
+            recurringEventPlatformId: parentRecurringMemory().event?.platformId,
+            // Original time from the rrule
+            startOriginal: addDays(
+              // biome-ignore lint/style/noNonNullAssertion: This should not be null at this point
+              parentRecurringMemory().event?.startDate!,
+              1,
+            ),
+          },
+        },
+      ]);
+
+      // Recurring instance for day after tomorrow - cancelled
+      const cancelledInstanceMemory = useTestMemory(() => [
+        user.id,
+        TEST_EMBEDDING_DENTIST_APPOINTMENT_TEXT,
+        TEST_EMBEDDING_DENTIST_APPOINTMENT_DESCRIPTION,
+        {
+          event: {
+            platformAccountId: calendar.platformAccountId,
+            integrationAccountId: calendar.integrationAccountId,
+            platformCalendarId: calendar.platformCalendarId,
+            platformId: nanoid(),
+            icalUid: nanoid(),
+            calendarId: calendar.id,
+            source: calendar.source,
+            sequence: 2,
+            attendenceStatus: "declined",
+            eventType: "default",
+            // Cancelled events might still have original time or null
+            startDate: set(
+              // biome-ignore lint/style/noNonNullAssertion: This should not be null at this point
+              addDays(parentRecurringMemory().event?.startDate!, 2),
+              {
+                hours: 10,
+                minutes: 0,
+                seconds: 0,
+                milliseconds: 0,
+              },
+            ),
+            endDate: set(
+              // biome-ignore lint/style/noNonNullAssertion: This should not be null at this point
+              addDays(parentRecurringMemory().event?.startDate!, 2),
+              {
+                hours: 11,
+                minutes: 0,
+                seconds: 0,
+                milliseconds: 0,
+              },
+            ),
+            // Reference to parent recurring event
+            recurringEventPlatformId: parentRecurringMemory().event?.platformId,
+            // Original time from the rrule
+            startOriginal: addDays(
+              // biome-ignore lint/style/noNonNullAssertion: This should not be null at this point
+              parentRecurringMemory().event?.startDate!,
+              2,
+            ),
+          },
+        },
+      ]);
+
+      // Recurring instance for 3 days from now - updated details but same time
+      const updatedInstanceMemory = useTestMemory(() => [
+        user.id,
+        TEST_EMBEDDING_DENTIST_APPOINTMENT_TEXT,
+        TEST_EMBEDDING_DENTIST_APPOINTMENT_DESCRIPTION,
+        {
+          event: {
+            platformAccountId: calendar.platformAccountId,
+            integrationAccountId: calendar.integrationAccountId,
+            platformCalendarId: calendar.platformCalendarId,
+            platformId: nanoid(),
+            icalUid: nanoid(),
+            calendarId: calendar.id,
+            source: calendar.source,
+            sequence: 2,
+            attendenceStatus: "accepted",
+            eventType: "default",
+            // Same time as original but with updated details
+            startDate: set(
+              // biome-ignore lint/style/noNonNullAssertion: This should not be null at this point
+              addDays(parentRecurringMemory().event?.startDate!, 3),
+              {
+                hours: 10,
+                minutes: 0,
+                seconds: 0,
+                milliseconds: 0,
+              },
+            ),
+            endDate: set(
+              // biome-ignore lint/style/noNonNullAssertion: This should not be null at this point
+              addDays(parentRecurringMemory().event?.startDate!, 3),
+              {
+                hours: 11,
+                minutes: 0,
+                seconds: 0,
+                milliseconds: 0,
+              },
+            ),
+            // Reference to parent recurring event
+            recurringEventPlatformId: parentRecurringMemory().event?.platformId,
+            // Original time from the rrule (same as actual time)
+            startOriginal: addDays(
+              // biome-ignore lint/style/noNonNullAssertion: This should not be null at this point
+              parentRecurringMemory().event?.startDate!,
+              3,
+            ),
+          },
+        },
+      ]);
+
+      it("should return actual instances instead of virtual ones", async () => {
+        const memories = await queryMemories(user.id, {
+          dateFrom: startOfToday(),
+          dateTo: endOfDay(addDays(new Date(), 5)),
+          orderBy: "asc",
+        });
+
+        expect(memories.length).toEqual(6);
+
+        // Find specific instances
+        const rescheduledInstance = memories.find(
+          (m) => m.id === rescheduledInstanceMemory().memory.id,
+        );
+        const cancelledInstance = memories.find(
+          (m) => m.id === cancelledInstanceMemory().memory.id,
+        );
+        const updatedInstance = memories.find(
+          (m) => m.id === updatedInstanceMemory().memory.id,
+        );
+
+        // Should have the actual instances, not virtual ones for those dates
+        expect(rescheduledInstance).toBeDefined();
+        expect(rescheduledInstance?.event?.startDate?.getHours()).toBe(15); // Rescheduled time
+        expect(rescheduledInstance?.event?.startOriginal?.getHours()).toBe(10); // Original time
+
+        expect(cancelledInstance).toBeDefined();
+        expect(cancelledInstance?.event?.attendenceStatus).toBe("declined");
+
+        expect(updatedInstance).toBeDefined();
+        expect(updatedInstance?.event?.attendenceStatus).toBe("accepted");
+      });
+
+      it.skip("(NOT IMPLEMENTED YET) should exclude cancelled instances from results", async () => {
+        const memories = await queryMemories(user.id, {
+          dateFrom: startOfToday(),
+          dateTo: endOfDay(addDays(new Date(), 5)),
+          // excludeCancelled: true,
+        });
+
+        const cancelledInstance = memories.find(
+          (m) => m.id === cancelledInstanceMemory().memory.id,
+        );
+
+        expect(cancelledInstance).toBeUndefined();
+
+        // But should still have other instances
+        const rescheduledInstance = memories.find(
+          (m) => m.id === rescheduledInstanceMemory().memory.id,
+        );
+        expect(rescheduledInstance).toBeDefined();
+      });
+
+      it("should generate virtual instances for dates without actual instances", async () => {
+        const memories = await queryMemories(user.id, {
+          dateFrom: set(new Date(), {
+            hours: 0,
+            minutes: 0,
+            seconds: 0,
+            milliseconds: 0,
+          }),
+          dateTo: set(addDays(new Date(), 5), {
+            hours: 23,
+            minutes: 59,
+            seconds: 59,
+            milliseconds: 999,
+          }),
+          orderBy: "asc",
+        });
+
+        // Find virtual instances (parent recurring memory ID)
+        const virtualInstances = memories.filter(
+          (m) => m.id === parentRecurringMemory().memory.id,
+        );
+
+        // Should have virtual instances for today, 4 days from now, and 5 days from now
+        // (tomorrow, day after tomorrow, and 3 days from now have actual instances)
+        expect(virtualInstances.length).toEqual(3);
+
+        // Check that virtual instances have the correct original times
+        for (const instance of virtualInstances) {
+          expect(instance.event?.startDate?.getHours()).toBe(10);
+          expect(instance.event?.endDate?.getHours()).toBe(11);
+        }
+      });
+
+      it("should handle rescheduled instances with different times", async () => {
+        const memories = await queryMemories(user.id, {
+          dateFrom: set(addDays(new Date(), 1), {
+            hours: 0,
+            minutes: 0,
+            seconds: 0,
+            milliseconds: 0,
+          }),
+          dateTo: set(addDays(new Date(), 1), {
+            hours: 23,
+            minutes: 59,
+            seconds: 59,
+            milliseconds: 999,
+          }),
+        });
+
+        const tomorrowInstance = memories.find(
+          (m) => m.id === rescheduledInstanceMemory().memory.id,
+        );
+
+        expect(tomorrowInstance).toBeDefined();
+        expect(tomorrowInstance?.event?.startDate?.getHours()).toBe(15);
+        expect(tomorrowInstance?.event?.startDate?.getMinutes()).toBe(30);
+        expect(tomorrowInstance?.event?.startOriginal?.getHours()).toBe(10);
+        expect(tomorrowInstance?.event?.startOriginal?.getMinutes()).toBe(0);
+        expect(tomorrowInstance?.event?.recurringEventPlatformId).toBe(
+          parentRecurringMemory().event?.platformId,
+        );
+      });
+
+      it("should sort instances correctly with mixed virtual and actual", async () => {
+        const memories = await queryMemories(user.id, {
+          dateFrom: startOfToday(),
+          dateTo: addDays(endOfToday(), 5),
+          orderBy: "asc",
+        });
+
+        const recurringMatches = memories.filter(
+          (m) =>
+            m.id === parentRecurringMemory().memory.id ||
+            m.id === rescheduledInstanceMemory().memory.id ||
+            m.id === cancelledInstanceMemory().memory.id ||
+            m.id === updatedInstanceMemory().memory.id,
+        );
+
+        // Should be sorted by start date
+        for (let i = 1; i < recurringMatches.length; i++) {
+          const prev = recurringMatches[i - 1];
+          const curr = recurringMatches[i];
+          if (prev?.event?.startDate && curr?.event?.startDate) {
+            expect(curr.event.startDate.getTime()).toBeGreaterThanOrEqual(
+              prev.event.startDate.getTime(),
+            );
+          }
+        }
+      });
+
+      const extendedInstanceMemory = useTestMemory(() => [
+        user.id,
+        TEST_EMBEDDING_DENTIST_APPOINTMENT_TEXT,
+        TEST_EMBEDDING_DENTIST_APPOINTMENT_DESCRIPTION,
+        {
+          event: {
+            platformAccountId: calendar.platformAccountId,
+            integrationAccountId: calendar.integrationAccountId,
+            platformCalendarId: calendar.platformCalendarId,
+            platformId: nanoid(),
+            icalUid: nanoid(),
+            calendarId: calendar.id,
+            source: calendar.source,
+            sequence: 2,
+            attendenceStatus: "accepted",
+            eventType: "default",
+            // Date beyond the parent recurring end date
+            startDate: set(addDays(new Date(), 15), {
+              hours: 10,
+              minutes: 0,
+              seconds: 0,
+              milliseconds: 0,
+            }),
+            endDate: set(addDays(new Date(), 15), {
+              hours: 11,
+              minutes: 0,
+              seconds: 0,
+              milliseconds: 0,
+            }),
+            // Reference to parent recurring event
+            recurringEventPlatformId: parentRecurringMemory().event?.platformId,
+            // Original time from the rrule
+            startOriginal: set(addDays(new Date(), 15), {
+              hours: 10,
+              minutes: 0,
+              seconds: 0,
+              milliseconds: 0,
+            }),
+          },
+        },
+      ]);
+
+      it("should handle instances that extend beyond parent recurring end date", async () => {
+        const memories = await queryMemories(user.id, {
+          dateFrom: addDays(startOfToday(), 15),
+          dateTo: addDays(endOfToday(), 15),
+        });
+
+        const extendedInstance = memories.find(
+          (m) => m.id === extendedInstanceMemory().memory.id,
+        );
+
+        // Should find the extended instance even though it's beyond the parent's end date
+        expect(extendedInstance).toBeDefined();
+        expect(extendedInstance?.event?.recurringEventPlatformId).toBe(
+          parentRecurringMemory().event?.platformId,
+        );
+      });
+
+      const pastInstanceMemory = useTestMemory(() => [
+        user.id,
+        TEST_EMBEDDING_DENTIST_APPOINTMENT_TEXT,
+        TEST_EMBEDDING_DENTIST_APPOINTMENT_DESCRIPTION,
+        {
+          event: {
+            platformAccountId: calendar.platformAccountId,
+            integrationAccountId: calendar.integrationAccountId,
+            platformCalendarId: calendar.platformCalendarId,
+            platformId: nanoid(),
+            icalUid: nanoid(),
+            calendarId: calendar.id,
+            source: calendar.source,
+            sequence: 2,
+            attendenceStatus: "accepted",
+            eventType: "default",
+            // Past date
+            startDate: set(subDays(new Date(), 1), {
+              hours: 10,
+              minutes: 0,
+              seconds: 0,
+              milliseconds: 0,
+            }),
+            endDate: set(subDays(new Date(), 1), {
+              hours: 11,
+              minutes: 0,
+              seconds: 0,
+              milliseconds: 0,
+            }),
+            // Reference to parent recurring event
+            recurringEventPlatformId: parentRecurringMemory().event?.platformId,
+            // Original time from the rrule
+            startOriginal: set(subDays(new Date(), 1), {
+              hours: 10,
+              minutes: 0,
+              seconds: 0,
+              milliseconds: 0,
+            }),
+          },
+        },
+      ]);
+
+      it("should handle instances created for past occurrences", async () => {
+        const memories = await queryMemories(user.id, {
+          dateFrom: subDays(startOfToday(), 2),
+          dateTo: endOfToday(),
+        });
+
+        const pastInstance = memories.find(
+          (m) => m.id === pastInstanceMemory().memory.id,
+        );
+
+        expect(pastInstance).toBeDefined();
+        expect(pastInstance?.event?.attendenceStatus).toBe("accepted");
+      });
+    });
+
+    describe("text search", () => {
+      const dentistMemory = useTestMemory(() => [
+        user.id,
+        TEST_EMBEDDING_DENTIST_APPOINTMENT_TEXT,
+        TEST_EMBEDDING_DENTIST_APPOINTMENT_DESCRIPTION,
+        {
+          event: {
+            platformAccountId: calendar.platformAccountId,
+            integrationAccountId: calendar.integrationAccountId,
+            platformCalendarId: calendar.platformCalendarId,
+            platformId: nanoid(),
+            icalUid: nanoid(),
+            calendarId: calendar.id,
+            source: calendar.source,
+            sequence: 1,
+            startDate: new Date("2025-05-22T13:30:48.512Z"),
+            endDate: new Date("2025-05-22T14:30:48.512Z"),
+            eventType: "default",
+            attendenceStatus: "tentative",
+          },
+        },
+      ]);
+      const dentistFixMemory = useTestMemory(() => [
+        user.id,
+        TEST_EMBEDDING_DENTIST_FIX_TEXT,
+        TEST_EMBEDDING_DENTIST_FIX_DESCRIPTION,
+        {
+          task: {
+            platformAccountId: tasklist.platformAccountId,
+            integrationAccountId: tasklist.integrationAccountId,
+            platformTaskListId: tasklist.platformTaskListId,
+            platformTaskId: nanoid(),
+            source: tasklist.source,
+            tasklistId: tasklist.id,
+            dueDate: new Date("2025-05-22T13:30:48.512Z"),
+          },
+        },
+      ]);
+      const typoMemory = useTestMemory(() => [
+        user.id,
+        TEST_EMBEDDING_FIX_LANDING_TYPO_TEXT,
+        TEST_EMBEDDING_FIX_LANDING_TYPO_DESCRIPTION,
+        {
+          task: {
+            platformAccountId: tasklist.platformAccountId,
+            integrationAccountId: tasklist.integrationAccountId,
+            platformTaskListId: tasklist.platformTaskListId,
+            platformTaskId: nanoid(),
+            source: tasklist.source,
+            tasklistId: tasklist.id,
+            dueDate: new Date("2025-05-22T13:30:48.512Z"),
+          },
+        },
+      ]);
+
+      it('should return memories that match the text query "typo" (title)', async () => {
+        const memories = await queryMemories(user.id, {
+          textQuery: "typo",
+        });
+
+        expect(memories.length).toEqual(1);
+        expect(memories[0]?.id).toEqual(typoMemory().memory.id);
+      });
+
+      it('should return memories that match the text query "wisdom teeth" (description)', async () => {
+        const memories = await queryMemories(user.id, {
+          textQuery: "wisdom teeth",
+        });
+
+        expect(memories.length).toEqual(1);
+        expect(memories[0]?.id).toEqual(dentistMemory().memory.id);
+      });
+
+      it('should return memories that match the text query "fix" (common words)', async () => {
+        const memories = await queryMemories(user.id, {
+          textQuery: "fix",
+        });
+
+        expect(memories.length).toEqual(2);
+        expect(memories).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({
+              id: typoMemory().memory.id,
+            }),
+            expect.objectContaining({
+              id: dentistFixMemory().memory.id,
+            }),
+          ]),
+        );
+      });
+
+      it('should return memories that match the text query "dentist" (common words)', async () => {
+        const memories = await queryMemories(user.id, {
+          textQuery: "dentist",
+        });
+
+        expect(memories.length).toEqual(2);
+        expect(memories).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({
+              id: dentistMemory().memory.id,
+            }),
+            expect.objectContaining({
+              id: dentistFixMemory().memory.id,
+            }),
+          ]),
+        );
+      });
+
+      it('should return memories that match the text query "dentist" filtered by integrationAccountId', async () => {
+        const memories = await queryMemories(user.id, {
+          textQuery: "dentist",
+          integrationAccountIds: [tasklist.integrationAccountId],
+        });
+
+        expect(memories.length).toEqual(1);
+        expect(memories[0]?.id).toEqual(dentistFixMemory().memory.id);
+      });
+
+      it('should return memories that match the text query "dentist" filtered by memory type', async () => {
+        const memories = await queryMemories(user.id, {
+          textQuery: "dentist",
+          memoryTypes: new Set([EVENT_MEMORY_TYPE]),
+        });
+
+        expect(memories.length).toEqual(1);
+        expect(memories[0]?.id).toEqual(dentistMemory().memory.id);
+      });
     });
   });
 });
