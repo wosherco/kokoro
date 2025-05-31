@@ -41,7 +41,7 @@ const keyToString = (key: LookupKey): string => {
  */
 export function lookup<T, K extends LookupKey>(
   collection: T[] | Record<PropertyKey, T>,
-  keySelector: LookupIteratee<T, K>
+  keySelector: LookupIteratee<T, K>,
 ): (key: K) => T | undefined {
   // Convert collection to array if it's an object
   const items = Array.isArray(collection)

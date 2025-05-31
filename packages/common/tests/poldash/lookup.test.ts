@@ -141,7 +141,7 @@ describe("lookup", () => {
 
     const getScheduleByStartTime = lookup(
       schedules,
-      (schedule) => schedule.startTime
+      (schedule) => schedule.startTime,
     );
 
     expect(getScheduleByStartTime(new Date("2023-01-01T09:00:00Z"))).toEqual({
@@ -157,7 +157,7 @@ describe("lookup", () => {
     });
 
     expect(
-      getScheduleByStartTime(new Date("2023-01-03T09:00:00Z"))
+      getScheduleByStartTime(new Date("2023-01-03T09:00:00Z")),
     ).toBeUndefined();
   });
 
@@ -205,7 +205,7 @@ describe("lookup", () => {
 
     // 1 millisecond difference should not match
     expect(
-      getLogByTimestamp(new Date("2023-01-01T10:00:00.002Z"))
+      getLogByTimestamp(new Date("2023-01-01T10:00:00.002Z")),
     ).toBeUndefined();
   });
 });
