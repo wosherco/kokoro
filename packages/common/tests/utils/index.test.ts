@@ -1,6 +1,6 @@
+import { endOfToday, format, startOfToday } from "date-fns";
 import { describe, expect, it } from "vitest";
 import { handleDateOrDatetime } from "../../src/utils";
-import { endOfToday, format, startOfToday } from "date-fns";
 
 describe("handleDateOrDatetime", () => {
   it("should handle datetime", () => {

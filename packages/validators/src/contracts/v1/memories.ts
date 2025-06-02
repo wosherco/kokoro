@@ -118,7 +118,7 @@ const queriedMemorySchema = z.object({
 
       createdAt: z.date(),
       updatedAt: z.date(),
-    })
+    }),
   ),
   isVirtual: z.boolean(),
 });
@@ -162,7 +162,7 @@ export const v1MemoriesRouter = oc.prefix("/memory").router({
         // Sort by
         sortBy: z.enum(MEMORY_SORT_BY).optional(),
         orderBy: z.enum(ORDER_BY).default("desc").optional(),
-      })
+      }),
     )
     .output(z.array(queriedMemorySchema)),
 
@@ -175,7 +175,7 @@ export const v1MemoriesRouter = oc.prefix("/memory").router({
     .input(
       z.object({
         memoryIds: z.array(z.string().uuid()).max(25),
-      })
+      }),
     )
     .output(z.array(queriedMemorySchema)),
 });
