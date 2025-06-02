@@ -1,4 +1,4 @@
-name: Build and Publish Docker Images
+name: Build and Publish
 
 on:
   push:
@@ -195,6 +195,7 @@ jobs:
         with:
           environment: production
           sourcemaps: "apps/server/dist"
+          ignore_missing: true
 
   upload-sourcemaps-consumer:
     runs-on: ubuntu-latest
@@ -220,3 +221,4 @@ jobs:
         with:
           environment: production
           sourcemaps: "apps/consumer/dist"
+          ignore_missing: true
